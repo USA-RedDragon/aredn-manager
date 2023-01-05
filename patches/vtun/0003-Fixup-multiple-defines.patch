@@ -1,0 +1,27 @@
+From c2ed22d0bfa8487928b59f7877f4e433c1e086b0 Mon Sep 17 00:00:00 2001
+From: Jacob McSwain <jacob@mcswain.dev>
+Date: Wed, 4 Jan 2023 18:41:04 -0600
+Subject: [PATCH] Fixup multiple defines
+
+---
+ lfd_encrypt.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lfd_encrypt.c b/lfd_encrypt.c
+index d73bcd7..5c6b209 100644
+--- a/lfd_encrypt.c
++++ b/lfd_encrypt.c
+@@ -64,8 +64,8 @@
+ #define ENC_BUF_SIZE VTUN_FRAME_SIZE + 128 
+ #define ENC_KEY_SIZE 16
+ 
+-BF_KEY key;
+-char * enc_buf;
++extern BF_KEY key;
++extern char * enc_buf;
+ char * dec_buf;
+ 
+ #define CIPHER_INIT		0
+-- 
+2.39.0
+

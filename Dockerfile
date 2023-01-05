@@ -1,37 +1,42 @@
-FROM ubuntu as vtun-builder
+FROM alpine
 
-RUN find /etc/apt/sources.list* -type f -exec sed -i 'p; s/^deb /deb-src /' '{}' +
+# COPY --from=vtun-builder /vtun_3.0.4-2build1_amd64.deb /vtun_3.0.4-2build1_amd64.deb
 
-# Compile vtun because Ubuntu's doesn't compile with HAVE_WORKING_FORK, causing breakages
-RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-        build-essential \
-        fakeroot \
-        dpkg-dev \
-        devscripts \
-    && DEBIAN_FRONTEND=noninteractive apt-get build-dep -y vtun \
-    && DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get source --tar-only --diff-only vtun \
-    && tar xf vtun_*.orig.tar.* \
-    && cd vtun-* \
-    && tar xf ../vtun_*.debian.tar.* \
-    && rm debian/patches/00-sslauth.patch \
-    && sed -i -e '1d' debian/patches/series \
-    && sed -i -e '10,46d' debian/patches/03-signedness-warnings.patch \
-    && sed -i -e 's/ K_SSLAUTH//' debian/patches/07-dual-family-transport.patch \
-    && sed -i -e '39d' debian/patches/07-dual-family-transport.patch \
-    && sed -i -e '36 a\\      vtun.cfg_file = VTUN_CONFIG_FILE;' debian/patches/07-dual-family-transport.patch \
-    && debuild -us -uc -i -I
+COPY patches /patches
 
-FROM ubuntu
+ARG OLSRD_BUILD_DEPS="git build-base linux-headers bison flex"
 
-COPY --from=vtun-builder /vtun_3.0.4-2build1_amd64.deb /vtun_3.0.4-2build1_amd64.deb
+RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq
 
-RUN DEBIAN_FRONTEND=noninteractive apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
-        iproute2 \
-        /vtun_3.0.4-2build1_amd64.deb \
-    && rm -rf /var/lib/apt/lists/* /vtun_3.0.4-2build1_amd64.deb
+RUN sed -i 's/module(load="imklog")//g' /etc/rsyslog.conf
+
+RUN apk add --no-cache ${OLSRD_BUILD_DEPS} \
+    && git clone https://github.com/OLSR/olsrd.git \
+    && cd olsrd \
+    && git checkout v0.9.8 \
+    && for patch in /patches/olsrd/*.patch; do patch -p1 < $patch; done \
+    && make prefix=/usr \
+    && make prefix=/usr install arprefresh_install txtinfo_install jsoninfo_install dot_draw_install watchdog_install nameservice_install \
+    && cd .. \
+    && rm -rf olsrd \
+    && apk del ${OLSRD_BUILD_DEPS}
+
+ARG VTUN_BUILD_DEPS="build-base linux-headers bison flex zlib-dev lzo-dev binutils openssl-dev"
+
+RUN apk add --no-cache ${VTUN_BUILD_DEPS} \
+    && curl -fSsL https://downloads.sourceforge.net/project/vtun/vtun/3.0.3/vtun-3.0.3.tar.gz -o vtun-3.0.3.tar.gz \
+    && tar -xzf vtun-3.0.3.tar.gz \
+    && rm vtun-3.0.3.tar.gz \
+    && cd vtun-3.0.3 \
+    && ./configure --prefix=/usr \
+    && for patch in /patches/vtun/*.patch; do patch -p1 < $patch; done \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf vtun-3.0.3 \
+    && apk del ${VTUN_BUILD_DEPS}
+
+RUN rm -rf /patches
 
 COPY --chown=root:root rootfs /
 

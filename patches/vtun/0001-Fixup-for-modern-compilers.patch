@@ -1,0 +1,38 @@
+From 2ab639651590caa5c3d6662667cb6cf61c1481bc Mon Sep 17 00:00:00 2001
+From: Jacob McSwain <jacob@mcswain.dev>
+Date: Wed, 4 Jan 2023 17:44:09 -0600
+Subject: [PATCH] Fixup for modern compilers
+
+---
+ cfg_file.y | 2 +-
+ vtun.h     | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/cfg_file.y b/cfg_file.y
+index 307ac8d..8552e0e 100644
+--- a/cfg_file.y
++++ b/cfg_file.y
+@@ -609,7 +609,7 @@ int clear_nat_hack_client(void *d, void *u)
+ }
+ 
+ /* Clear the VTUN_NAT_HACK flag which are not relevant to the current operation mode */
+-inline void clear_nat_hack_flags(int svr)
++void clear_nat_hack_flags(int svr)
+ {
+ 	if (svr)
+ 		llist_trav(&host_list,clear_nat_hack_server,NULL);
+diff --git a/vtun.h b/vtun.h
+index a3d6a9c..6b1efed 100644
+--- a/vtun.h
++++ b/vtun.h
+@@ -231,6 +231,6 @@ void client(struct vtun_host *host);
+ int  tunnel(struct vtun_host *host);
+ int  read_config(char *file);
+ struct vtun_host * find_host(char *host);
+-inline void clear_nat_hack_flags(int svr);
++void clear_nat_hack_flags(int svr);
+ 
+ #endif
+-- 
+2.39.0
+
