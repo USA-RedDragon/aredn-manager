@@ -6,7 +6,7 @@ COPY patches /patches
 
 ARG OLSRD_BUILD_DEPS="git build-base linux-headers bison flex"
 
-RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq
+RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq jq gettext
 
 RUN sed -i 's/module(load="imklog")//g' /etc/rsyslog.conf
 
@@ -37,6 +37,9 @@ RUN apk add --no-cache ${VTUN_BUILD_DEPS} \
     && apk del ${VTUN_BUILD_DEPS}
 
 RUN rm -rf /patches
+
+RUN curl -fSsL https://raw.githubusercontent.com/aredn/aredn_packages/3.22.12.0/blockknownencryption/files/20-blockknownencryption -o /usr/bin/blockknownencryption \
+    && chmod +x /usr/bin/blockknownencryption
 
 COPY --chown=root:root rootfs /
 
