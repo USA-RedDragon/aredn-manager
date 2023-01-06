@@ -1,0 +1,6 @@
+.terraformignore
+LICENSE.md
+README.md
+infra/
+.github/
+.git/
