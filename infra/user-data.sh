@@ -8,6 +8,8 @@ apt upgrade -y
 apt install -y docker.io git
 
 systemctl enable --now docker
+systemctl disable --now snapd.service
+systemctl disable --now snap.amazon-ssm-agent.amazon-ssm-agent.service
 
 # Add the ubuntu user to the Docker group
 usermod -aG docker ubuntu
