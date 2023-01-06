@@ -105,6 +105,8 @@ resource "aws_iam_instance_profile" "ec2-cloudwatch-logs" {
 
 resource "aws_cloudwatch_log_group" "log-group" {
   name = var.server-name
+  # Retention in days
+  retention_in_days = 30
 }
 
 resource "aws_instance" "node" {
