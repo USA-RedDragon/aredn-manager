@@ -54,6 +54,7 @@ resource "aws_instance" "node" {
     server_name        = var.server-name
     configuration_json = var.configuration-json
   })
+  user_data_replace_on_change = true
 
   vpc_security_group_ids = [aws_security_group.allow-vpn.id]
 
