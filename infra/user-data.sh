@@ -1,7 +1,6 @@
 #!/bin/sh
 
 # This is Ubuntu 22.04 LTS (Jammy)
-
 apt update
 apt upgrade -y
 apt install -y docker.io
@@ -33,4 +32,6 @@ docker run \
     -p 51820:51820/udp \
     -d \
     --restart unless-stopped \
+    --log-driver=awslogs --log-opt awslogs-region=${region} --log-opt awslogs-group=${awslogs-group} \
+    --log-opt awslogs-create-group=true \
     ghcr.io/usa-reddragon/aredn-virtual-node:main

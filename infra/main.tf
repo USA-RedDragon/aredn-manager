@@ -46,6 +46,67 @@ resource "aws_eip" "ip" {
   vpc      = true
 }
 
+# Create an IAM policy allowing EC2 to create Cloudwatch log entries
+resource "aws_iam_policy" "ec2-cloudwatch-logs" {
+  name        = "${var.server-name}-ec2-cloudwatch-logs"
+  description = "Allow EC2 to create Cloudwatch log entries"
+
+  policy = <<EOF
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "VisualEditor0",
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogStream",
+                "logs:PutLogEvents"
+            ],
+            "Resource": [
+                "arn:aws:logs:${var.region}:*:log-group:${aws_cloudwatch_log_group.log-group.name}",
+                "arn:aws:logs:${var.region}:*:log-group:${aws_cloudwatch_log_group.log-group.name}:log-stream:*"
+            ]
+        }
+    ]
+}
+EOF
+}
+
+# Create an IAM role for EC2 to assume
+resource "aws_iam_role" "ec2-cloudwatch-logs" {
+  name               = "${var.server-name}-ec2-cloudwatch-logs"
+  assume_role_policy = data.aws_iam_policy_document.ec2-cloudwatch-logs.json
+}
+
+# Attach the policy to the role
+resource "aws_iam_role_policy_attachment" "ec2-cloudwatch-logs" {
+  role       = aws_iam_role.ec2-cloudwatch-logs.name
+  policy_arn = aws_iam_policy.ec2-cloudwatch-logs.arn
+}
+
+# Create a policy document allowing EC2 to assume the role
+data "aws_iam_policy_document" "ec2-cloudwatch-logs" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+  }
+}
+
+# Create an instance profile for EC2 to assume
+resource "aws_iam_instance_profile" "ec2-cloudwatch-logs" {
+  name = "${var.server-name}-ec2-cloudwatch-logs"
+  role = aws_iam_role.ec2-cloudwatch-logs.name
+}
+
+resource "aws_cloudwatch_log_group" "log-group" {
+  name = var.server-name
+}
+
 resource "aws_instance" "node" {
   ami           = data.aws_ami.ubuntu-jammy.id
   instance_type = var.instance-type
@@ -55,10 +116,14 @@ resource "aws_instance" "node" {
     configuration_json    = var.configuration-json
     wireguard_tap_address = var.wireguard_tap_address
     num_wireguard_peers   = var.number_of_wireguard_peers
+    region                = var.region
+    awslogs-group         = aws_cloudwatch_log_group.log-group.name
   })
   user_data_replace_on_change = true
 
   vpc_security_group_ids = [aws_security_group.allow-vpn.id]
+
+  iam_instance_profile = aws_iam_instance_profile.ec2-cloudwatch-logs.name
 
   key_name = aws_key_pair.key.key_name
 

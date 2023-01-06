@@ -44,6 +44,7 @@ if [ -n "$NUM_WIREGUARD_PEERS" ] && [ "$NUM_WIREGUARD_PEERS" -gt 0 ]; then
     done
 
     chmod 400 /etc/wireguard/keys/*
+    chmod 400 /etc/wireguard/*.conf
 
     wg set wg0 listen-port 51820 private-key /etc/wireguard/keys/server.key
 
@@ -89,6 +90,8 @@ for CLIENT in $CLIENTS; do
         # Cross-talk between tun and wg0
         iptables -A FORWARD -i wg0 -o tun$TUN -j ACCEPT
         iptables -A FORWARD -i tun$TUN -o wg0 -j ACCEPT
+
+        ip link set wg0 up
     fi
 
     # No internet access for the tunnels
