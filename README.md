@@ -14,10 +14,12 @@ It should be noted that in a disaster situation, it's likely that the internet w
 
 Environment variables are used in order to generate the appropriate configuration files and to not save passwords.
 
-| Environment Variable | Default |                     Purpose                     |
-| -------------------- | ------- | ----------------------------------------------- |
-| `SERVER_NAME`        | empty   | Provides the server name as seen in mesh status |
-| `CONFIGURATION_JSON` | `{}`    | Provides the configuration, documented below    |
+|  Environment Variable   |                                  Purpose                                  |
+| ----------------------- | ------------------------------------------------------------------------- |
+| `SERVER_NAME`           | Provides the server name as seen in mesh status                           |
+| `CONFIGURATION_JSON`    | Provides the configuration, documented below                              |
+| `NUM_WIREGUARD_PEERS`   | The number of WireGuard peers to create                                   |
+| `WIREGUARD_TAP_ADDRESS` | The AREDN address to use for the WireGuard interface to tap into the mesh |
 
 ## Configuration Format
 

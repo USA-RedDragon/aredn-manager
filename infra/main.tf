@@ -51,8 +51,10 @@ resource "aws_instance" "node" {
   instance_type = var.instance-type
 
   user_data = templatefile("${path.module}/user-data.sh", {
-    server_name        = var.server-name
-    configuration_json = var.configuration-json
+    server_name           = var.server-name
+    configuration_json    = var.configuration-json
+    wireguard_tap_address = var.wireguard_tap_address
+    num_wireguard_peers   = var.number_of_wireguard_peers
   })
   user_data_replace_on_change = true
 
@@ -89,6 +91,13 @@ resource "aws_security_group" "allow-vpn" {
     from_port   = 5525
     to_port     = 5525
     protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    from_port   = 51820
+    to_port     = 51820
+    protocol    = "udp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 

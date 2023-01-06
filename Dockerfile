@@ -1,12 +1,10 @@
 FROM alpine
 
-# COPY --from=vtun-builder /vtun_3.0.4-2build1_amd64.deb /vtun_3.0.4-2build1_amd64.deb
-
 COPY patches /patches
 
 ARG OLSRD_BUILD_DEPS="git build-base linux-headers bison flex"
 
-RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq jq gettext
+RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq jq gettext wireguard-tools
 
 RUN sed -i 's/module(load="imklog")//g' /etc/rsyslog.conf
 

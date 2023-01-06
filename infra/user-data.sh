@@ -25,9 +25,12 @@ docker run \
     --privileged \
     -e CONFIGURATION_JSON='${configuration_json}' \
     -e SERVER_NAME=${server_name} \
+    -e WIREGUARD_TAP_ADDRESS=${wireguard_tap_address} \
+    -e NUM_WIREGUARD_PEERS=${num_wireguard_peers} \
     --device /dev/net/tun \
     --name ${server_name} \
     -p 5525:5525 \
+    -p 51820:51820/udp \
     -d \
     --restart unless-stopped \
     ghcr.io/usa-reddragon/aredn-virtual-node:main

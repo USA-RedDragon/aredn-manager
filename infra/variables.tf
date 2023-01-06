@@ -37,3 +37,13 @@ variable "subdomain" {
   default     = "aredn-cloud-node"
   description = "The subdomain to use for the infrastructure"
 }
+
+variable "wireguard_tap_address" {
+  default     = "10.184.4.136"
+  description = "The AREDN address to use for the WireGuard interface to tap into the mesh"
+}
+
+variable "number_of_wireguard_peers" {
+  default     = 2
+  description = "The number of WireGuard peers to create"
+}
