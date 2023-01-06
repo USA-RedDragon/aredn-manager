@@ -1,7 +1,10 @@
 name: Terraform
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Docker"]
+    types:
+      - completed
   pull_request:
 
 jobs:
@@ -65,5 +68,5 @@ jobs:
         run: exit 1
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.ref == 'refs/heads/main' && github.event_name == 'workflow_run'
         run: cd infra && terraform apply -auto-approve -input=false
