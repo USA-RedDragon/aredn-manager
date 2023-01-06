@@ -43,7 +43,12 @@ variable "wireguard_tap_address" {
   description = "The AREDN address to use for the WireGuard interface to tap into the mesh"
 }
 
-variable "number_of_wireguard_peers" {
-  default     = 2
-  description = "The number of WireGuard peers to create"
+variable "wireguard_peer_publickey" {
+  description = "The public key of the WireGuard peer"
+  sensitive   = true
+}
+
+variable "wireguard_server_privatekey" {
+  description = "The private key of the WireGuard server"
+  sensitive   = true
 }

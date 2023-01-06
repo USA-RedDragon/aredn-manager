@@ -17,7 +17,7 @@ if [ -z "$SERVER_NAME" ]; then
 fi
 
 # If NUM_WIREGUARD_PEERS is set and greater than 0
-if [ -n "$NUM_WIREGUARD_PEERS" ] && [ "$NUM_WIREGUARD_PEERS" -gt 0 ]; then
+if ! [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
     ip link add dev wg0 type wireguard
     ip address add dev wg0 ${WIREGUARD_TAP_ADDRESS}/32
     if [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
@@ -27,24 +27,12 @@ if [ -n "$NUM_WIREGUARD_PEERS" ] && [ "$NUM_WIREGUARD_PEERS" -gt 0 ]; then
 
     mkdir -p /etc/wireguard/keys
 
-    wg genkey | tee /etc/wireguard/keys/server.key | wg pubkey > /etc/wireguard/keys/server.pub
+    echo "${WIREGUARD_SERVER_PRIVATEKEY}" | tee /etc/wireguard/keys/server.key | wg pubkey > /etc/wireguard/keys/server.pub
 
-    # For each peer, create a private key and save it into /etc/wireguard/keys/peer-<peer number>.key
-    export WIREGUARD_TMP_ADDRESS=$WIREGUARD_TAP_ADDRESS
-    for i in $(seq 1 $NUM_WIREGUARD_PEERS); do
-        wg genkey | tee /etc/wireguard/keys/peer-$i.key | wg pubkey > /etc/wireguard/keys/peer-$i.pub
-        export WG_TAP_PLUS_I=$(echo $WIREGUARD_TMP_ADDRESS | awk -F. '{print $1"."$2"."$3"."$4+1}')
-        export WIREGUARD_TMP_ADDRESS=$WG_TAP_PLUS_I
-        wg set wg0 peer $(cat /etc/wireguard/keys/peer-$i.pub) allowed-ips $WG_TAP_PLUS_I/32,10.0.0.0/8
-
-        export PRIVATE_KEY=$(cat /etc/wireguard/keys/peer-$i.key)
-        export PEER_ADDRESS=$WG_TAP_PLUS_I
-        export PUBLIC_KEY=$(cat /etc/wireguard/keys/server.pub)
-        envsubst < /tpl/wireguard-peer.conf > /etc/wireguard/peer-$i.conf
-    done
+    export WG_TAP_PLUS_1=$(echo $WIREGUARD_TAP_ADDRESS | awk -F. '{print $1"."$2"."$3"."$4+1}')
+    wg set wg0 peer ${WIREGUARD_PEER_PUBLICKEY} allowed-ips $WG_TAP_PLUS_1/8,10.0.0.0/8
 
     chmod 400 /etc/wireguard/keys/*
-    chmod 400 /etc/wireguard/*.conf
 
     wg set wg0 listen-port 51820 private-key /etc/wireguard/keys/server.key
 
@@ -82,7 +70,7 @@ for CLIENT in $CLIENTS; do
     LATEST_CONFIG="$(envsubst < /tpl/client.conf)"
     export CLIENT_CONFIGS=$(echo -e "$CLIENT_CONFIGS\n\n$LATEST_CONFIG")
 
-    if [ -n "$NUM_WIREGUARD_PEERS" ] && [ "$NUM_WIREGUARD_PEERS" -gt 0 ]; then
+    if ! [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
         # Allowing all active and related connections
         iptables -A FORWARD -i wg0 -o tun$TUN -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
         iptables -A FORWARD -i tun$TUN -o wg0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT

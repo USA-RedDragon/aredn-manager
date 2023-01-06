@@ -114,12 +114,13 @@ resource "aws_instance" "node" {
   instance_type = var.instance-type
 
   user_data = templatefile("${path.module}/user-data.sh", {
-    server_name           = var.server-name
-    configuration_json    = var.configuration-json
-    wireguard_tap_address = var.wireguard_tap_address
-    num_wireguard_peers   = var.number_of_wireguard_peers
-    region                = var.region
-    awslogs-group         = aws_cloudwatch_log_group.log-group.name
+    server_name                 = var.server-name
+    configuration_json          = var.configuration-json
+    wireguard_tap_address       = var.wireguard_tap_address
+    region                      = var.region
+    awslogs-group               = aws_cloudwatch_log_group.log-group.name
+    wireguard_peer_publickey    = var.wireguard_peer_publickey
+    wireguard_server_privatekey = var.wireguard_server_privatekey
   })
   user_data_replace_on_change = true
 
