@@ -19,7 +19,7 @@ fi
 # If NUM_WIREGUARD_PEERS is set and greater than 0
 if [ -n "$NUM_WIREGUARD_PEERS" ] && [ "$NUM_WIREGUARD_PEERS" -gt 0 ]; then
     ip link add dev wg0 type wireguard
-    ip address add dev wg0 ${WIREGUARD_TAP_ADDRESS}/8
+    ip address add dev wg0 ${WIREGUARD_TAP_ADDRESS}/32
     if [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
         echo "No WireGuard address provided, exiting"
         exit 1
@@ -35,7 +35,7 @@ if [ -n "$NUM_WIREGUARD_PEERS" ] && [ "$NUM_WIREGUARD_PEERS" -gt 0 ]; then
         wg genkey | tee /etc/wireguard/keys/peer-$i.key | wg pubkey > /etc/wireguard/keys/peer-$i.pub
         export WG_TAP_PLUS_I=$(echo $WIREGUARD_TMP_ADDRESS | awk -F. '{print $1"."$2"."$3"."$4+1}')
         export WIREGUARD_TMP_ADDRESS=$WG_TAP_PLUS_I
-        wg set wg0 peer $(cat /etc/wireguard/keys/peer-$i.pub) allowed-ips $WG_TAP_PLUS_I/32
+        wg set wg0 peer $(cat /etc/wireguard/keys/peer-$i.pub) allowed-ips $WG_TAP_PLUS_I/32,10.0.0.0/8
 
         export PRIVATE_KEY=$(cat /etc/wireguard/keys/peer-$i.key)
         export PEER_ADDRESS=$WG_TAP_PLUS_I
@@ -52,6 +52,9 @@ if [ -n "$NUM_WIREGUARD_PEERS" ] && [ "$NUM_WIREGUARD_PEERS" -gt 0 ]; then
     # No internet access for the VPN clients
     iptables -A FORWARD -i wg0 -o eth0 -j REJECT
     iptables -A FORWARD -i eth0 -o wg0 -j REJECT
+
+    iptables -t mangle -A PREROUTING -i wg0 -j MARK --set-mark 0x30
+    iptables -t nat -A POSTROUTING ! -o wg0 -m mark --mark 0x30 -j MASQUERADE
 fi
 
 # Here is an exmaple of a configuration JSON
