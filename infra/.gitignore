@@ -1,0 +1,5 @@
+.terraform/
+*.auto.tfvars
+*.tfstate
+*.tfstate.*
+*.pem
