@@ -30,7 +30,8 @@ if ! [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
     echo "${WIREGUARD_SERVER_PRIVATEKEY}" | tee /etc/wireguard/keys/server.key | wg pubkey > /etc/wireguard/keys/server.pub
 
     export WG_TAP_PLUS_1=$(echo $WIREGUARD_TAP_ADDRESS | awk -F. '{print $1"."$2"."$3"."$4+1}')
-    wg set wg0 peer ${WIREGUARD_PEER_PUBLICKEY} allowed-ips $WG_TAP_PLUS_1/8,10.0.0.0/8
+    wg set wg0 peer ${WIREGUARD_PEER_PUBLICKEY} allowed-ips 10.0.0.0/8
+    ip route add $WG_TAP_PLUS_1/32 dev wg0
 
     chmod 400 /etc/wireguard/keys/*
 
