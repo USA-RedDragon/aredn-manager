@@ -36,3 +36,4 @@ docker run \
     --log-driver=awslogs --log-opt awslogs-region=${region} --log-opt awslogs-group=${awslogs-group} \
     --log-opt awslogs-create-group=true \
     ghcr.io/usa-reddragon/aredn-virtual-node:main
+
