@@ -3,3 +3,4 @@ Dockerfile
 rootfs/
 patches/
 .github/
+LICENSE.md
