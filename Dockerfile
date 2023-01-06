@@ -23,12 +23,13 @@ RUN apk add --no-cache ${OLSRD_BUILD_DEPS} \
 
 ARG VTUN_BUILD_DEPS="build-base linux-headers bison flex zlib-dev lzo-dev binutils openssl-dev"
 
+# --build=unknown-unknown-linux is magic for cross-compiling
 RUN apk add --no-cache ${VTUN_BUILD_DEPS} \
     && curl -fSsL https://downloads.sourceforge.net/project/vtun/vtun/3.0.3/vtun-3.0.3.tar.gz -o vtun-3.0.3.tar.gz \
     && tar -xzf vtun-3.0.3.tar.gz \
     && rm vtun-3.0.3.tar.gz \
     && cd vtun-3.0.3 \
-    && ./configure --prefix=/usr \
+    && ./configure --prefix=/usr --build=unknown-unknown-linux \
     && for patch in /patches/vtun/*.patch; do patch -p1 < $patch; done \
     && make \
     && make install \
