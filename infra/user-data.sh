@@ -28,4 +28,5 @@ docker run \
     --name ${server_name} \
     -p 5525:5525 \
     -d \
+    --restart unless-stopped \
     aredn-virtual-node
