@@ -16,6 +16,8 @@ if [ -z "$SERVER_NAME" ]; then
     exit 1
 fi
 
+nginx -g 'daemon off;' &
+
 # If NUM_WIREGUARD_PEERS is set and greater than 0
 if ! [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
     export WG_TAP_PLUS_1=$(echo $WIREGUARD_TAP_ADDRESS | awk -F. '{print $1"."$2"."$3"."$4+1}')

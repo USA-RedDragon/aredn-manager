@@ -4,7 +4,7 @@ COPY patches /patches
 
 ARG OLSRD_BUILD_DEPS="git build-base linux-headers bison flex"
 
-RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq jq gettext wireguard-tools
+RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq jq gettext wireguard-tools nginx
 
 RUN sed -i 's/module(load="imklog")//g' /etc/rsyslog.conf
 
