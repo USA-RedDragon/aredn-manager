@@ -37,7 +37,7 @@ The configuration is a JSON document including a list of the tunnel client's hos
 
 ## How to use
 
-This project runs in a Docker container. You can install Docker from here: <https://docs.docker.com/get-docker/>. 
+This project runs in a Docker container. You can install Docker from here: <https://docs.docker.com/get-docker/>.
 
 ### Building the container
 

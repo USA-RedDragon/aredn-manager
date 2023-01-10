@@ -12,7 +12,7 @@ RUN apk add --no-cache ${OLSRD_BUILD_DEPS} \
     && git clone https://github.com/OLSR/olsrd.git \
     && cd olsrd \
     && git checkout v0.9.8 \
-    && for patch in /patches/olsrd/*.patch; do git am $patch; done \
+    && for patch in /patches/olsrd/*.patch; do echo "Applying patch: $patch" ; patch -p1 < $patch; done \
     && make prefix=/usr \
     && make prefix=/usr install arprefresh_install txtinfo_install jsoninfo_install dot_draw_install watchdog_install nameservice_install \
     && cd .. \
