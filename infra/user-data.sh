@@ -22,12 +22,17 @@ docker network create --subnet=10.54.25.0/24 aredn-net
 
 LOGGING="--log-driver=awslogs --log-opt awslogs-region=${region} --log-opt awslogs-group=${awslogs-group} --log-opt awslogs-create-group=true"
 
-# mkdir -p /docker-data
-# mkfs.ext4 /dev/sdf
-# mount -t ext4 /dev/sdf /docker-data
-# mkdir -p /docker-data/netdata
-# chown root:995 /docker-data/netdata
-# chmod g+w /docker-data/netdata
+mkdir -p /docker-data
+
+# Try to mount /dev/sdf first, then if it fails, format it
+if ! mount -t ext4 /dev/nvme1n1 /docker-data; then
+    mkfs.ext4 /dev/nvme1n1
+    mount -t ext4 /dev/nvme1n1 /docker-data
+fi
+
+mkdir -p /docker-data/netdata
+chown -R root:201 /docker-data/netdata
+chmod -R g+w /docker-data/netdata
 
 # Run the Docker image
 docker run \
@@ -65,7 +70,6 @@ docker run \
     openspeedtest/latest
 
 docker run \
-    -e PGID=995 \
     --network=container:${server_name} \
     -v /etc/passwd:/host/etc/passwd:ro \
     -v /etc/group:/host/etc/group:ro \
