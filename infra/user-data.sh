@@ -18,6 +18,17 @@ usermod -aG docker ubuntu
 # Clone this repo
 docker pull ghcr.io/usa-reddragon/aredn-virtual-node:main
 
+docker network create --subnet=10.54.25.0/24 aredn-net
+
+LOGGING="--log-driver=awslogs --log-opt awslogs-region=${region} --log-opt awslogs-group=${awslogs-group} --log-opt awslogs-create-group=true"
+
+# mkdir -p /docker-data
+# mkfs.ext4 /dev/sdf
+# mount -t ext4 /dev/sdf /docker-data
+# mkdir -p /docker-data/netdata
+# chown root:995 /docker-data/netdata
+# chmod g+w /docker-data/netdata
+
 # Run the Docker image
 docker run \
     --cap-add=NET_ADMIN \
@@ -33,7 +44,41 @@ docker run \
     -p 51820:51820/udp \
     -d \
     --restart unless-stopped \
-    --log-driver=awslogs --log-opt awslogs-region=${region} --log-opt awslogs-group=${awslogs-group} \
-    --log-opt awslogs-create-group=true \
+    $LOGGING \
+    --net aredn-net --ip 10.54.25.2 \
     ghcr.io/usa-reddragon/aredn-virtual-node:main
 
+docker run \
+    -d \
+    --name watchtower \
+    $LOGGING \
+    -v /var/run/docker.sock:/var/run/docker.sock \
+    --restart=unless-stopped \
+    containrrr/watchtower
+
+docker run \
+    --restart=unless-stopped \
+    --name openspeedtest \
+    $LOGGING \
+    -d \
+    --network=container:${server_name} \
+    openspeedtest/latest
+
+docker run \
+    -e PGID=995 \
+    --network=container:${server_name} \
+    -v /etc/passwd:/host/etc/passwd:ro \
+    -v /etc/group:/host/etc/group:ro \
+    -v /proc:/host/proc:ro \
+    -v /sys:/host/sys:ro \
+    -v /etc/os-release:/host/etc/os-release:ro \
+    --restart unless-stopped \
+    --cap-add SYS_PTRACE \
+    --security-opt apparmor=unconfined \
+    -d \
+    -v /docker-data/netdata/etc:/etc/netdata \
+    -v /docker-data/netdata/var:/var/lib/netdata \
+    -v /docker-data/netdata/cache:/var/cache/netdata \
+    $LOGGING \
+    --name netdata \
+    netdata/netdata

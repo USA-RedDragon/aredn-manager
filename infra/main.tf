@@ -109,6 +109,22 @@ resource "aws_cloudwatch_log_group" "log-group" {
   retention_in_days = 30
 }
 
+# Add a persistent ebs gp2 volume of 8GB
+resource "aws_ebs_volume" "ebs" {
+  size              = 8
+  type              = "gp2"
+  availability_zone = "${var.region}a"
+  encrypted         = true
+  final_snapshot    = true
+}
+
+resource "aws_volume_attachment" "ebs_att" {
+  device_name                    = "/dev/sdf"
+  volume_id                      = aws_ebs_volume.ebs.id
+  instance_id                    = aws_instance.node.id
+  stop_instance_before_detaching = true
+}
+
 resource "aws_instance" "node" {
   ami           = data.aws_ami.ubuntu-jammy.id
   instance_type = var.instance-type
@@ -129,6 +145,8 @@ resource "aws_instance" "node" {
   iam_instance_profile = aws_iam_instance_profile.ec2-cloudwatch-logs.name
 
   key_name = aws_key_pair.key.key_name
+
+  availability_zone = "${var.region}a"
 
   root_block_device {
     volume_type = "gp2"
