@@ -1,0 +1,29 @@
+From 47867dbdd332c99ec89eba2f7885172cd92d5a1e Mon Sep 17 00:00:00 2001
+From: Jacob McSwain <jacob@mcswain.dev>
+Date: Tue, 10 Jan 2023 11:56:01 -0600
+Subject: [PATCH 05/11] nameservice tabfix
+
+---
+ lib/nameservice/src/nameservice.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/lib/nameservice/src/nameservice.c b/lib/nameservice/src/nameservice.c
+index 629020dc..e6dd8b75 100644
+--- a/lib/nameservice/src/nameservice.c
++++ b/lib/nameservice/src/nameservice.c
+@@ -1261,10 +1261,10 @@ write_services_file(bool writemacs)
+       if (entry) {
+         for (name = entry->names; name != NULL; name = name->next) {
+           struct ipaddr_str strbuf;
+-          OLSR_PRINTF(6, "%s\t", name->name);
++          OLSR_PRINTF(6, "%s", name->name);
+           OLSR_PRINTF(6, "\t#%s\n", olsr_ip_to_string(&strbuf, &entry->originator));
+ 
+-          fprintf(file, "%s\t", name->name);
++          fprintf(file, "%s", name->name);
+           fprintf(file, "\t#%s\n", olsr_ip_to_string(&strbuf, &entry->originator));
+         }
+       }
+-- 
+2.39.0
+

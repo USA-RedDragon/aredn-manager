@@ -1,7 +1,7 @@
-From fe0542c6fcc91417fbbf94028282bf5872267b9f Mon Sep 17 00:00:00 2001
+From db397b1a422249dbae788576c59e081ccb54d6e2 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Wed, 4 Jan 2023 16:46:59 -0600
-Subject: [PATCH] [PATCH] olsrd: migrate to using bison 3.7.1
+Subject: [PATCH 01/11] olsrd: migrate to using bison 3.7.1
 
 With the upgrade to bison 3.7.1 (openwrt commit 1cf842d) building
 olsrd was failing.  Now, instead of the contents of header files
@@ -18,7 +18,7 @@ src/cfgparser/oparse.c:265:10: fatal error: oparse.h-tmp: No such file or direct
  1 file changed, 2 insertions(+), 6 deletions(-)
 
 diff --git a/src/cfgparser/local.mk b/src/cfgparser/local.mk
-index e767abfc5..56e594e4b 100644
+index e767abfc..56e594e4 100644
 --- a/src/cfgparser/local.mk
 +++ b/src/cfgparser/local.mk
 @@ -74,12 +74,8 @@ $(C)oparse.c: $(C)oparse.y $(C)olsrd_conf.h $(C)Makefile
