@@ -66,6 +66,12 @@ Replace `CONFIGURATION_JSON` with the configuration, `SERVER_NAME` with the desi
 docker logs DESIRED_NAME
 ```
 
+## Updating Patches
+
+This is just a small note to myself documenting the command to update the patches.
+
+`git format-patch --output-directory ../patches/olsrd v0.9.8..HEAD`
+
 ## Future Work
 
 * Add the ability to provide a service to the mesh
