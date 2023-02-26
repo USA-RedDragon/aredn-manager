@@ -1,7 +1,7 @@
-From 37b18e6b531eb4010ecd0967b49c6c97cdeef13c Mon Sep 17 00:00:00 2001
+From 96db56f7474faf188d973e2b1113285530af432e Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 11:53:21 -0600
-Subject: [PATCH 02/11] BBHN UI enhancements
+Subject: [PATCH 02/12] BBHN UI enhancements
 
 ---
  lib/httpinfo/src/olsrd_httpinfo.c | 153 ++++++++++++++++++++++--------
@@ -271,5 +271,5 @@ index 9eb795f6..f03e0962 100644
   * Local Variables:
   * c-basic-offset: 2
 -- 
-2.39.0
+2.39.2
 

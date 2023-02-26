@@ -1,7 +1,7 @@
-From db397b1a422249dbae788576c59e081ccb54d6e2 Mon Sep 17 00:00:00 2001
+From 667b54efb739c99f20da942d5a1c08a2a39c312a Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Wed, 4 Jan 2023 16:46:59 -0600
-Subject: [PATCH 01/11] olsrd: migrate to using bison 3.7.1
+Subject: [PATCH 01/12] olsrd: migrate to using bison 3.7.1
 
 With the upgrade to bison 3.7.1 (openwrt commit 1cf842d) building
 olsrd was failing.  Now, instead of the contents of header files
@@ -37,5 +37,5 @@ index e767abfc..56e594e4 100644
  $(C)oparse.o: CFLAGS := $(filter-out -Wunreachable-code,$(CFLAGS))
  
 -- 
-2.39.0
+2.39.2
 

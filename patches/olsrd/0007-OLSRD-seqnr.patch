@@ -1,7 +1,7 @@
-From 7f9ab76ba52ae63acf02c621103de0f83ad62d6d Mon Sep 17 00:00:00 2001
+From 19eaf9a6ebe9cf0ef0c50130a54305e955fabd89 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 11:59:46 -0600
-Subject: [PATCH 07/11] OLSRD seqnr
+Subject: [PATCH 07/12] OLSRD seqnr
 
 ---
  src/duplicate_set.c | 16 ++++++++--------
@@ -79,5 +79,5 @@ index ffd990af..eb50d982 100644
    uint32_t valid_until;
  };
 -- 
-2.39.0
+2.39.2
 

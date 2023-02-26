@@ -1,7 +1,7 @@
-From e6daeb94b6f2b37ab2b2646af2bc24785cbcaac0 Mon Sep 17 00:00:00 2001
+From 2558d4f6ca62c7c5b72c1f3b93f5e7aac6cf9f2c Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 11:54:32 -0600
-Subject: [PATCH 04/11] nameservice fixup
+Subject: [PATCH 04/12] nameservice fixup
 
 ---
  lib/nameservice/src/nameservice.c | 34 ++++++++++++++++++++++++++++++-
@@ -71,5 +71,5 @@ index 636e351b..629020dc 100644
        OLSR_PRINTF(4, "NAME PLUGIN: received forwarder entry %s (%s) already in hash table\n", name,
                    olsr_ip_to_string(&strbuf, &already_saved_name_entries->ip));
 -- 
-2.39.0
+2.39.2
 

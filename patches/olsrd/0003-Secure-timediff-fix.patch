@@ -1,7 +1,7 @@
-From 532652e2b48165b185bf37b75cebb471df9974d3 Mon Sep 17 00:00:00 2001
+From e6f302d650f70b523eafcfadf0059000d5544b68 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 11:54:00 -0600
-Subject: [PATCH 03/11] Secure timediff fix
+Subject: [PATCH 03/12] Secure timediff fix
 
 ---
  lib/secure/src/olsrd_secure.c | 13 +++++++++++--
@@ -72,5 +72,5 @@ index b01be5c6..9ec70e56 100644
  extern char aes_key[16];
  
 -- 
-2.39.0
+2.39.2
 
