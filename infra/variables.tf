@@ -52,3 +52,8 @@ variable "wireguard_server_privatekey" {
   description = "The private key of the WireGuard server"
   sensitive   = true
 }
+
+variable "map-config-json" {
+  sensitive   = true
+  description = "The map configuration JSON for the server"
+}

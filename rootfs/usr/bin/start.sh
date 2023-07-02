@@ -16,6 +16,17 @@ if [ -z "$SERVER_NAME" ]; then
     exit 1
 fi
 
+if [ -z "$MAP_CONFIG" ]; then
+    echo "No meshmap configuration JSON provided, exiting"
+    exit 1
+fi
+
+echo "$MAP_CONFIG" > /meshmap/public/appConfig.json
+
+cd /meshmap \
+&& npm run build \
+&& cp -r /meshmap/build/* /www/map
+
 nginx -g 'daemon off;' &
 
 # If NUM_WIREGUARD_PEERS is set and greater than 0

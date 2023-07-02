@@ -1,10 +1,21 @@
 FROM alpine
 
+RUN touch /var/log/messages
+
+RUN mkdir -p /www/map
+RUN chmod a+x /www/map
+
 COPY patches /patches
 
 ARG OLSRD_BUILD_DEPS="git build-base linux-headers bison flex"
 
-RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq jq gettext wireguard-tools nginx
+RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq jq gettext wireguard-tools nginx nodejs npm git
+
+RUN git clone https://github.com/kn6plv/MeshMap.git /meshmap \
+    && cd /meshmap \
+    && npm install
+
+ENV NODE_OPTIONS=--openssl-legacy-provider
 
 RUN sed -i 's/module(load="imklog")//g' /etc/rsyslog.conf
 

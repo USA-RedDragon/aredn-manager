@@ -132,6 +132,7 @@ resource "aws_instance" "node" {
   user_data = templatefile("${path.module}/user-data.sh", {
     server_name                 = var.server-name
     configuration_json          = var.configuration-json
+    map_config_json             = var.map-config-json
     wireguard_tap_address       = var.wireguard_tap_address
     region                      = var.region
     awslogs-group               = aws_cloudwatch_log_group.log-group.name

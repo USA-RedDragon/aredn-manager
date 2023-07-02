@@ -39,6 +39,7 @@ docker run \
     --cap-add=NET_ADMIN \
     --privileged \
     -e CONFIGURATION_JSON='${configuration_json}' \
+    -e MAP_CONFIG='${map_config_json}' \
     -e SERVER_NAME=${server_name} \
     -e WIREGUARD_TAP_ADDRESS=${wireguard_tap_address} \
     -e WIREGUARD_PEER_PUBLICKEY=${wireguard_peer_publickey} \
