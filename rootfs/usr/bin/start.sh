@@ -25,7 +25,8 @@ echo "$MAP_CONFIG" > /meshmap/public/appConfig.json
 
 cd /meshmap \
 && npm run build \
-&& cp -r /meshmap/build/* /www/map
+&& cp -r /meshmap/build/* /www/map \
+&& cd -
 
 nginx -g 'daemon off;' &
 
@@ -108,8 +109,6 @@ export TUNNELS=$(envsubst < /tpl/olsrd-tunnel.conf)
 
 mkdir -p /etc/olsrd/
 envsubst < /tpl/olsrd.conf > /etc/olsrd/olsrd.conf
-
-rsyslogd
 
 cat <<EOF > /tmp/resolv.conf.auto
 nameserver 1.1.1.1
