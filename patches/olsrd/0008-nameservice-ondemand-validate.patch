@@ -1,7 +1,7 @@
-From 73bd10f0d85baceedcfd3fef79b9d65d68a114dd Mon Sep 17 00:00:00 2001
+From e23b69c4f496d9ec944816556ea5863fc56cc3b4 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 12:00:33 -0600
-Subject: [PATCH 08/12] nameservice ondemand validate
+Subject: [PATCH 08/15] nameservice ondemand validate
 
 ---
  lib/nameservice/src/nameservice.c | 93 +++++++++++++++++--------------
@@ -176,5 +176,5 @@ index b1ea1c90..53ae49fc 100644
  
  void free_all_list_entries(struct list_node *);
 -- 
-2.39.2
+2.41.0
 

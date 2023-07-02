@@ -1,7 +1,7 @@
-From 1d17128b97dd6d0d711167b45744ba09166950cf Mon Sep 17 00:00:00 2001
+From a97c82aebdf721f15902c208584770b956dbe5de Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 12:00:56 -0600
-Subject: [PATCH 09/12] nameservice bigmessage
+Subject: [PATCH 09/15] nameservice bigmessage
 
 ---
  lib/nameservice/src/nameservice.c | 153 ++++++++++++++++++++----------
@@ -239,5 +239,5 @@ index 53ae49fc..5e2096e0 100644
  struct name_entry *add_name_to_list(struct name_entry *my_list, const char *value, int type, const union olsr_ip_addr *ip);
  
 -- 
-2.39.2
+2.41.0
 

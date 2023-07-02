@@ -72,6 +72,8 @@ This is just a small note to myself documenting the command to update the patche
 
 `git format-patch --output-directory ../patches/olsrd v0.9.8..HEAD`
 
+Patches sourced from: <https://github.com/aredn/aredn_packages/tree/develop/net/olsrd/patches> and <https://github.com/aredn/aredn_packages/tree/develop/net/vtun/patches>
+
 ## Future Work
 
 * Add the ability to provide a service to the mesh

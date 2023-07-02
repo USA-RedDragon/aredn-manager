@@ -1,7 +1,7 @@
-From 0ff1f246f228b8e7b866b2f0d7c791262574a75c Mon Sep 17 00:00:00 2001
+From 2ebbe3b85e33cc46b0f1ccb2302f88dff46611ea Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Sun, 26 Feb 2023 17:04:05 -0600
-Subject: [PATCH 12/12] Fix bug when handling substring service hostnames
+Subject: [PATCH 12/15] Fix bug when handling substring service hostnames
 
 The string comparison used to check incoming hostname was actually doing a substring comparison.
 ---
@@ -57,5 +57,5 @@ index 641b27fa..f8738431 100644
                      olsr_ip_to_string(&strbuf, &already_saved_name_entries->ip));
          free(already_saved_name_entries->name);
 -- 
-2.39.2
+2.41.0
 

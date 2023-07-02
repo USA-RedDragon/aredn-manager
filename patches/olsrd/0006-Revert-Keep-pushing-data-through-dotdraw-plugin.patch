@@ -1,7 +1,7 @@
-From a1d884a235de1677dcb2e3ae385beb08e5449612 Mon Sep 17 00:00:00 2001
+From b051f13ffc8efe537a31b036ed2cb146ffbe675f Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 11:58:35 -0600
-Subject: [PATCH 06/12] Revert: Keep pushing data through dotdraw plugin
+Subject: [PATCH 06/15] Revert: Keep pushing data through dotdraw plugin
 
 ---
  lib/dot_draw/src/olsrd_dot_draw.c | 10 +++++++++-
@@ -36,5 +36,5 @@ index 4b11615f..c8c810c8 100644
  
  /**
 -- 
-2.39.2
+2.41.0
 
