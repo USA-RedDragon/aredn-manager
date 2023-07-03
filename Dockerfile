@@ -11,9 +11,9 @@ ARG OLSRD_BUILD_DEPS="git build-base linux-headers bison flex"
 
 RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq jq gettext wireguard-tools nginx nodejs npm git
 
-RUN git clone https://github.com/kn6plv/MeshMap.git /meshmap \
+RUN git clone https://github.com/USA-RedDragon/MeshMap.git /meshmap \
     && cd /meshmap \
-    && npm install
+    && npm ci
 
 ENV NODE_OPTIONS=--openssl-legacy-provider
 

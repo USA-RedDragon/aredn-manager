@@ -23,10 +23,10 @@ fi
 
 echo "$MAP_CONFIG" > /meshmap/public/appConfig.json
 
-cd /meshmap \
-&& npm run build \
-&& cp -r /meshmap/build/* /www/map \
-&& cd -
+cd /meshmap
+npm run build
+cp -r /meshmap/build/* /www/map
+cd -
 
 nginx -g 'daemon off;' &
 
