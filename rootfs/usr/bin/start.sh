@@ -25,8 +25,9 @@ echo "$MAP_CONFIG" > /meshmap/public/appConfig.json
 
 cd /meshmap
 npm run build
-cp -r /meshmap/build/* /www/map
+cp -r /meshmap/dist/* /www/map
 cd -
+chmod a+x /www/map
 
 nginx -g 'daemon off;' &
 
