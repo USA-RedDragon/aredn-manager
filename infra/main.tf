@@ -131,6 +131,9 @@ resource "aws_instance" "node" {
 
   user_data = templatefile("${path.module}/user-data.sh", {
     server_name                 = var.server-name
+    server_lon                  = var.server-lon
+    server_lat                  = var.server-lat
+    server_gridsquare           = var.server-gridsquare
     configuration_json          = var.configuration-json
     map_config_json             = var.map-config-json
     wireguard_tap_address       = var.wireguard_tap_address
