@@ -41,6 +41,9 @@ docker run \
     -e CONFIGURATION_JSON='${configuration_json}' \
     -e MAP_CONFIG='${map_config_json}' \
     -e SERVER_NAME=${server_name} \
+    -e SERVER_LON='${server_lon}' \
+    -e SERVER_LAT='${server_lat}' \
+    -e SERVER_GRIDSQUARE=${server_gridsquare} \
     -e WIREGUARD_TAP_ADDRESS=${wireguard_tap_address} \
     -e WIREGUARD_PEER_PUBLICKEY=${wireguard_peer_publickey} \
     -e WIREGUARD_SERVER_PRIVATEKEY=${wireguard_server_privatekey} \

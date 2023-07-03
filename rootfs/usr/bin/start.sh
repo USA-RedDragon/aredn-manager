@@ -21,6 +21,22 @@ if [ -z "$MAP_CONFIG" ]; then
     exit 1
 fi
 
+if [ -z "$SERVER_LON" ]; then
+    echo "No server longitude provided, exiting"
+    exit 1
+fi
+
+if [ -z "$SERVER_LAT" ]; then
+    echo "No server latitude provided, exiting"
+    exit 1
+fi
+
+if [ -z "$SERVER_GRIDSQUARE" ]; then
+    echo "No server gridsquare provided, exiting"
+    exit 1
+fi
+
+
 echo "$MAP_CONFIG" > /meshmap/public/appConfig.json
 
 cd /meshmap
@@ -28,6 +44,10 @@ npm run build
 cp -r /meshmap/dist/* /www/map
 cd -
 chmod a+x /www/map
+
+cd /api
+node src/index.js &
+cd -
 
 nginx -g 'daemon off;' &
 

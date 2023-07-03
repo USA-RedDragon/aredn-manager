@@ -57,3 +57,18 @@ variable "map-config-json" {
   sensitive   = true
   description = "The map configuration JSON for the server"
 }
+
+variable "server-gridsquare" {
+  sensitive   = true
+  description = "The grid square of the server"
+}
+
+variable "server-lon" {
+  sensitive   = true
+  description = "The longitude of the server"
+}
+
+variable "server-lat" {
+  sensitive   = true
+  description = "The latitude of the server"
+}
