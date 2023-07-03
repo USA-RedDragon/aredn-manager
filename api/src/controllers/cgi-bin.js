@@ -207,6 +207,7 @@ async function getLinkInfo() {
             }
         } catch (err) {
             console.log(err);
+            continue;
         }
 
         const newObj = {
