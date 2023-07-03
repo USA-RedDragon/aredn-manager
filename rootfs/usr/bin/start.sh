@@ -45,10 +45,6 @@ cp -r /meshmap/dist/* /www/map
 cd -
 chmod a+x /www/map
 
-cd /api
-node src/index.js &
-cd -
-
 nginx -g 'daemon off;' &
 
 # If NUM_WIREGUARD_PEERS is set and greater than 0
@@ -143,5 +139,9 @@ dnsmasq
 vtund -s -f /etc/vtundsrv.conf
 
 olsrd
+
+cd /api
+node src/index.js &
+cd -
 
 tail -f /var/log/messages
