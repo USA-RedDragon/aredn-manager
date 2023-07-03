@@ -4,3 +4,5 @@ rootfs/
 patches/
 .github/
 LICENSE.md
+api/
+.git/
