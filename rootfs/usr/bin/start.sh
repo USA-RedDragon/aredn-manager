@@ -42,7 +42,6 @@ echo "$MAP_CONFIG" > /meshmap/public/appConfig.json
 cd /meshmap
 npm run build
 cp -r /meshmap/dist/* /www/map
-cd -
 chmod a+x /www/map
 
 nginx -g 'daemon off;' &
@@ -142,6 +141,5 @@ olsrd
 
 cd /api
 node src/index.js &
-cd -
 
 tail -f /var/log/messages
