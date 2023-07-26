@@ -15,12 +15,12 @@ index 22ed9f59..2b46d4b4 100644
      if (!set && errno == 11 && if_ifwithindex(if_index) == NULL) {
        err = 0;
      }
-+    /* Failed to delete a route on a non-existant device - ignore the error so the route will be successfully remove from internal state */
-+    if (!set && errno == 11 && if_ifwithindex(if_index) == NULL) {
++    /* Failed to delete a route - ignore the error so the route will be successfully remove from internal state */
++    if (!set && (errno == 11 || errno == 122)) {
 +      err = 0;
 +    }
 +    /* Failed to add a route - ignore the error to avoid this happening continually */
-+    else if (set && errno == 11) {
++    else if (set && (errno == 11 || errno == 122)) {
 +      err = 0;
 +    }
    }
