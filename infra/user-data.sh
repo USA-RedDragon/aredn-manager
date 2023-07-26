@@ -66,14 +66,6 @@ docker run \
     containrrr/watchtower
 
 docker run \
-    --restart=unless-stopped \
-    --name openspeedtest \
-    $LOGGING \
-    -d \
-    --network=container:${server_name} \
-    openspeedtest/latest
-
-docker run \
     --network=container:${server_name} \
     -v /etc/passwd:/host/etc/passwd:ro \
     -v /etc/group:/host/etc/group:ro \
