@@ -112,7 +112,7 @@ for CLIENT in $CLIENTS; do
     iptables -A FORWARD -i eth0 -o tun$TUN -j REJECT
 
     # Masquerade the isolated network
-    iptables -t nat -A POSTROUTING -o tun$TUN -j SNAT --to-source $IP_PLUS_1
+    iptables -t nat -A POSTROUTING -o tun$TUN -j SNAT --to-source $IP_PLUS_2
     iptables -t nat -A POSTROUTING -o tun$TUN -p udp --dport 698 -j MASQUERADE
 
     # Increment the TUN number
