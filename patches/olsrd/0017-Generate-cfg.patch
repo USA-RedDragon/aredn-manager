@@ -1,0 +1,32 @@
+From 5cffe0fa5c222f3eabee483504394c7296b97a17 Mon Sep 17 00:00:00 2001
+From: Tim Wilkinson <tim.j.wilkinson@gmail.com>
+Date: Fri, 30 Jul 2021 23:42:25 -0700
+Subject: [PATCH 17/26] Generate cfg
+
++ Line space
+---
+ src/cfgparser/cfgfile_gen.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+diff --git a/src/cfgparser/cfgfile_gen.c b/src/cfgparser/cfgfile_gen.c
+index 598486e0..35367a37 100644
+--- a/src/cfgparser/cfgfile_gen.c
++++ b/src/cfgparser/cfgfile_gen.c
+@@ -158,6 +158,14 @@ static void olsrd_write_if_autobuf(struct autobuf *out, struct olsrd_config *cnf
+   if_appendf(out, comments, "    %sMode \"%s\"\n",
+       cnfi->mode == DEF_IF_MODE ? "# " : "",
+       OLSR_IF_MODE[cnfi->mode]);
++  if (comments) abuf_puts(out,
++    "\n"
++    "    # Isolate this interface to prevent neighbor nodes attached here from\n"
++    "    # seeing neighbors attached to other interfaces\n"
++    "\n");
++  if_appendf(out, comments, "    %sIsolated \"%s\"\n",
++      cnfi->is_isolated ? "" : "# ",
++      cnfi->is_isolated ? "yes" : "no");
+   if (comments) abuf_puts(out,
+     "\n"
+     "    # IPv4 broadcast address for outgoing OLSR packets.\n"
+-- 
+2.41.0
+

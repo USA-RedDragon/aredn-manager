@@ -1,7 +1,7 @@
-From f024db526781c0796fd5f24ee2ac1de06e8f4e54 Mon Sep 17 00:00:00 2001
+From ef8fa059840417ce942306a93e87141d91ec2885 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 11:56:01 -0600
-Subject: [PATCH 05/15] nameservice tabfix
+Subject: [PATCH 05/26] nameservice tabfix
 
 ---
  lib/nameservice/src/nameservice.c | 4 ++--

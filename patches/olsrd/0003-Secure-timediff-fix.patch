@@ -1,7 +1,7 @@
-From 239034c5e974bc6c7b339f0a2f9643ae10ceca01 Mon Sep 17 00:00:00 2001
+From 28f0d2faf5ba21c46b8170475311d82570d66752 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 11:54:00 -0600
-Subject: [PATCH 03/15] Secure timediff fix
+Subject: [PATCH 03/26] Secure timediff fix
 
 ---
  lib/secure/src/olsrd_secure.c | 13 +++++++++++--

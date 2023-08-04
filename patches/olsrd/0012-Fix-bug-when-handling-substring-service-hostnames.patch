@@ -1,7 +1,7 @@
-From 2ebbe3b85e33cc46b0f1ccb2302f88dff46611ea Mon Sep 17 00:00:00 2001
+From 9d0cb68bf3c0168106ca51d32914545770b06b6b Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Sun, 26 Feb 2023 17:04:05 -0600
-Subject: [PATCH 12/15] Fix bug when handling substring service hostnames
+Subject: [PATCH 12/26] Fix bug when handling substring service hostnames
 
 The string comparison used to check incoming hostname was actually doing a substring comparison.
 ---

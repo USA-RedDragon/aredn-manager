@@ -1,7 +1,7 @@
-From 6310675e9cf2fbe40d4fd2516e45e9fb83e5d53c Mon Sep 17 00:00:00 2001
+From 54d85c75ecf965baab096f6769a816e206a31652 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Sun, 2 Jul 2023 04:21:07 -0500
-Subject: [PATCH 13/15] Ignore del route errors if route doesnt exists
+Subject: [PATCH 13/26] Ignore del route errors if route doesnt exists
 
 ---
  src/linux/kernel_routes_nl.c | 4 ++++

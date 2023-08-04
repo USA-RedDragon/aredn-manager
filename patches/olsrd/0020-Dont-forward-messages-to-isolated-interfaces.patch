@@ -1,0 +1,26 @@
+From 10556804b050da5e7d35aceb46567cd74b014c60 Mon Sep 17 00:00:00 2001
+From: Tim Wilkinson <tim.j.wilkinson@gmail.com>
+Date: Sat, 31 Jul 2021 12:36:13 -0700
+Subject: [PATCH 20/26] Dont forward messages to isolated interfaces
+
+---
+ src/olsr.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/src/olsr.c b/src/olsr.c
+index 1873b88b..7af6ad6e 100644
+--- a/src/olsr.c
++++ b/src/olsr.c
+@@ -389,6 +389,9 @@ olsr_forward_message(union olsr_message *m, struct interface_olsr *in_if, union
+     /* do not forward TTL 1 messages to non-ether interfaces */
+     if (is_ttl_1 && ifn->mode != IF_MODE_ETHER) continue;
+ 
++    /* do not forward messages to isolated interfaces */
++    if (ifn->olsr_if->cnf->is_isolated) continue;
++
+     if (net_output_pending(ifn)) {
+       /*
+        * Check if message is to big to be piggybacked
+-- 
+2.41.0
+

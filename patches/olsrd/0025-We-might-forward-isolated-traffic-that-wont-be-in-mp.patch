@@ -1,0 +1,25 @@
+From d3ce73f3bd0edd92a29bc7222192d68593d7801f Mon Sep 17 00:00:00 2001
+From: Tim Wilkinson <tim.j.wilkinson@gmail.com>
+Date: Sat, 18 Sep 2021 00:21:23 -0700
+Subject: [PATCH 25/26] We might forward isolated traffic that wont be in  mprs
+
+---
+ src/olsr.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/olsr.c b/src/olsr.c
+index e129e024..477244e1 100644
+--- a/src/olsr.c
++++ b/src/olsr.c
+@@ -350,7 +350,7 @@ olsr_forward_message(union olsr_message *m, struct interface_olsr *in_if, union
+     return 0;
+ 
+   /* Check MPR */
+-  if (olsr_lookup_mprs_set(src) == NULL) {
++  if (in_if->mode != IF_MODE_ISOLATED && olsr_lookup_mprs_set(src) == NULL) {
+ #ifdef DEBUG
+     struct ipaddr_str buf;
+     OLSR_PRINTF(5, "Forward - sender %s not MPR selector\n", olsr_ip_to_string(&buf, src));
+-- 
+2.41.0
+

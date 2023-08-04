@@ -1,14 +1,14 @@
-From eb542fe9c56cf9c8e1f8eb100947cd3644047cd0 Mon Sep 17 00:00:00 2001
+From 60756da2913fdfa36388c5ee5d149e932747157f Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Sun, 2 Jul 2023 04:22:36 -0500
-Subject: [PATCH 15/15] Improved bad route handling
+Subject: [PATCH 15/26] Improved bad route handling
 
 ---
  src/linux/kernel_routes_nl.c | 8 ++++++++
  1 file changed, 8 insertions(+)
 
 diff --git a/src/linux/kernel_routes_nl.c b/src/linux/kernel_routes_nl.c
-index 22ed9f59..2b46d4b4 100644
+index 22ed9f59..8e5235e3 100644
 --- a/src/linux/kernel_routes_nl.c
 +++ b/src/linux/kernel_routes_nl.c
 @@ -464,6 +464,14 @@ int olsr_new_netlink_route(unsigned char family, uint32_t rttable, unsigned int

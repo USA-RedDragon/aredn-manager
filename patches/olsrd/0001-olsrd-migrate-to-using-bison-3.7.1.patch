@@ -1,7 +1,7 @@
-From 48ac1c9673ef64c2b34b165e8135099f46ecbe73 Mon Sep 17 00:00:00 2001
+From d57531d582607cba1f00e366d1bcb4999457e3fe Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Wed, 4 Jan 2023 16:46:59 -0600
-Subject: [PATCH 01/15] olsrd: migrate to using bison 3.7.1
+Subject: [PATCH 01/26] olsrd: migrate to using bison 3.7.1
 
 With the upgrade to bison 3.7.1 (openwrt commit 1cf842d) building
 olsrd was failing.  Now, instead of the contents of header files

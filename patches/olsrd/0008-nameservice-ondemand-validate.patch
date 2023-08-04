@@ -1,7 +1,7 @@
-From e23b69c4f496d9ec944816556ea5863fc56cc3b4 Mon Sep 17 00:00:00 2001
+From 71c648cc3dc892a06bc77924738dac899c3f886d Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 12:00:33 -0600
-Subject: [PATCH 08/15] nameservice ondemand validate
+Subject: [PATCH 08/26] nameservice ondemand validate
 
 ---
  lib/nameservice/src/nameservice.c | 93 +++++++++++++++++--------------

@@ -1,7 +1,7 @@
-From 3217e75839e7831ce9edff4275791c183636b733 Mon Sep 17 00:00:00 2001
+From 5024ebb95fec5c806b1dd35da45ff3cf291d87c7 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 12:01:44 -0600
-Subject: [PATCH 11/15] nameservice: expire names
+Subject: [PATCH 11/26] nameservice: expire names
 
 ---
  lib/nameservice/src/nameservice.c | 44 +++++++++++++++++++++++++++++++

@@ -1,0 +1,28 @@
+From c4edd5057797a934349375c3a346ede60b87202d Mon Sep 17 00:00:00 2001
+From: Tim Wilkinson <tim.j.wilkinson@gmail.com>
+Date: Sat, 31 Jul 2021 12:34:07 -0700
+Subject: [PATCH 19/26] No MID messages on isolated interfaces
+
+---
+ src/generate_msg.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/src/generate_msg.c b/src/generate_msg.c
+index 84275040..c394bd62 100644
+--- a/src/generate_msg.c
++++ b/src/generate_msg.c
+@@ -102,6 +102,11 @@ generate_mid(void *p)
+ {
+   struct interface_olsr *ifn = (struct interface_olsr *)p;
+ 
++  /* Dont send any MID messages on isolated interfaces */
++  if (ifn->olsr_if->cnf->is_isolated) {
++    return;
++  }
++
+   if (queue_mid(ifn) && TIMED_OUT(ifn->fwdtimer)) {
+     set_buffer_timer(ifn);
+   }
+-- 
+2.41.0
+

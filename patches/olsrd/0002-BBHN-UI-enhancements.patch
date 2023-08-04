@@ -1,7 +1,7 @@
-From 93969e4b42dd1cdbec04452968b2badff6c46174 Mon Sep 17 00:00:00 2001
+From d16718acee18f20f06c19a0678b6f54d6455e435 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 11:53:21 -0600
-Subject: [PATCH 02/15] BBHN UI enhancements
+Subject: [PATCH 02/26] BBHN UI enhancements
 
 ---
  lib/httpinfo/src/olsrd_httpinfo.c | 153 ++++++++++++++++++++++--------

@@ -1,7 +1,7 @@
-From a97c82aebdf721f15902c208584770b956dbe5de Mon Sep 17 00:00:00 2001
+From 56ac2da44b853d8e60559a1b3e69535a4867a822 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 12:00:56 -0600
-Subject: [PATCH 09/15] nameservice bigmessage
+Subject: [PATCH 09/26] nameservice bigmessage
 
 ---
  lib/nameservice/src/nameservice.c | 153 ++++++++++++++++++++----------

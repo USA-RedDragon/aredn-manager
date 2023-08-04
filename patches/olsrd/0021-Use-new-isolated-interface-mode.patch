@@ -1,0 +1,236 @@
+From fd3029816214f4dce2c8c5be0c951ee4da89e585 Mon Sep 17 00:00:00 2001
+From: Tim Wilkinson <tim.j.wilkinson@gmail.com>
+Date: Sat, 31 Jul 2021 13:31:12 -0700
+Subject: [PATCH 21/26] Use new "isolated" interface mode
+
+---
+ lib/httpinfo/src/olsrd_httpinfo.c |  2 +-
+ src/cfgparser/cfgfile_gen.c       |  8 --------
+ src/cfgparser/olsrd_conf.c        |  5 ++++-
+ src/cfgparser/oparse.y            | 22 ++++------------------
+ src/cfgparser/oscan.lex           |  5 -----
+ src/generate_msg.c                |  2 +-
+ src/lq_plugin_default_ffeth.c     |  4 ++--
+ src/olsr.c                        |  2 +-
+ src/olsr_cfg.h                    |  2 +-
+ src/packet.c                      |  4 ++--
+ 10 files changed, 16 insertions(+), 40 deletions(-)
+
+diff --git a/lib/httpinfo/src/olsrd_httpinfo.c b/lib/httpinfo/src/olsrd_httpinfo.c
+index 84a5b3ff..6b52a71b 100644
+--- a/lib/httpinfo/src/olsrd_httpinfo.c
++++ b/lib/httpinfo/src/olsrd_httpinfo.c
+@@ -950,7 +950,7 @@ build_config_body(struct autobuf *abuf)
+     abuf_appendf(abuf, "<tr>\n" "<td>MTU: %d</td>\n" "<td>WLAN: %s</td>\n" "<td>STATUS: UP</td>\n" "</tr>\n",
+                rifs->int_mtu, rifs->is_wireless ? "Yes" : "No");
+     abuf_appendf(abuf, "<tr>\n" "<td>Isolated: %s</td>\n" "<td></td>\n" "<td></td>\n" "</tr>\n",
+-                rifs->olsr_if->cnf->is_isolated ? "Yes" : "No");
++                rifs->mode == IF_MODE_ISOLATED ? "Yes" : "No");
+   }
+   abuf_puts(abuf, "</table>\n");
+ 
+diff --git a/src/cfgparser/cfgfile_gen.c b/src/cfgparser/cfgfile_gen.c
+index 35367a37..598486e0 100644
+--- a/src/cfgparser/cfgfile_gen.c
++++ b/src/cfgparser/cfgfile_gen.c
+@@ -158,14 +158,6 @@ static void olsrd_write_if_autobuf(struct autobuf *out, struct olsrd_config *cnf
+   if_appendf(out, comments, "    %sMode \"%s\"\n",
+       cnfi->mode == DEF_IF_MODE ? "# " : "",
+       OLSR_IF_MODE[cnfi->mode]);
+-  if (comments) abuf_puts(out,
+-    "\n"
+-    "    # Isolate this interface to prevent neighbor nodes attached here from\n"
+-    "    # seeing neighbors attached to other interfaces\n"
+-    "\n");
+-  if_appendf(out, comments, "    %sIsolated \"%s\"\n",
+-      cnfi->is_isolated ? "" : "# ",
+-      cnfi->is_isolated ? "yes" : "no");
+   if (comments) abuf_puts(out,
+     "\n"
+     "    # IPv4 broadcast address for outgoing OLSR packets.\n"
+diff --git a/src/cfgparser/olsrd_conf.c b/src/cfgparser/olsrd_conf.c
+index 84d48811..7c607254 100644
+--- a/src/cfgparser/olsrd_conf.c
++++ b/src/cfgparser/olsrd_conf.c
+@@ -99,7 +99,8 @@ const char *GW_UPLINK_TXT[] = {
+ const char *OLSR_IF_MODE[] = {
+   "mesh",
+   "ether",
+-  "silent"
++  "silent",
++  "isolated"
+ };
+ 
+ int current_line;
+@@ -308,6 +309,8 @@ olsrd_print_interface_cnf(struct if_config_options *cnf, struct if_config_option
+     printf("\tMode           : ether%s\n",DEFAULT_STR(mode));
+   } else if (cnf->mode==IF_MODE_SILENT){
+     printf("\tMode           : silent%s\n",DEFAULT_STR(mode));
++  } else if (cnf->mode==IF_MODE_ISOLATED){
++    printf("\tMode           : isolated%s\n",DEFAULT_STR(mode));
+   } else {
+     printf("\tMode           : mesh%s\n",DEFAULT_STR(mode));
+   }
+diff --git a/src/cfgparser/oparse.y b/src/cfgparser/oparse.y
+index 5abd4a55..c87d706f 100644
+--- a/src/cfgparser/oparse.y
++++ b/src/cfgparser/oparse.y
+@@ -272,7 +272,6 @@ static int add_ipv6_addr(YYSTYPE ipaddr_arg, YYSTYPE prefixlen_arg)
+ %token TOK_HNAINT
+ %token TOK_HNAVAL
+ %token TOK_AUTODETCHG
+-%token TOK_IFISOLATED
+ 
+ %token TOK_IPV4_ADDR
+ %token TOK_IPV6_ADDR
+@@ -421,7 +420,6 @@ ifstmts:   | ifstmts ifstmt
+ ifstmt:      vcomment
+              | iifweight
+              | isetifmode
+-             | isetifisolated
+              | TOK_IP4BROADCAST isetipv4mc
+              | TOK_IPV4BROADCAST isetipv4mc
+              | TOK_IPV4MULTICAST isetipv4mc
+@@ -584,7 +582,10 @@ isetifmode: TOK_IFMODE TOK_STRING
+ {
+   int ifcnt = ifs_in_curr_cfg;
+   struct olsr_if *ifs = olsr_cnf->interfaces;
+-	int mode = (strcmp($2->string, "ether") == 0)?IF_MODE_ETHER:((strcmp($2->string, "silent") == 0)?IF_MODE_SILENT:IF_MODE_MESH);
++	int mode = (
++    (strcmp($2->string, "ether") == 0)?IF_MODE_ETHER:
++    (strcmp($2->string, "isolated") == 0)?IF_MODE_ISOLATED:
++    (strcmp($2->string, "silent") == 0)?IF_MODE_SILENT:IF_MODE_MESH);
+ 
+   PARSER_DEBUG_PRINTF("\tMode: %s\n", $2->string);
+ 
+@@ -595,21 +596,6 @@ isetifmode: TOK_IFMODE TOK_STRING
+ }
+ ;
+ 
+-isetifisolated: TOK_IFISOLATED TOK_STRING
+-{
+-  int ifcnt = ifs_in_curr_cfg;
+-  struct olsr_if *ifs = olsr_cnf->interfaces;
+-	int isisolated = (strcmp($2->string, "no") == 0)?0:1;
+-
+-  PARSER_DEBUG_PRINTF("\tIsolated: %s\n", $2->string);
+-
+-	SET_IFS_CONF(ifs, ifcnt, is_isolated, isisolated);
+-
+-  free($2->string);
+-  free($2);
+-}
+-;
+-
+ /* called if prepended with TOK_IPV4MULTICAST TOK_IP4BROADCAST TOK_IPV4BROADCAST */
+ isetipv4mc: TOK_IPV4_ADDR
+ {
+diff --git a/src/cfgparser/oscan.lex b/src/cfgparser/oscan.lex
+index a6f8f296..3f77e8e5 100644
+--- a/src/cfgparser/oscan.lex
++++ b/src/cfgparser/oscan.lex
+@@ -719,11 +719,6 @@ IPV6ADDR {IPV6PAT1}|{IPV6PAT2}|{IPV6PAT3}|{IPV6PAT4}|{IPV6PAT5}|{IPV6PAT6}|{IPV6
+     yylval = NULL;
+     return TOK_IFMODE;
+ }
+-"Isolated" {
+-    olsrd_config_checksum_add(yytext, yyleng);
+-    yylval = NULL;
+-    return TOK_IFISOLATED;
+-}
+ "IPv6Multicast" {
+     olsrd_config_checksum_add(yytext, yyleng);
+     yylval = NULL;
+diff --git a/src/generate_msg.c b/src/generate_msg.c
+index c394bd62..b03bfe9b 100644
+--- a/src/generate_msg.c
++++ b/src/generate_msg.c
+@@ -103,7 +103,7 @@ generate_mid(void *p)
+   struct interface_olsr *ifn = (struct interface_olsr *)p;
+ 
+   /* Dont send any MID messages on isolated interfaces */
+-  if (ifn->olsr_if->cnf->is_isolated) {
++  if (ifn->mode == IF_MODE_ISOLATED) {
+     return;
+   }
+ 
+diff --git a/src/lq_plugin_default_ffeth.c b/src/lq_plugin_default_ffeth.c
+index e78dcd77..3f6c3df3 100644
+--- a/src/lq_plugin_default_ffeth.c
++++ b/src/lq_plugin_default_ffeth.c
+@@ -267,7 +267,7 @@ default_lq_ffeth_timer(void __attribute__ ((unused)) * context)
+     }
+ 
+     /* ethernet booster */
+-    if (link->inter->mode == IF_MODE_ETHER) {
++    if (link->inter->mode == IF_MODE_ETHER || link->inter->mode == IF_MODE_ISOLATED) {
+       if (tlq->lq.valueLq > (uint8_t)(0.95 * 255)) {
+         tlq->perfect_eth = true;
+       }
+@@ -279,7 +279,7 @@ default_lq_ffeth_timer(void __attribute__ ((unused)) * context)
+         tlq->lq.valueLq = 255;
+       }
+     }
+-    else if (link->inter->mode != IF_MODE_ETHER && tlq->lq.valueLq > 0) {
++    else if (tlq->lq.valueLq > 0) {
+       tlq->lq.valueLq--;
+     }
+ 
+diff --git a/src/olsr.c b/src/olsr.c
+index 7af6ad6e..e129e024 100644
+--- a/src/olsr.c
++++ b/src/olsr.c
+@@ -390,7 +390,7 @@ olsr_forward_message(union olsr_message *m, struct interface_olsr *in_if, union
+     if (is_ttl_1 && ifn->mode != IF_MODE_ETHER) continue;
+ 
+     /* do not forward messages to isolated interfaces */
+-    if (ifn->olsr_if->cnf->is_isolated) continue;
++    if (ifn->mode == IF_MODE_ISOLATED) continue;
+ 
+     if (net_output_pending(ifn)) {
+       /*
+diff --git a/src/olsr_cfg.h b/src/olsr_cfg.h
+index 18f049ed..a2dd4473 100644
+--- a/src/olsr_cfg.h
++++ b/src/olsr_cfg.h
+@@ -200,6 +200,7 @@ enum olsr_if_mode {
+   IF_MODE_MESH,
+   IF_MODE_ETHER,
+   IF_MODE_SILENT,
++  IF_MODE_ISOLATED,
+   IF_MODE_CNT
+ };
+ 
+@@ -228,7 +229,6 @@ struct if_config_options {
+   struct olsr_ip_prefix ipv6_src;
+ 
+   int mode;
+-  int is_isolated;                     /* interface is isolated from the others and will not exchange neighbors */
+ 
+   struct olsr_if_weight weight;
+   struct olsr_msg_params hello_params;
+diff --git a/src/packet.c b/src/packet.c
+index 20ca34a6..3f8c9ae5 100644
+--- a/src/packet.c
++++ b/src/packet.c
+@@ -204,7 +204,7 @@ olsr_build_hello_packet(struct hello_message *message, struct interface_olsr *ou
+ 
+   /* Add the rest of the neighbors if running on multiple interfaces and this interface is not isolated */
+ 
+-  if (ifnet != NULL && ifnet->int_next != NULL && !ifnet->olsr_if->cnf->is_isolated)
++  if (ifnet != NULL && ifnet->int_next != NULL && ifnet->mode != IF_MODE_ISOLATED)
+     OLSR_FOR_ALL_NBR_ENTRIES(neighbor) {
+ 
+ #ifdef DEBUG
+@@ -343,7 +343,7 @@ olsr_build_tc_packet(struct tc_message *message, struct interface_olsr *outif)
+ 
+     /* Don't include neighbors on other interfaces if this interface is isolated */
+     lnk = get_best_link_to_neighbor(&entry->neighbor_main_addr);
+-    if (!lnk || (outif->olsr_if->cnf->is_isolated && outif != lnk->inter)) {
++    if (!lnk || (outif->mode == IF_MODE_ISOLATED && outif != lnk->inter)) {
+       continue;
+     }
+ 
+-- 
+2.41.0
+

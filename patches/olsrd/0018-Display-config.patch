@@ -1,0 +1,25 @@
+From 17a9a20b84d5a169b68be8023b7d1a2279271e41 Mon Sep 17 00:00:00 2001
+From: Tim Wilkinson <tim.j.wilkinson@gmail.com>
+Date: Fri, 30 Jul 2021 23:56:17 -0700
+Subject: [PATCH 18/26] Display config
+
+---
+ lib/httpinfo/src/olsrd_httpinfo.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/lib/httpinfo/src/olsrd_httpinfo.c b/lib/httpinfo/src/olsrd_httpinfo.c
+index f03e0962..84a5b3ff 100644
+--- a/lib/httpinfo/src/olsrd_httpinfo.c
++++ b/lib/httpinfo/src/olsrd_httpinfo.c
+@@ -949,6 +949,8 @@ build_config_body(struct autobuf *abuf)
+     }
+     abuf_appendf(abuf, "<tr>\n" "<td>MTU: %d</td>\n" "<td>WLAN: %s</td>\n" "<td>STATUS: UP</td>\n" "</tr>\n",
+                rifs->int_mtu, rifs->is_wireless ? "Yes" : "No");
++    abuf_appendf(abuf, "<tr>\n" "<td>Isolated: %s</td>\n" "<td></td>\n" "<td></td>\n" "</tr>\n",
++                rifs->olsr_if->cnf->is_isolated ? "Yes" : "No");
+   }
+   abuf_puts(abuf, "</table>\n");
+ 
+-- 
+2.41.0
+

@@ -1,7 +1,7 @@
-From 60af50a2cbc54a55332431c05c78015be06be9c7 Mon Sep 17 00:00:00 2001
+From 4c0c723b958fb97c2cde413ea7e0971e880d0e45 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
 Date: Tue, 10 Jan 2023 11:54:32 -0600
-Subject: [PATCH 04/15] nameservice fixup
+Subject: [PATCH 04/26] nameservice fixup
 
 ---
  lib/nameservice/src/nameservice.c | 34 ++++++++++++++++++++++++++++++-
