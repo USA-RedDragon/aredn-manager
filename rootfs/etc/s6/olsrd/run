@@ -1,3 +1,9 @@
 #!/bin/sh
 
-exec olsrd -d 1
+olsrd
+
+PID=$!
+
+while kill -0 $PID > /dev/null 2>&1; do
+  sleep 1
+done
