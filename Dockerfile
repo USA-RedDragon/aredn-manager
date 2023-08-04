@@ -7,23 +7,48 @@ RUN chmod a+x /www/map
 
 COPY patches /patches
 
-ARG OLSRD_BUILD_DEPS="git build-base linux-headers bison flex"
+RUN touch /var/log/messages
 
-RUN apk add --no-cache bash curl zlib lzo openssl iproute2 rsyslog dnsmasq jq gettext wireguard-tools nginx nodejs npm git
+RUN apk add --no-cache \
+    bash \
+    curl \
+    zlib \
+    lzo \
+    openssl \
+    iproute2 \
+    rsyslog \
+    dnsmasq \
+    jq \
+    gettext \
+    wireguard-tools \
+    nginx \
+    nodejs \
+    npm \
+    git \
+    s6
 
+# Install API dependencies
 COPY api /api
 RUN cd /api \
     && npm ci
 
+# Install MeshMap dependencies
 RUN git clone https://github.com/USA-RedDragon/MeshMap.git /meshmap \
     && cd /meshmap \
     && npm ci
 
+# Workaround for Node 16
 ENV NODE_OPTIONS=--openssl-legacy-provider
 
 RUN sed -i 's/module(load="imklog")//g' /etc/rsyslog.conf
 
-RUN apk add --no-cache ${OLSRD_BUILD_DEPS} \
+# Build and install olsrd
+RUN apk add --virtual .olsrd-build-deps \
+      git \
+      build-base \
+      linux-headers \
+      bison \
+      flex \
     && git clone https://github.com/OLSR/olsrd.git \
     && cd olsrd \
     && git checkout v0.9.8 \
@@ -32,23 +57,32 @@ RUN apk add --no-cache ${OLSRD_BUILD_DEPS} \
     && make prefix=/usr install arprefresh_install txtinfo_install jsoninfo_install dot_draw_install watchdog_install nameservice_install \
     && cd .. \
     && rm -rf olsrd \
-    && apk del ${OLSRD_BUILD_DEPS}
+    && apk del .olsrd-build-deps \
+    && rm -rf /tmp/* /var/cache/apk/*
 
-ARG VTUN_BUILD_DEPS="build-base linux-headers bison flex zlib-dev lzo-dev binutils openssl-dev"
-
-# --build=unknown-unknown-linux is magic for cross-compiling
-RUN apk add --no-cache ${VTUN_BUILD_DEPS} \
+# Build and install vtun
+RUN apk add --virtual .vtun-build-deps \
+      build-base \
+      linux-headers \
+      bison \
+      flex \
+      zlib-dev \
+      lzo-dev \
+      binutils \
+      openssl-dev \
     && curl -fSsL https://downloads.sourceforge.net/project/vtun/vtun/3.0.3/vtun-3.0.3.tar.gz -o vtun-3.0.3.tar.gz \
     && tar -xzf vtun-3.0.3.tar.gz \
     && rm vtun-3.0.3.tar.gz \
     && cd vtun-3.0.3 \
+    # --build=unknown-unknown-linux is magic for cross-compiling
     && ./configure --prefix=/usr --build=unknown-unknown-linux \
     && for patch in /patches/vtun/*.patch; do patch -p1 < $patch; done \
     && make \
     && make install \
     && cd .. \
     && rm -rf vtun-3.0.3 \
-    && apk del ${VTUN_BUILD_DEPS}
+    && apk del .vtun-build-deps \
+    && rm -rf /tmp/* /var/cache/apk/*
 
 RUN rm -rf /patches
 

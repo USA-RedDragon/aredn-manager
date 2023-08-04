@@ -44,8 +44,6 @@ npm run build
 cp -r /meshmap/dist/* /www/map
 chmod a+x /www/map
 
-nginx -g 'daemon off;' &
-
 # If NUM_WIREGUARD_PEERS is set and greater than 0
 if ! [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
     export WG_TAP_PLUS_1=$(echo $WIREGUARD_TAP_ADDRESS | awk -F. '{print $1"."$2"."$3"."$4+1}')
@@ -133,13 +131,4 @@ EOF
 
 echo -e 'search local.mesh\nnameserver 127.0.0.1' > /etc/resolv.conf
 
-dnsmasq
-
-vtund -s -f /etc/vtundsrv.conf
-
-olsrd
-
-cd /api
-node src/index.js &
-
-tail -f /var/log/messages
+exec s6-svscan /etc/s6

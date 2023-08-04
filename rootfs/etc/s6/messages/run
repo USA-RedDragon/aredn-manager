@@ -1,0 +1,3 @@
+#!/bin/sh
+
+exec tail -F /var/log/messages
