@@ -44,7 +44,6 @@ npm run build
 cp -r /meshmap/dist/* /www/map
 chmod a+x /www/map
 
-# If NUM_WIREGUARD_PEERS is set and greater than 0
 if ! [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
     export WG_TAP_PLUS_1=$(echo $WIREGUARD_TAP_ADDRESS | awk -F. '{print $1"."$2"."$3"."$4+1}')
 
@@ -112,6 +111,10 @@ for CLIENT in $CLIENTS; do
     iptables -A FORWARD -i tun$TUN -o eth0 -j REJECT
     iptables -A FORWARD -i eth0 -o tun$TUN -j REJECT
 
+    # Masquerade the isolated network
+    iptables -t nat -A POSTROUTING -o tun$TUN -j SNAT --to-source $IP_PLUS_1
+    iptables -t nat -A POSTROUTING -o tun$TUN -p udp --dport 698 -j MASQUERADE
+
     # Increment the TUN number
     TUN=$((TUN+1))
 done
@@ -120,6 +123,11 @@ envsubst < /tpl/vtundsrv.conf > /etc/vtundsrv.conf
 export SERVER_NAME=$SERVER_NAME
 export IFACES=$(seq 50 $TUN | xargs -I{} echo -n "\"tun{}\" ")
 export TUNNELS=$(envsubst < /tpl/olsrd-tunnel.conf)
+
+# If DISABLE_SUPERNODE is not set
+if [ -z "$DISABLE_SUPERNODE" ]; then
+    export SUPERNODE=$(envsubst < /tpl/olsrd-supernode.conf)
+fi
 
 mkdir -p /etc/olsrd/
 envsubst < /tpl/olsrd.conf > /etc/olsrd/olsrd.conf
