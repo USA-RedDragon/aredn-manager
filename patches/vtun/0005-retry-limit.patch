@@ -1,3 +1,14 @@
+From 0bfc2263929ea9b617a24e97c6ec0af0807d7087 Mon Sep 17 00:00:00 2001
+From: Jacob McSwain <jacob@mcswain.dev>
+Date: Sat, 5 Aug 2023 04:03:38 -0500
+Subject: [PATCH 5/5] retry limit
+
+---
+ tunnel.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+diff --git a/tunnel.c b/tunnel.c
+index 8428d53..008217d 100644
 --- a/tunnel.c
 +++ b/tunnel.c
 @@ -127,6 +127,9 @@ int tunnel(struct vtun_host *host)
@@ -10,3 +21,6 @@
  	   proto_write = tcp_write;
  	   proto_read  = tcp_read;
  
+-- 
+2.41.0
+

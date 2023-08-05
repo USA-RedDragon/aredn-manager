@@ -1,7 +1,7 @@
-From 2ab639651590caa5c3d6662667cb6cf61c1481bc Mon Sep 17 00:00:00 2001
+From b34897b3c621346fde4f5d4a7780d3f529eb6594 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
-Date: Wed, 4 Jan 2023 17:44:09 -0600
-Subject: [PATCH] Fixup for modern compilers
+Date: Sat, 5 Aug 2023 04:02:05 -0500
+Subject: [PATCH 1/5] Fixup for modern compilers
 
 ---
  cfg_file.y | 2 +-
@@ -34,5 +34,5 @@ index a3d6a9c..6b1efed 100644
  
  #endif
 -- 
-2.39.0
+2.41.0
 

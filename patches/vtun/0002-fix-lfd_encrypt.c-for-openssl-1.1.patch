@@ -1,7 +1,7 @@
-From 51617bece25c32d1301757a1e90a786781949a39 Mon Sep 17 00:00:00 2001
+From bbf1b2e3c8fe1f16504f02d97c86d854de0a1b91 Mon Sep 17 00:00:00 2001
 From: Jacob McSwain <jacob@mcswain.dev>
-Date: Wed, 4 Jan 2023 17:57:38 -0600
-Subject: [PATCH] fix lfd_encrypt.c for openssl 1.1
+Date: Sat, 5 Aug 2023 04:02:23 -0500
+Subject: [PATCH 2/5] fix lfd_encrypt.c for openssl 1.1
 
 ---
  lfd_encrypt.c | 91 +++++++++++++++++++++++++++------------------------
@@ -239,5 +239,5 @@ index a971440..d73bcd7 100644
              cipher_enc_state = CIPHER_REQ_INIT;
           }
 -- 
-2.39.0
+2.41.0
 
