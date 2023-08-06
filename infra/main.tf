@@ -134,13 +134,20 @@ resource "aws_instance" "node" {
     server_lon                  = var.server-lon
     server_lat                  = var.server-lat
     server_gridsquare           = var.server-gridsquare
-    configuration_json          = var.configuration-json
     map_config_json             = var.map-config-json
     wireguard_tap_address       = var.wireguard_tap_address
     region                      = var.region
     awslogs-group               = aws_cloudwatch_log_group.log-group.name
     wireguard_peer_publickey    = var.wireguard_peer_publickey
     wireguard_server_privatekey = var.wireguard_server_privatekey
+    pg_host                     = var.pg_host
+    pg_user                     = var.pg_user
+    pg_password                 = var.pg_password
+    pg_db                       = var.pg_db
+    session_secret              = var.session_secret
+    password_salt               = var.password_salt
+    extra_cors_hosts            = var.extra_cors_hosts
+    init_admin_user_password    = var.init_admin_user_password
   })
   user_data_replace_on_change = true
 

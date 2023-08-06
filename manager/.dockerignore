@@ -1,0 +1,5 @@
+.db/
+.env
+olsrd.conf
+vtund.conf
+.dockerignore

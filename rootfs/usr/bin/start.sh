@@ -5,12 +5,6 @@ trap "exit 0" SIGHUP SIGINT SIGTERM
 
 /usr/bin/blockknownencryption
 
-# If CONFIGURATION_JSON is not set
-if [ -z "$CONFIGURATION_JSON" ]; then
-    echo "No configuration JSON provided, exiting"
-    exit 1
-fi
-
 if [ -z "$SERVER_NAME" ]; then
     echo "No server name provided, exiting"
     exit 1
@@ -68,73 +62,20 @@ if ! [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
 
     iptables -t mangle -A PREROUTING -i wg0 -j MARK --set-mark 0x30
     iptables -t nat -A POSTROUTING ! -o wg0 -m mark --mark 0x30 -j MASQUERADE
+
+    ip link set wg0 up
 fi
 
-# Here is an exmaple of a configuration JSON
-# {
-#     "clients": [
-#         { "name": "KI5VMF-MAIN", "net": "172.31.180.16", "pwd": "changeme"},
-#         { "name": "KI5VMF-SECOND", "net": "172.31.180.20", "pwd": "changemetoo"}
-#     ]
-# }
+# Run the AREDN manager
+aredn-manager -d generate
 
-CLIENTS=$(echo $CONFIGURATION_JSON | jq -c '.clients[]')
-TUN=50
-CLIENT_CONFIGS=""
+# We need the syslog started early
+rsyslogd -n &
 
-for CLIENT in $CLIENTS; do
-    export NAME=$(echo $CLIENT | jq -r '.name')
-    export NET=$(echo $CLIENT | jq -r '.net')
-    export PWD=$(echo $CLIENT | jq -r '.pwd')
-    export DASHED_NET=$(echo $NET | sed 's/\./-/g')
-    export IP_PLUS_1=$(echo $NET | awk -F. '{print $1"."$2"."$3"."$4+1}')
-    export IP_PLUS_2=$(echo $NET | awk -F. '{print $1"."$2"."$3"."$4+2}')
-    export TUN=$TUN
-
-    LATEST_CONFIG="$(envsubst < /tpl/client.conf)"
-    export CLIENT_CONFIGS=$(echo -e "$CLIENT_CONFIGS\n\n$LATEST_CONFIG")
-
-    if ! [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
-        # Allowing all active and related connections
-        iptables -A FORWARD -i wg0 -o tun$TUN -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-        iptables -A FORWARD -i tun$TUN -o wg0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
-
-        # Cross-talk between tun and wg0
-        iptables -A FORWARD -i wg0 -o tun$TUN -j ACCEPT
-        iptables -A FORWARD -i tun$TUN -o wg0 -j ACCEPT
-
-        ip link set wg0 up
-        ip route add $WG_TAP_PLUS_1/32 dev wg0
-    fi
-
-    # No internet access for the tunnels
-    iptables -A FORWARD -i tun$TUN -o eth0 -j REJECT
-    iptables -A FORWARD -i eth0 -o tun$TUN -j REJECT
-
-    # Masquerade the isolated network
-    iptables -t nat -A POSTROUTING -o tun$TUN -j SNAT --to-source $IP_PLUS_2
-    iptables -t nat -A POSTROUTING -o tun$TUN -p udp --dport 698 -j MASQUERADE
-
-    # Increment the TUN number
-    TUN=$((TUN+1))
-done
-envsubst < /tpl/vtundsrv.conf > /etc/vtundsrv.conf
-
-export SERVER_NAME=$SERVER_NAME
-export IFACES=$(seq 50 $TUN | xargs -I{} echo -n "\"tun{}\" ")
-export TUNNELS=$(envsubst < /tpl/olsrd-tunnel.conf)
-
-# If DISABLE_SUPERNODE is not set
-if [ -z "$DISABLE_SUPERNODE" ]; then
-    export SUPERNODE=$(envsubst < /tpl/olsrd-supernode.conf)
-fi
-
-mkdir -p /etc/olsrd/
-envsubst < /tpl/olsrd.conf > /etc/olsrd/olsrd.conf
-
+# Use the dnsmasq that's about to run
 cat <<EOF > /tmp/resolv.conf.auto
-nameserver 1.1.1.1
-nameserver 1.0.0.1
+nameserver 127.0.0.11
+options ndots:0
 EOF
 
 echo -e 'search local.mesh\nnameserver 127.0.0.1' > /etc/resolv.conf

@@ -72,3 +72,44 @@ variable "server-lat" {
   sensitive   = true
   description = "The latitude of the server"
 }
+
+variable "pg_host" {
+  sensitive   = true
+  description = "The PostgreSQL host"
+}
+
+variable "pg_user" {
+  sensitive   = true
+  description = "The PostgreSQL user"
+}
+
+variable "pg_password" {
+  sensitive   = true
+  description = "The PostgreSQL password"
+}
+
+variable "pg_db" {
+  sensitive   = true
+  description = "The PostgreSQL database"
+}
+
+variable "session_secret" {
+  sensitive   = true
+  description = "The session secret"
+}
+
+variable "password_salt" {
+  sensitive   = true
+  description = "The password salt"
+}
+
+variable "extra_cors_hosts" {
+  sensitive   = true
+  default     = ""
+  description = "The extra CORS hosts"
+}
+
+variable "init_admin_user_password" {
+  sensitive   = true
+  description = "The initial admin user password"
+}

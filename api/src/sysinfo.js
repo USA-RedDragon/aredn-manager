@@ -37,7 +37,7 @@ const obj = {
     // Below items are to be filled in
     // os.networkInterfaces()
     interfaces: getInterfaces(),
-    // hosts are parsed from /var/run/hosts_olsr.stable
+    // hosts are parsed from /var/run/hosts_olsr
     hosts: getHosts(),
     // services are parsed from /var/run/services_olsr
     services: getServices(),
@@ -73,7 +73,7 @@ function getInterfaces() {
 }
 
 function getHosts() {
-    // This needs to be parsed from /var/run/hosts_olsr.stable
+    // This needs to be parsed from /var/run/hosts_olsr
     // The file can have comments prefixed with #
     // The file can have blank lines
     // The format of a line is the same as /etc/hosts
@@ -81,7 +81,7 @@ function getHosts() {
     // ip, name
 
     const hosts = [];
-    fs.readFileSync('/var/run/hosts_olsr.stable', 'utf8').split(/\r?\n/).forEach(function(line) {
+    fs.readFileSync('/var/run/hosts_olsr', 'utf8').split(/\r?\n/).forEach(function (line) {
         if (line.startsWith('#') || line === '') {
             return;
         }
@@ -109,7 +109,7 @@ function getServices() {
     // Links with a port of 0 are non-http links, so the link should be ""
 
     const services = [];
-    fs.readFileSync('/var/run/services_olsr', 'utf8').split(/\r?\n/).forEach(function(line) {
+    fs.readFileSync('/var/run/services_olsr', 'utf8').split(/\r?\n/).forEach(function (line) {
         if (line.startsWith('#') || line === '') {
             return;
         }

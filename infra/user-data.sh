@@ -38,8 +38,15 @@ chmod -R g+w /docker-data/netdata
 docker run \
     --cap-add=NET_ADMIN \
     --privileged \
-    -e CONFIGURATION_JSON='${configuration_json}' \
     -e MAP_CONFIG='${map_config_json}' \
+    -e PG_HOST='${pg_host}' \
+    -e PG_USER='${pg_user}' \
+    -e PG_PASSWORD='${pg_pass}' \
+    -e PG_DATABASE='${pg_db}' \
+    -e SESSION_SECRET='${session_secret}' \
+    -e PASSWORD_SALT='${password_salt}' \
+    -e CORS_HOSTS=http://${server_name}.local.mesh:81${extra_cors_hosts} \
+    -e INIT_ADMIN_USER_PASSWORD='${init_admin_user_password}' \
     -e SERVER_NAME=${server_name} \
     -e SERVER_LON='${server_lon}' \
     -e SERVER_LAT='${server_lat}' \
