@@ -18,11 +18,6 @@ variable "disk-size" {
   description = "The size of the disk in GB"
 }
 
-variable "configuration-json" {
-  description = "The configuration JSON for the server"
-  sensitive   = true
-}
-
 variable "cloudflare_api_token" {
   description = "The API token for Cloudflare"
   sensitive   = true
