@@ -8,6 +8,7 @@ COPY manager/go.mod manager/go.sum ./
 RUN go mod download
 
 COPY manager/. .
+COPY .git .git
 
 RUN go generate ./...
 
