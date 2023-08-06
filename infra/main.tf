@@ -142,7 +142,7 @@ resource "aws_instance" "node" {
     wireguard_server_privatekey = var.wireguard_server_privatekey
     pg_host                     = var.pg_host
     pg_user                     = var.pg_user
-    pg_password                 = var.pg_password
+    pg_pass                     = var.pg_password
     pg_db                       = var.pg_db
     session_secret              = var.session_secret
     password_salt               = var.password_salt
