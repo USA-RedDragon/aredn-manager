@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine AS aredn-manager
+FROM golang:1.21-alpine AS aredn-manager
 
 WORKDIR /app
 
