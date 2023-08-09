@@ -92,7 +92,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 		srv := server.NewServer(config, db)
 		srv.Run()
 
-		ifWatcher := ifacewatcher.NewWatcher()
+		ifWatcher := ifacewatcher.NewWatcher(db)
 		err = ifWatcher.Watch()
 		if err != nil {
 			return err
