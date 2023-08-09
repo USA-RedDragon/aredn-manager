@@ -109,13 +109,12 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 	}
 	for _, addr := range addrs {
 		fmt.Println(addr)
-		fmt.Println(addr.String())
-		fmt.Println(net.ParseIP(addr.String()).To4())
-		ip := net.ParseIP(addr.String()).To4()
-		if ip.String() == "<nil>" {
+		ip, _, err := net.ParseCIDR(addr.String())
+		if err != nil {
+			fmt.Println(err)
 			continue
 		}
-		tun, err := models.FindTunnelByIP(w.db, ip)
+		tun, err := models.FindTunnelByIP(w.db, ip.To4())
 		if err != nil {
 			fmt.Println(err)
 			continue
