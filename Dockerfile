@@ -27,7 +27,7 @@ ENV NODE_ENV=production
 
 RUN npm run build
 
-FROM ghcr.io/usa-reddragon/aredn-base:latest
+FROM ghcr.io/usa-reddragon/aredn-base:main
 
 COPY --from=aredn-manager /app/aredn-manager /usr/bin/aredn-manager
 RUN chmod a+x /usr/bin/aredn-manager
