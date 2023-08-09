@@ -48,7 +48,7 @@ docker run \
     -e CORS_HOSTS=http://${server_name}.local.mesh:81${extra_cors_hosts} \
     -e INIT_ADMIN_USER_PASSWORD='${init_admin_user_password}' \
     -e SERVER_NAME=${server_name} \
-    -e SUPERNODE="${supernode}"
+    -e SUPERNODE="${supernode}" \
     -e SERVER_LON='${server_lon}' \
     -e SERVER_LAT='${server_lat}' \
     -e SERVER_GRIDSQUARE=${server_gridsquare} \
