@@ -108,3 +108,7 @@ variable "init_admin_user_password" {
   sensitive   = true
   description = "The initial admin user password"
 }
+
+variable "supernode" {
+  description= "set at all to enable supernode support"
+}
