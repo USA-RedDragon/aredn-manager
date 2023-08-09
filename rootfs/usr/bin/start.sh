@@ -63,6 +63,8 @@ if ! [ -z "$WIREGUARD_TAP_ADDRESS" ]; then
     iptables -t mangle -A PREROUTING -i wg0 -j MARK --set-mark 0x30
     iptables -t nat -A POSTROUTING ! -o wg0 -m mark --mark 0x30 -j MASQUERADE
 
+    ip route add ${WG_TAP_PLUS_1}/32 dev wg0
+
     ip link set wg0 up
 fi
 
