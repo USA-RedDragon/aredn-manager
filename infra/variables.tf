@@ -110,5 +110,5 @@ variable "init_admin_user_password" {
 }
 
 variable "supernode" {
-  description= "set at all to enable supernode support"
+  description = "set at all to enable supernode support"
 }
