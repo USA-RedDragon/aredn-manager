@@ -1,3 +1,0 @@
-#!/bin/sh
-
-exec vtund -s -f /etc/vtundsrv.conf -n

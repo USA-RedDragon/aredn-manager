@@ -1,3 +1,0 @@
-#!/bin/sh
-
-exec dnsmasq --keep-in-foreground --pid-file=/var/run/dnsmasq.pid

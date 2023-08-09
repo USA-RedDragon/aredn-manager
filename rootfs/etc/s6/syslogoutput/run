@@ -1,4 +1,0 @@
-#!/bin/sh
-
-cat /var/log/messages
-exec tail -F /var/log/messages
