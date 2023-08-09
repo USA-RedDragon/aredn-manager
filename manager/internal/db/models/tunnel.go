@@ -31,6 +31,12 @@ func FindTunnelByID(db *gorm.DB, id uint) (Tunnel, error) {
 	return tunnel, err
 }
 
+func FindTunnelByIP(db *gorm.DB, ip net.IP) (Tunnel, error) {
+	var tunnel Tunnel
+	err := db.Where("ip = ?", ip.String()).First(&tunnel).Error
+	return tunnel, err
+}
+
 func ListTunnels(db *gorm.DB) ([]Tunnel, error) {
 	var tunnels []Tunnel
 	err := db.Find(&tunnels).Error
