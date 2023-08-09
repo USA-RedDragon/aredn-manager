@@ -58,7 +58,8 @@ options {
 	snippetVtunConfWireguardUpRules = `firewall "-A FORWARD -i wg0 -o %% -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT";
         firewall "-A FORWARD -i %% -o wg0 -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT";
         firewall "-A FORWARD -i wg0 -o %% -j ACCEPT";
-        firewall "-A FORWARD -i %% -o wg0 -j ACCEPT";`
+        firewall "-A FORWARD -i %% -o wg0 -j ACCEPT";
+        ip "route add ${WG_TAP_PLUS_1}/32 dev wg0";`
 
 	snippetVtunConfWireguardDownRules = `firewall "-D FORWARD -i wg0 -o %% -j ACCEPT";
         firewall "-D FORWARD -i %% -o wg0 -j ACCEPT";
