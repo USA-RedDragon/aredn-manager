@@ -114,7 +114,9 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 			fmt.Println(err)
 			continue
 		}
-		tun, err := models.FindTunnelByIP(w.db, ip.To4())
+		ip = ip.To4()
+		ip[3] -= 2 // AREDN tunnel IPs are always the interface IP - 2
+		tun, err := models.FindTunnelByIP(w.db, ip)
 		if err != nil {
 			fmt.Println(err)
 			continue
