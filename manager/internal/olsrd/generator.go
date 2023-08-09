@@ -57,7 +57,7 @@ Interface "eth0"
     PlParam "name-change-script" "aredn-manager notify"
     PlParam "name" "${SERVER_NAME}"
     PlParam "service" "http://${SERVER_NAME}:80/map|tcp|ki5vmf-cloud-tunnel-map"
-    PlParam "service" "http://${SERVER_NAME}:81|tcp|ki5vmf-cloud-tunnel-console"
+    PlParam "service" "http://${SERVER_NAME}:81/|tcp|ki5vmf-cloud-tunnel-console"
 }`
 
 	snippetOlsrdConfSupernode = `Hna4
