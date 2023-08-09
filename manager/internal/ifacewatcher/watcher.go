@@ -71,7 +71,6 @@ func remove(s []_iface, e _iface) []_iface {
 }
 
 func (w *Watcher) watch() {
-	fmt.Println("watching")
 	w.interfacesToMarkInactive = []_iface{}
 	interfaces, err := net.Interfaces()
 	if err != nil {
