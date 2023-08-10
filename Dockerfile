@@ -10,7 +10,7 @@ RUN go mod download
 COPY manager/. .
 COPY .git .git
 
-RUN go generate ./...
+RUN [ -f ./internal/sdk/commit.txt ] || go generate ./...
 
 RUN go build -o aredn-manager ./main.go
 
