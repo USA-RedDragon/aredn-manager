@@ -22,16 +22,40 @@
         </RouterLink>
       </div>
     </template>
+    <Column field="active" header="Connected"></Column>
     <Column :expander="true" v-if="$props.admin" />
     <Column field="hostname" header="Name"></Column>
     <Column field="ip" header="IP"></Column>
     <Column field="password" header="Password" v-if="$props.admin"></Column>
-    <Column field="created_at" header="Created">
+    <Column field="connection_time" header="Connection Time">
+      <template #body="slotProps">
+        <span v-if="slotProps.data.connection_time == 'Never'">{{slotProps.data.connection_time}}</span>
+        <span v-else>{{slotProps.data.connection_time.fromNow()}}</span>
+      </template>
+    </Column>
+    <Column field="rx_bytes" header="Session Bytes RX/TX">
+      <template #body="slotProps">
+        <p>{{slotProps.data.rx_bytes}} bytes</p>
+        <p>{{slotProps.data.tx_bytes}} bytes</p>
+      </template>
+    </Column>
+    <Column field="total_rx_mb" header="Total Megabytes RX/TX">
+      <template #body="slotProps">
+        <p>{{slotProps.data.total_rx_mb}} MBytes</p>
+        <p>{{slotProps.data.total_tx_mb}} MBytes</p>
+      </template>
+    </Column>
+    <Column field="rx_bytes_per_sec" header="Bandwidth Usage (bytes/second)">
+      <template #body="slotProps">
+        <p>{{slotProps.data.rx_bytes_per_sec}} bytes/s</p>
+        <p>{{slotProps.data.tx_bytes_per_sec}} bytes/s</p>
+      </template>
+    </Column>
+    <Column field="created_at" header="Created" v-if="$props.admin">
       <template #body="slotProps">{{
         slotProps.data.created_at.fromNow()
       }}</template>
     </Column>
-    <Column field="active" header="Active"></Column>
     <template #expansion="slotProps">
       <PVButton
         class="p-button-raised p-button-rounded p-button-primary"
@@ -80,6 +104,7 @@ export default {
       expandedRows: [],
       loading: false,
       totalRecords: 0,
+      timer: null,
     };
   },
   mounted() {
@@ -102,6 +127,21 @@ export default {
             res.data.tunnels[i].created_at = moment(
               res.data.tunnels[i].created_at,
             );
+            if (res.data.tunnels[i].connection_time == '0001-01-01T00:00:00Z') {
+              res.data.tunnels[i].connection_time = 'Never';
+            } else {
+              res.data.tunnels[i].connection_time = moment(
+                res.data.tunnels[i].connection_time,
+              );
+            }
+            if (res.data.tunnels[i].total_rx_mb != 0) {
+              // Truncate to 2 decimal places
+              res.data.tunnels[i].total_rx_mb = Math.round(res.data.tunnels[i].total_rx_mb * 100) / 100;
+            }
+            if (res.data.tunnels[i].total_tx_mb != 0) {
+              // Truncate to 2 decimal places
+              res.data.tunnels[i].total_tx_mb = Math.round(res.data.tunnels[i].total_tx_mb * 100) / 100;
+            }
           }
           this.tunnels = res.data.tunnels;
           this.totalRecords = res.data.total;
