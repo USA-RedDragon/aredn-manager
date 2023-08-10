@@ -1,16 +1,37 @@
 package models
 
 import (
+	"database/sql/driver"
+	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"gorm.io/gorm"
 )
 
+type IPs []string
+
+func (ips *IPs) Scan(src any) error {
+	bytes, ok := src.([]byte)
+	if !ok {
+		return errors.New("src value cannot cast to []byte")
+	}
+	*ips = strings.Split(string(bytes), ",")
+	return nil
+}
+
+func (ips IPs) Value() (driver.Value, error) {
+	if len(ips) == 0 {
+		return nil, nil
+	}
+	return strings.Join(ips, ","), nil
+}
+
 type Supernode struct {
 	ID        uint           `json:"id" gorm:"primaryKey"`
 	MeshName  string         `json:"mesh_name" binding:"required"`
-	IPs       []string       `json:"ips" binding:"required"`
+	IPs       IPs            `json:"ips" binding:"required" gorm:"type:text"`
 	CreatedAt time.Time      `json:"created_at"`
 	UpdatedAt time.Time      `json:"-"`
 	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
