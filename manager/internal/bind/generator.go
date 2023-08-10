@@ -18,6 +18,10 @@ const (
     listen-on { any; };
     listen-on-v6 { any; };
     pid-file "/var/run/named/named.pid";
+
+	forwarders {
+		127.0.0.11;
+	};
 };
 
 zone "mesh" {
