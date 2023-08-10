@@ -41,6 +41,10 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1OLSR := group.Group("/olsr")
 	v1OLSR.GET("/hosts", v1Controllers.GETOLSRHosts)
 	v1OLSR.GET("/services", v1Controllers.GETOLSRServices)
+	v1OLSR.GET("/running", v1Controllers.GETOLSRRunning)
+
+	v1VTun := group.Group("/vtun")
+	v1VTun.GET("/running", v1Controllers.GETVtunRunning)
 
 	v1Tunnels := group.Group("/tunnels")
 	// Paginated

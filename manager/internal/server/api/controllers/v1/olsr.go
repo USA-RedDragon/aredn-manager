@@ -31,3 +31,7 @@ func GETOLSRServices(c *gin.Context) {
 	services := olsrdParsers.ServicesParser.GetServices()
 	c.JSON(http.StatusOK, gin.H{"services": services})
 }
+
+func GETOLSRRunning(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{"running": olsrd.IsRunning()})
+}
