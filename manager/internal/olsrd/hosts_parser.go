@@ -31,13 +31,13 @@ func (p *HostsParser) Parse() (err error) {
 }
 
 type HostData struct {
-	Hostname string
-	IP       net.IP
+	Hostname string `json:"hostname"`
+	IP       net.IP `json:"ip"`
 }
 
 type AREDNHost struct {
 	HostData
-	Children []HostData
+	Children []HostData `json:"children"`
 }
 
 type orphans struct {

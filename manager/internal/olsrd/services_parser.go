@@ -10,10 +10,10 @@ import (
 const SERVICES_FILE = "/var/run/services_olsr"
 
 type AREDNService struct {
-	URL        *url.URL
-	Protocol   string
-	Name       string
-	ShouldLink bool
+	URL        *url.URL `json:"url"`
+	Protocol   string   `json:"protocol"`
+	Name       string   `json:"name"`
+	ShouldLink bool     `json:"should_link"`
 }
 
 func (s *AREDNService) String() string {

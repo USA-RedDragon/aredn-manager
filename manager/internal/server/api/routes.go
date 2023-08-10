@@ -38,6 +38,10 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1Users.PATCH("/:id", middleware.RequireLogin(config), v1Controllers.PATCHUser)
 	v1Users.DELETE("/:id", middleware.RequireLogin(config), v1Controllers.DELETEUser)
 
+	v1OLSR := group.Group("/olsr")
+	v1OLSR.GET("/hosts", middleware.RequireLogin(config), v1Controllers.GETOLSRHosts)
+	v1OLSR.GET("/services", middleware.RequireLogin(config), v1Controllers.GETOLSRServices)
+
 	v1Tunnels := group.Group("/tunnels")
 	// Paginated
 	v1Tunnels.GET("", v1Controllers.GETTunnels)
