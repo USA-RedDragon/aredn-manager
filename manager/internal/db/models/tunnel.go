@@ -75,6 +75,10 @@ func DeleteTunnel(db *gorm.DB, id uint) error {
 	return nil
 }
 
+func ClearActiveFromAllTunnels(db *gorm.DB) error {
+	return db.Model(&Tunnel{}).Update("active", false).Error
+}
+
 func GetNextIP(db *gorm.DB) (string, error) {
 	// Each tunnel is added with an ip starting from 172.31.180.16 and incrementing by 4 for each tunnel
 	// We need to find the next available ip.

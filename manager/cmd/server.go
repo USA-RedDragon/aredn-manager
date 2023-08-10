@@ -11,6 +11,7 @@ import (
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db"
+	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/ifacewatcher"
 	"github.com/USA-RedDragon/aredn-manager/internal/server"
 	"github.com/spf13/cobra"
@@ -89,6 +90,10 @@ func runServer(cmd *cobra.Command, args []string) error {
 		fmt.Println("starting server")
 
 		db := db.MakeDB(config)
+		err = models.ClearActiveFromAllTunnels(db)
+		if err != nil {
+			return err
+		}
 
 		ifWatcher := ifacewatcher.NewWatcher(db)
 		err = ifWatcher.Watch()
@@ -113,6 +118,8 @@ func runServer(cmd *cobra.Command, args []string) error {
 				defer wg.Done()
 				ifWatcher.Stop()
 			}()
+
+			_ = models.ClearActiveFromAllTunnels(db)
 
 			const timeout = 10 * time.Second
 			c := make(chan struct{})
