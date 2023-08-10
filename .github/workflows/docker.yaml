@@ -2,7 +2,7 @@ name: Docker
 
 on:
   push:
-    branches: ['main', 'supernode']
+    branches: ['main']
   pull_request:
 
 concurrency:
