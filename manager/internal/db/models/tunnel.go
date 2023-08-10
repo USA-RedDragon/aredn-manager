@@ -76,7 +76,7 @@ func DeleteTunnel(db *gorm.DB, id uint) error {
 }
 
 func ClearActiveFromAllTunnels(db *gorm.DB) error {
-	return db.Model(&Tunnel{}).Update("active", false).Error
+	return db.Model(&Tunnel{}).Where("active = ?", true).Update("active", false).Error
 }
 
 func GetNextIP(db *gorm.DB) (string, error) {
