@@ -70,8 +70,8 @@ $ORIGIN ${SUPERNODE_ZONE}.mesh.
   3600      ; Refresh
   300       ; Retry
   604800    ; Expire
-  60 )      ; TTL
-;
+  60        ; TTL
+)
 @           NS ns0
 ns0        A  ${NODE_IP}
 `
@@ -83,7 +83,7 @@ $ORIGIN local.mesh.
   3600        ; Refresh
   300         ; Retry
   604800      ; Expire
-  60 )        ; TTL
+  60          ; TTL
 )
 @     NS ns0
 ns0 A  ${NODE_IP}
@@ -96,9 +96,9 @@ $ORIGIN mesh.
   3600        ; Refresh
   300         ; Retry
   604800      ; Expire
-  60 )        ; TTL
-
-NS ns0.local
+  60          ; TTL
+)
+@ NS ns0.local
 ns0.local A  ${NODE_IP}
 local     NS ns0.local
 `
