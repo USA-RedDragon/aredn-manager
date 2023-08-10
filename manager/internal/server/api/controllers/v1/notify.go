@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/dnsmasq"
+	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/gin-gonic/gin"
 )
 
@@ -14,10 +15,28 @@ func POSTNotify(c *gin.Context) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
 		return
 	}
+	olsrdParsers, ok := c.MustGet("OLSRDParsers").(*olsrd.Parsers)
+	if !ok {
+		fmt.Println("POSTLogin: OLSRDParsers not found in context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
 	err := dnsmasq.Reload()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error notifying dnsmasq"})
 		fmt.Println("Error notifying dnsmasq:", err)
+		return
+	}
+	err = olsrdParsers.HostsParser.Parse()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing hosts"})
+		fmt.Println("Error parsing hosts:", err)
+		return
+	}
+	err = olsrdParsers.ServicesParser.Parse()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing services"})
+		fmt.Println("Error parsing services:", err)
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"status": "OK"})

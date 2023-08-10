@@ -9,6 +9,7 @@ import (
 
 	ratelimit "github.com/JGLTechnologies/gin-rate-limit"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/gin-contrib/cors"
@@ -120,6 +121,10 @@ func (s *Server) addMiddleware(r *gin.Engine) {
 	// DBs
 	r.Use(middleware.ConfigProvider(s.config))
 	r.Use(middleware.DatabaseProvider(s.db))
+	r.Use(middleware.OLSRDProvider(&olsrd.Parsers{
+		HostsParser:    olsrd.NewHostsParser(),
+		ServicesParser: olsrd.NewServicesParser(),
+	}))
 	r.Use(middleware.PaginatedDatabaseProvider(s.db, middleware.PaginationConfig{}))
 
 	// CORS
