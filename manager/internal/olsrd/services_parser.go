@@ -10,20 +10,16 @@ import (
 const SERVICES_FILE = "/var/run/services_olsr"
 
 type AREDNService struct {
-	URL        *url.URL `json:"url"`
-	Protocol   string   `json:"protocol"`
-	Name       string   `json:"name"`
-	ShouldLink bool     `json:"should_link"`
+	URL        string `json:"url"`
+	Protocol   string `json:"protocol"`
+	Name       string `json:"name"`
+	ShouldLink bool   `json:"should_link"`
 }
 
 func (s *AREDNService) String() string {
 	ret := ""
 	ret += fmt.Sprintf("%s:\n\t", s.Name)
-	if s.ShouldLink {
-		ret += fmt.Sprintf("%s\t%s", s.Protocol, s.URL.String())
-	} else {
-		ret += fmt.Sprintf("%s\t%s", s.Protocol, s.URL.Hostname())
-	}
+	ret += fmt.Sprintf("%s\t%s", s.Protocol, s.URL)
 	return ret
 }
 
@@ -71,8 +67,6 @@ func parseServices() (ret []*AREDNService, err error) {
 			continue
 		}
 
-		fmt.Printf("Line: %s\n", line)
-
 		// Lines are of the form:
 		// url|protocol|name
 
@@ -90,7 +84,7 @@ func parseServices() (ret []*AREDNService, err error) {
 		}
 
 		service := &AREDNService{
-			URL:        url,
+			URL:        url.String(),
 			Protocol:   split[1],
 			Name:       split[2],
 			ShouldLink: url.Port() != "0",
