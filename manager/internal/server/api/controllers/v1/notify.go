@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/dnsmasq"
+	"github.com/USA-RedDragon/aredn-manager/internal/bind"
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/gin-gonic/gin"
 )
@@ -21,10 +21,10 @@ func POSTNotify(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
-	err := dnsmasq.Reload()
+	err := bind.Reload()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error notifying dnsmasq"})
-		fmt.Println("Error notifying dnsmasq:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error notifying bind"})
+		fmt.Println("Error notifying bind:", err)
 		return
 	}
 	err = olsrdParsers.HostsParser.Parse()

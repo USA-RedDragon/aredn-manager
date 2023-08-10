@@ -9,14 +9,16 @@
           <br />
           <h3 style="font-weight: bold;">OLSR Daemon</h3>
           <p>{{ olsrdRunning ? 'Running':'Stopped' }}</p>
-          <br />
-          <h3 style="font-weight: bold;">Tunnels Connected</h3>
-          <p>{{ tunnelsConnected }}/{{ totalTunnels }}</p>
+          <h3 style="font-weight: bold;">BIND DNS</h3>
+          <p>{{ bindRunning ? 'Running':'Stopped' }}</p>
         </template>
       </Card>
       <Card style="width: 48%;">
         <template #title>Network Statistics</template>
         <template #content>
+          <h3 style="font-weight: bold;">Tunnels Connected</h3>
+          <p>{{ tunnelsConnected }}/{{ totalTunnels }}</p>
+          <br />
           <h3 style="font-weight: bold;">Bytes RX/TX per Second</h3>
           <p>{{ stats.total_rx_bytes_per_sec }} bytes/s</p>
           <p>{{ stats.total_tx_bytes_per_sec }} bytes/s</p>
@@ -48,6 +50,7 @@ export default {
     return {
       vtundRunning: true,
       olsrdRunning: true,
+      bindRunning: true,
       tunnelsConnected: 0,
       totalTunnels: 0,
       stats: {},
@@ -60,6 +63,9 @@ export default {
       });
       API.get('/vtun/running').then((res) => {
         this.vtundRunning = res.data.running;
+      });
+      API.get('/bind/running').then((res) => {
+        this.bindRunning = res.data.running;
       });
       API.get('/tunnels').then((res) => {
         this.tunnelsConnected = 0;

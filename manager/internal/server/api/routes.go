@@ -48,6 +48,9 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1VTun := group.Group("/vtun")
 	v1VTun.GET("/running", v1Controllers.GETVtunRunning)
 
+	v1Bind := group.Group("/bind")
+	v1Bind.GET("/running", v1Controllers.GETBindRunning)
+
 	v1Tunnels := group.Group("/tunnels")
 	// Paginated
 	v1Tunnels.GET("", v1Controllers.GETTunnels)
