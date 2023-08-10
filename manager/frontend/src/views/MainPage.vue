@@ -9,6 +9,7 @@
           <br />
           <h3 style="font-weight: bold;">OLSR Daemon</h3>
           <p>{{ olsrdRunning ? 'Running':'Stopped' }}</p>
+          <br />
           <h3 style="font-weight: bold;">BIND DNS</h3>
           <p>{{ bindRunning ? 'Running':'Stopped' }}</p>
         </template>
