@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"gorm.io/gorm"
 )
@@ -20,12 +21,14 @@ type Watcher struct {
 	db                       *gorm.DB
 	interfaces               []_iface
 	interfacesToMarkInactive []_iface
+	Stats                    *bandwidth.StatCounterManager
 }
 
 func NewWatcher(db *gorm.DB) *Watcher {
 	return &Watcher{
 		stopped: true,
 		db:      db,
+		Stats:   bandwidth.NewStatCounterManager(db),
 	}
 }
 
@@ -80,6 +83,11 @@ func (w *Watcher) watch() {
 		for _, iface := range w.interfaces {
 			if !netInterfaceContainsIface(interfaces, iface) {
 				fmt.Printf("Interface %s is no longer present\n", iface.Name)
+				err = w.Stats.Remove(iface.Name)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
 				w.interfaces = remove(w.interfaces, iface)
 				w.interfacesToMarkInactive = append(w.interfacesToMarkInactive, iface)
 			}
@@ -89,6 +97,11 @@ func (w *Watcher) watch() {
 		for _, iface := range interfaces {
 			if strings.HasPrefix(iface.Name, "tun") && !ifaceContainsNetInterface(w.interfaces, iface) {
 				fmt.Printf("Interface %s is now present\n", iface.Name)
+				err = w.Stats.Add(iface.Name)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
 				w.interfaces = append(w.interfaces, _iface{
 					iface,
 					w.findTunnel(iface),
@@ -131,6 +144,13 @@ func (w *Watcher) reconcileDB() {
 		if iface.AssociatedTunnel != nil {
 			fmt.Printf("Marking tunnel %s as inactive\n", iface.AssociatedTunnel.Hostname)
 			iface.AssociatedTunnel.Active = false
+			iface.AssociatedTunnel.TunnelInterface = ""
+			iface.AssociatedTunnel.RXBytesPerSec = 0
+			iface.AssociatedTunnel.TXBytesPerSec = 0
+			iface.AssociatedTunnel.TotalRXMB += float64(iface.AssociatedTunnel.RXBytes) / 1024 / 1024
+			iface.AssociatedTunnel.TotalTXMB += float64(iface.AssociatedTunnel.TXBytes) / 1024 / 1024
+			iface.AssociatedTunnel.RXBytes = 0
+			iface.AssociatedTunnel.TXBytes = 0
 			w.db.Save(iface.AssociatedTunnel)
 		}
 	}
@@ -140,6 +160,8 @@ func (w *Watcher) reconcileDB() {
 			if !iface.AssociatedTunnel.Active {
 				fmt.Printf("Marking tunnel %s as active\n", iface.AssociatedTunnel.Hostname)
 				iface.AssociatedTunnel.Active = true
+				iface.AssociatedTunnel.TunnelInterface = iface.Name
+				iface.AssociatedTunnel.ConnectionTime = time.Now()
 				w.db.Save(iface.AssociatedTunnel)
 			}
 		}
@@ -148,4 +170,5 @@ func (w *Watcher) reconcileDB() {
 
 func (w *Watcher) Stop() {
 	w.stopped = true
+	w.Stats.Stop()
 }

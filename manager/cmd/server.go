@@ -89,14 +89,16 @@ func runServer(cmd *cobra.Command, args []string) error {
 		fmt.Println("starting server")
 
 		db := db.MakeDB(config)
-		srv := server.NewServer(config, db)
-		srv.Run()
 
 		ifWatcher := ifacewatcher.NewWatcher(db)
 		err = ifWatcher.Watch()
 		if err != nil {
 			return err
 		}
+
+		srv := server.NewServer(config, db, ifWatcher.Stats)
+		srv.Run()
+
 		stop := func(sig os.Signal) {
 			wg := new(sync.WaitGroup)
 

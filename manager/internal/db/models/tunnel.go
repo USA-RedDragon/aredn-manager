@@ -9,14 +9,22 @@ import (
 )
 
 type Tunnel struct {
-	ID        uint           `json:"id" gorm:"primaryKey"`
-	Hostname  string         `json:"hostname" binding:"required"`
-	IP        string         `json:"ip" binding:"required"`
-	Password  string         `json:"-" binding:"required"`
-	Active    bool           `json:"active"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"-"`
-	DeletedAt gorm.DeletedAt `json:"-" gorm:"index"`
+	ID              uint           `json:"id" gorm:"primaryKey"`
+	Hostname        string         `json:"hostname" binding:"required"`
+	IP              string         `json:"ip" binding:"required"`
+	Password        string         `json:"-" binding:"required"`
+	Active          bool           `json:"active"`
+	TunnelInterface string         `json:"-"`
+	RXBytes         uint64         `json:"rx_bytes"`
+	TXBytes         uint64         `json:"tx_bytes"`
+	TotalRXMB       float64        `json:"total_rx_mb"`
+	TotalTXMB       float64        `json:"total_tx_mb"`
+	RXBytesPerSec   uint64         `json:"rx_bytes_per_sec"`
+	TXBytesPerSec   uint64         `json:"tx_bytes_per_sec"`
+	ConnectionTime  time.Time      `json:"connection_time"`
+	CreatedAt       time.Time      `json:"created_at"`
+	UpdatedAt       time.Time      `json:"-"`
+	DeletedAt       gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
 func TunnelIDExists(db *gorm.DB, id uint) (bool, error) {
@@ -28,6 +36,12 @@ func TunnelIDExists(db *gorm.DB, id uint) (bool, error) {
 func FindTunnelByID(db *gorm.DB, id uint) (Tunnel, error) {
 	var tunnel Tunnel
 	err := db.First(&tunnel, id).Error
+	return tunnel, err
+}
+
+func FindTunnelByInterface(db *gorm.DB, iface string) (Tunnel, error) {
+	var tunnel Tunnel
+	err := db.Where("tunnel_interface = ?", iface).First(&tunnel).Error
 	return tunnel, err
 }
 

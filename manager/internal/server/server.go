@@ -8,6 +8,7 @@ import (
 	"time"
 
 	ratelimit "github.com/JGLTechnologies/gin-rate-limit"
+	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api"
@@ -31,13 +32,15 @@ type Server struct {
 	server          *http.Server
 	db              *gorm.DB
 	shutdownChannel chan bool
+	stats           *bandwidth.StatCounterManager
 }
 
-func NewServer(config *config.Config, db *gorm.DB) *Server {
+func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager) *Server {
 	return &Server{
 		config:          config,
 		db:              db,
 		shutdownChannel: make(chan bool),
+		stats:           stats,
 	}
 }
 
@@ -125,6 +128,7 @@ func (s *Server) addMiddleware(r *gin.Engine) {
 		HostsParser:    olsrd.NewHostsParser(),
 		ServicesParser: olsrd.NewServicesParser(),
 	}))
+	r.Use(middleware.NetworkStats(s.stats))
 	r.Use(middleware.PaginatedDatabaseProvider(s.db, middleware.PaginationConfig{}))
 
 	// CORS
