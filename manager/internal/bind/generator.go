@@ -22,6 +22,9 @@ const (
 	forwarders {
 		127.0.0.11;
 	};
+
+	dnssec-validation no;
+	auth-nxdomain no;    # conform to RFC1035
 };
 
 zone "mesh" {
