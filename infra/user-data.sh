@@ -55,6 +55,8 @@ docker run \
     -e WIREGUARD_TAP_ADDRESS=${wireguard_tap_address} \
     -e WIREGUARD_PEER_PUBLICKEY=${wireguard_peer_publickey} \
     -e WIREGUARD_SERVER_PRIVATEKEY=${wireguard_server_privatekey} \
+    -e NODE_IP=${node_ip} \
+    -e SUPERNODE_ZONE=${supernode_zone} \
     --device /dev/net/tun \
     --name ${server_name} \
     -p 5525:5525 \
@@ -62,7 +64,7 @@ docker run \
     -d \
     --restart unless-stopped \
     $LOGGING \
-    --net aredn-net --ip 10.54.25.2 \
+    --net aredn-net --ip ${node_ip} \
     ghcr.io/usa-reddragon/aredn-virtual-node:main
 
 docker run \

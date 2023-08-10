@@ -43,6 +43,16 @@ variable "wireguard_peer_publickey" {
   sensitive   = true
 }
 
+variable "node_ip" {
+  description = "The IP address of the node"
+  sensitive   = true
+}
+
+variable "supernode_zone" {
+  description = "The DNS zone for this supernode"
+  sensitive   = true
+}
+
 variable "wireguard_server_privatekey" {
   description = "The private key of the WireGuard server"
   sensitive   = true

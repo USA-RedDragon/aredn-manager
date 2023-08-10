@@ -22,12 +22,15 @@ type Config struct {
 	OTLPEndpoint             string
 	InitialAdminUserPassword string
 	CORSHosts                []string
+	OtherSupernodes          []string
 	TrustedProxies           []string
 	HIBPAPIKey               string
 	ServerName               string
 	Supernode                bool
 	Masquerade               bool
 	WireguardTapAddress      string
+	NodeIP                   string
+	SupernodeZone            string
 	strSessionSecret         string
 	SessionSecret            []byte
 	PostgresDSN              string
@@ -71,6 +74,8 @@ func loadConfig() Config {
 		Supernode:                os.Getenv("SUPERNODE") != "",
 		Masquerade:               os.Getenv("MASQUERADE") != "",
 		WireguardTapAddress:      os.Getenv("WIREGUARD_TAP_ADDRESS"),
+		NodeIP:                   os.Getenv("NODE_IP"),
+		SupernodeZone:            os.Getenv("SUPERNODE_ZONE"),
 		strSessionSecret:         os.Getenv("SESSION_SECRET"),
 		postgresUser:             os.Getenv("PG_USER"),
 		postgresPassword:         os.Getenv("PG_PASSWORD"),
@@ -81,6 +86,10 @@ func loadConfig() Config {
 
 	if tmpConfig.PIDFile == "" {
 		tmpConfig.PIDFile = defaultConfig.PIDFile
+	}
+
+	if tmpConfig.Supernode && tmpConfig.SupernodeZone == "" {
+		panic("Supernode zone not set")
 	}
 
 	if tmpConfig.InitialAdminUserPassword == "" {
@@ -97,6 +106,10 @@ func loadConfig() Config {
 
 	if tmpConfig.ServerName == "" {
 		panic("Server name not set")
+	}
+
+	if tmpConfig.NodeIP == "" {
+		panic("Node IP not set")
 	}
 
 	if tmpConfig.PasswordSalt == "" {

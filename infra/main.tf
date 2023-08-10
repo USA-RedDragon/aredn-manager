@@ -140,6 +140,8 @@ resource "aws_instance" "node" {
     awslogs-group               = aws_cloudwatch_log_group.log-group.name
     wireguard_peer_publickey    = var.wireguard_peer_publickey
     wireguard_server_privatekey = var.wireguard_server_privatekey
+    node_ip                     = var.node_ip
+    supernode_zone              = var.supernode_zone
     pg_host                     = var.pg_host
     pg_user                     = var.pg_user
     pg_pass                     = var.pg_password

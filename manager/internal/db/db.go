@@ -39,7 +39,7 @@ func MakeDB(config *config.Config) *gorm.DB {
 		}
 	}
 
-	err = db.AutoMigrate(&models.AppSettings{}, &models.User{}, &models.Tunnel{})
+	err = db.AutoMigrate(&models.AppSettings{}, &models.User{}, &models.Supernode{}, &models.Tunnel{})
 	if err != nil {
 		fmt.Printf("Could not migrate database: %v\n", err)
 		os.Exit(1)

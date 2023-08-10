@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/bind"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db"
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
@@ -35,5 +36,11 @@ func runGenerate(cmd *cobra.Command, args []string) error {
 	}
 
 	fmt.Println("Generating vtund config")
-	return vtun.GenerateAndSave(config, db)
+	err = vtun.GenerateAndSave(config, db)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Generating BIND config")
+	return bind.GenerateAndSave(config, db)
 }
