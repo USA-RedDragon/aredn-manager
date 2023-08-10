@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/bind"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
@@ -91,7 +92,7 @@ func POSTTunnel(c *gin.Context) {
 
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("POSTUser: Unable to get Config from context")
+		fmt.Println("POSTTunnel: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -143,14 +144,14 @@ func POSTTunnel(c *gin.Context) {
 			return
 		}
 
-		vtun.GenerateAndSave(config, db)
+		err = vtun.GenerateAndSave(config, db)
 		if err != nil {
 			fmt.Printf("POSTTunnel: Error generating vtun config: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
 			return
 		}
 
-		olsrd.GenerateAndSave(config, db)
+		err = olsrd.GenerateAndSave(config, db)
 		if err != nil {
 			fmt.Printf("POSTTunnel: Error generating olsrd config: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
@@ -171,6 +172,20 @@ func POSTTunnel(c *gin.Context) {
 			return
 		}
 
+		err = bind.GenerateAndSave(config, db)
+		if err != nil {
+			fmt.Printf("Error generating bind config: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating bind config"})
+			return
+		}
+
+		err = bind.Reload()
+		if err != nil {
+			fmt.Printf("Error reloading bind: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading bind"})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{"message": "Tunnel created"})
 	}
 }
@@ -184,7 +199,7 @@ func DELETETunnel(c *gin.Context) {
 	}
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("POSTUser: Unable to get Config from context")
+		fmt.Println("DELETETunnel: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -213,14 +228,14 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
-	vtun.GenerateAndSave(config, db)
+	err = vtun.GenerateAndSave(config, db)
 	if err != nil {
 		fmt.Printf("Error generating vtun config: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
 		return
 	}
 
-	olsrd.GenerateAndSave(config, db)
+	err = olsrd.GenerateAndSave(config, db)
 	if err != nil {
 		fmt.Printf("Error generating olsrd config: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
@@ -238,6 +253,20 @@ func DELETETunnel(c *gin.Context) {
 	if err != nil {
 		fmt.Printf("Error reloading olsrd: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
+		return
+	}
+
+	err = bind.GenerateAndSave(config, db)
+	if err != nil {
+		fmt.Printf("Error generating bind config: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating bind config"})
+		return
+	}
+
+	err = bind.Reload()
+	if err != nil {
+		fmt.Printf("Error reloading bind: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading bind"})
 		return
 	}
 
