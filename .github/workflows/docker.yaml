@@ -27,7 +27,7 @@ jobs:
       - name: Setup Go
         uses: actions/setup-go@v4
         with:
-          go-version-file: go.mod
+          go-version-file: manager/go.mod
 
       - name: Run Go generate
         run: go generate ./...
