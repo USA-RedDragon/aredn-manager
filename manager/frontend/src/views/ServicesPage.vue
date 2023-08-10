@@ -3,7 +3,7 @@
     <Card>
       <template #title>Services</template>
       <template #content>
-        <p>Main</p>
+        <ServicesTable />
       </template>
     </Card>
   </div>
@@ -11,10 +11,12 @@
 
 <script>
 import Card from 'primevue/card';
+import ServicesTable from '../components/ServicesTable.vue';
 
 export default {
   components: {
     Card,
+    ServicesTable,
   },
   created() {},
   mounted() {},
