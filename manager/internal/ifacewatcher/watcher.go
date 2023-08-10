@@ -120,7 +120,6 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 		return nil
 	}
 	for _, addr := range addrs {
-		fmt.Println(addr)
 		ip, _, err := net.ParseCIDR(addr.String())
 		if err != nil {
 			fmt.Println(err)
@@ -140,6 +139,7 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 
 // reconcileDB will loop through w.interfaces and change the database to reflect the current state
 func (w *Watcher) reconcileDB() {
+	fmt.Println("Reconciling DB")
 	for _, iface := range w.interfacesToMarkInactive {
 		if iface.AssociatedTunnel != nil {
 			fmt.Printf("Marking tunnel %s as inactive\n", iface.AssociatedTunnel.Hostname)
