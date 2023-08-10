@@ -1,16 +1,32 @@
 <template>
   <div>
-    <Card>
-      <template #title>Cloud Node Status</template>
-      <template #content>
-        <h3>VTun Daemon</h3>
-        <p>{{ vtundRunning ? 'Running':'Stopped' }}</p>
-        <h3>OLSR Daemon</h3>
-        <p>{{ olsrdRunning ? 'Running':'Stopped' }}</p>
-        <h3>Tunnels Connected</h3>
-        <p>{{ tunnelsConnected }}/{{ totalTunnels }}</p>
-      </template>
-    </Card>
+    <span style="display: flex; justify-content: space-evenly">
+      <Card style="width: 48%;">
+        <template #title>Daemon Status</template>
+        <template #content>
+          <h3 style="font-weight: bold;">VTun Daemon</h3>
+          <p>{{ vtundRunning ? 'Running':'Stopped' }}</p>
+          <br />
+          <h3 style="font-weight: bold;">OLSR Daemon</h3>
+          <p>{{ olsrdRunning ? 'Running':'Stopped' }}</p>
+          <br />
+          <h3 style="font-weight: bold;">Tunnels Connected</h3>
+          <p>{{ tunnelsConnected }}/{{ totalTunnels }}</p>
+        </template>
+      </Card>
+      <Card style="width: 48%;">
+        <template #title>Network Statistics</template>
+        <template #content>
+          <h3 style="font-weight: bold;">Bytes RX/TX per Second</h3>
+          <p>{{ stats.total_rx_bytes_per_sec }} bytes/s</p>
+          <p>{{ stats.total_tx_bytes_per_sec }} bytes/s</p>
+          <br />
+          <h3 style="font-weight: bold;">Total Bytes RX/TX</h3>
+          <p>{{ stats.total_rx_mb }} MBytes</p>
+          <p>{{ stats.total_tx_mb }} MBytes</p>
+        </template>
+      </Card>
+    </span>
   </div>
 </template>
 
@@ -34,6 +50,7 @@ export default {
       olsrdRunning: true,
       tunnelsConnected: 0,
       totalTunnels: 0,
+      stats: {},
     };
   },
   methods: {
@@ -52,6 +69,17 @@ export default {
           }
         }
         this.totalTunnels = res.data.total;
+      });
+      API.get('/stats').then((res) => {
+        if (res.data.stats.total_rx_mb != 0) {
+          // Truncate to 2 decimal places
+          res.data.stats.total_rx_mb = Math.round(res.data.stats.total_rx_mb * 100) / 100;
+        }
+        if (res.data.stats.total_tx_mb != 0) {
+          // Truncate to 2 decimal places
+          res.data.stats.total_tx_mb = Math.round(res.data.stats.total_tx_mb * 100) / 100;
+        }
+        this.stats = res.data.stats;
       });
     },
   },

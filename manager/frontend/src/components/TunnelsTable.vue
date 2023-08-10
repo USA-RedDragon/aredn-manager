@@ -22,30 +22,30 @@
         </RouterLink>
       </div>
     </template>
-    <Column field="active" header="Connected"></Column>
     <Column :expander="true" v-if="$props.admin" />
+    <Column field="active" header="Connected"></Column>
     <Column field="hostname" header="Name"></Column>
     <Column field="ip" header="IP"></Column>
     <Column field="password" header="Password" v-if="$props.admin"></Column>
-    <Column field="connection_time" header="Connection Time">
+    <Column field="connection_time" header="Connection Time" v-if="!$props.admin">
       <template #body="slotProps">
         <span v-if="slotProps.data.connection_time == 'Never'">{{slotProps.data.connection_time}}</span>
         <span v-else>{{slotProps.data.connection_time.fromNow()}}</span>
       </template>
     </Column>
-    <Column field="rx_bytes" header="Session Bytes RX/TX">
+    <Column field="rx_bytes" header="Session Bytes RX/TX" v-if="!$props.admin">
       <template #body="slotProps">
         <p>{{slotProps.data.rx_bytes}} bytes</p>
         <p>{{slotProps.data.tx_bytes}} bytes</p>
       </template>
     </Column>
-    <Column field="total_rx_mb" header="Total Megabytes RX/TX">
+    <Column field="total_rx_mb" header="Total Megabytes RX/TX" v-if="!$props.admin">
       <template #body="slotProps">
         <p>{{slotProps.data.total_rx_mb}} MBytes</p>
         <p>{{slotProps.data.total_tx_mb}} MBytes</p>
       </template>
     </Column>
-    <Column field="rx_bytes_per_sec" header="Bandwidth Usage (bytes/second)">
+    <Column field="rx_bytes_per_sec" header="Bandwidth Usage (bytes/second)" v-if="!$props.admin">
       <template #body="slotProps">
         <p>{{slotProps.data.rx_bytes_per_sec}} bytes/s</p>
         <p>{{slotProps.data.tx_bytes_per_sec}} bytes/s</p>
