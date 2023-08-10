@@ -3,7 +3,7 @@
     <Card>
       <template #title>Nodes</template>
       <template #content>
-        <p>Main</p>
+        <NodesTable />
       </template>
     </Card>
   </div>
@@ -11,10 +11,12 @@
 
 <script>
 import Card from 'primevue/card';
+import NodesTable from '../components/NodesTable.vue';
 
 export default {
   components: {
     Card,
+    NodesTable,
   },
   created() {},
   mounted() {},
