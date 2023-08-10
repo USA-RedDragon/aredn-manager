@@ -111,6 +111,7 @@ func (s *StatCounter) Start() error {
 					continue
 				}
 			}
+			s.TXBandwidth = tunnel.TXBytesPerSec
 			s.lastNewTXBytes = newBytes
 			s.lastTXBytes = txBytes
 
