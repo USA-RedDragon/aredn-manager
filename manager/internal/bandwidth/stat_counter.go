@@ -158,9 +158,8 @@ func NewStatCounterManager(db *gorm.DB) *StatCounterManager {
 	}
 }
 
-func (s *StatCounterManager) Add(iface string) error {
-	statCounter := newStatCounter(iface, s.db, s.totalStatsUpdate)
-	s.counters.Store(iface, statCounter)
+func (s *StatCounterManager) Start() {
+	s.running = true
 	go func() {
 		time.Sleep(2 * time.Second)
 		for s.running {
@@ -168,6 +167,11 @@ func (s *StatCounterManager) Add(iface string) error {
 			time.Sleep(1 * time.Second)
 		}
 	}()
+}
+
+func (s *StatCounterManager) Add(iface string) error {
+	statCounter := newStatCounter(iface, s.db, s.totalStatsUpdate)
+	s.counters.Store(iface, statCounter)
 	return statCounter.Start()
 }
 

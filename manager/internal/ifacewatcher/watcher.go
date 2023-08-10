@@ -25,11 +25,13 @@ type Watcher struct {
 }
 
 func NewWatcher(db *gorm.DB) *Watcher {
-	return &Watcher{
+	w := &Watcher{
 		stopped: true,
 		db:      db,
 		Stats:   bandwidth.NewStatCounterManager(db),
 	}
+	w.Stats.Start()
+	return w
 }
 
 func (w *Watcher) Watch() error {
