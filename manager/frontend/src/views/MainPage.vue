@@ -3,7 +3,7 @@
     <Card>
       <template #title>Cloud Node Status</template>
       <template #content>
-        <p>Main</p>
+        <p>**insert status info here**</p>
       </template>
     </Card>
   </div>

@@ -1,9 +1,9 @@
 <template>
   <div>
     <Card>
-      <template #title>Meshes</template>
+      <template #title>Supernode Mesh Connections</template>
       <template #content>
-        <p>Main</p>
+        <p>Coming soon!</p>
       </template>
     </Card>
   </div>
