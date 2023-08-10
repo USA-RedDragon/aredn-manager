@@ -10,13 +10,21 @@
   >
     <Column field="hostname" header="Name">
       <template #body="slotProps">
-        <a :href="'http://' + slotProps.data.hostname + '.local.mesh'">
+        <a target="_blank" :href="'http://' + slotProps.data.hostname + '.local.mesh'">
           {{ slotProps.data.hostname }}
         </a>
       </template>
     </Column>
     <Column field="ip" header="IP"></Column>
-    <Column field="children" header="Devices"></Column>
+    <Column field="children" header="Devices">
+      <template #body="slotProps">
+        <p v-for="child in slotProps.data.children" v-bind:key="child.hostname">
+          <a target="_blank" :href="'http://' + child.hostname + '.local.mesh'">
+            {{ child.hostname }}
+          </a> ({{ child.ip }})
+        </p>
+      </template>
+    </Column>
   </DataTable>
 </template>
 
