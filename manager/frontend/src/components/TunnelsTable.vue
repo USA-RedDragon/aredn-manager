@@ -117,6 +117,7 @@ export default {
       this.fetchData(event.page + 1, event.rows);
     },
     fetchData(page = 1, limit = 10) {
+      this.loading = true;
       API.get(`/tunnels?page=${page}&limit=${limit}&admin=${this.$props.admin}`)
         .then((res) => {
           if (!res.data.tunnels) {
@@ -147,6 +148,7 @@ export default {
           this.loading = false;
         })
         .catch((err) => {
+          this.loading = false;
           console.error(err);
         });
     },
