@@ -159,7 +159,7 @@ func POSTMesh(c *gin.Context) {
 			return
 		}
 
-		err = bind.Reload()
+		err = bind.Restart()
 		if err != nil {
 			fmt.Printf("Error reloading bind: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading bind"})
@@ -244,7 +244,7 @@ func DELETEMesh(c *gin.Context) {
 		return
 	}
 
-	err = bind.Reload()
+	err = bind.Restart()
 	if err != nil {
 		fmt.Printf("Error reloading bind: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading bind"})
