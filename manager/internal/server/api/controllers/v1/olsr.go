@@ -9,27 +9,15 @@ import (
 )
 
 func GETOLSRHosts(c *gin.Context) {
-	olsrdParsers, ok := c.MustGet("OLSRDParsers").(*olsrd.Parsers)
+	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.Parsers)
 	if !ok {
-		fmt.Println("POSTLogin: OLSRDParsers not found in context")
+		fmt.Println("POSTLogin: OLSRDHostParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	nodes := olsrdParsers.HostsParser.GetHosts()
+	nodes := olsrdParser.HostsParser.GetHosts()
 	c.JSON(http.StatusOK, gin.H{"nodes": nodes})
-}
-
-func GETOLSRServices(c *gin.Context) {
-	olsrdParsers, ok := c.MustGet("OLSRDParsers").(*olsrd.Parsers)
-	if !ok {
-		fmt.Println("POSTLogin: OLSRDParsers not found in context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
-	}
-
-	services := olsrdParsers.ServicesParser.GetServices()
-	c.JSON(http.StatusOK, gin.H{"services": services})
 }
 
 func GETOLSRRunning(c *gin.Context) {

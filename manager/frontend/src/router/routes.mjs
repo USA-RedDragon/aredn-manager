@@ -20,11 +20,6 @@ export default [
     component: () => import('../views/TunnelsPage.vue'),
   },
   {
-    path: '/services',
-    name: 'Services',
-    component: () => import('../views/ServicesPage.vue'),
-  },
-  {
     path: '/nodes',
     name: 'Nodes',
     component: () => import('../views/NodesPage.vue'),

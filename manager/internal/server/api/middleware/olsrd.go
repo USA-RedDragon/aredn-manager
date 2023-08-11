@@ -5,9 +5,9 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func OLSRDProvider(parsers *olsrd.Parsers) gin.HandlerFunc {
+func OLSRDProvider(parser *olsrd.HostsParser) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		c.Set("OLSRDParsers", parsers)
+		c.Set("OLSRDHostParser", parser)
 		c.Next()
 	}
 }

@@ -3,6 +3,7 @@ package olsrd
 import (
 	"fmt"
 	"net"
+	"net/url"
 	"os"
 	"strings"
 )
@@ -31,8 +32,9 @@ func (p *HostsParser) Parse() (err error) {
 }
 
 type HostData struct {
-	Hostname string `json:"hostname"`
-	IP       net.IP `json:"ip"`
+	Hostname string          `json:"hostname"`
+	IP       net.IP          `json:"ip"`
+	Services []*AREDNService `json:"services"`
 }
 
 type AREDNHost struct {
@@ -179,6 +181,63 @@ func parseHosts() (ret []*AREDNHost, err error) {
 
 	if len(orphanedChildren) > 0 {
 		fmt.Printf("Found orphaned children: %v\n", orphanedChildren)
+	}
+
+	svcs := newServicesParser()
+	err = svcs.parse()
+	if err != nil {
+		fmt.Printf("Error parsing services: %v\n", err)
+		return
+	}
+
+	services := svcs.getServices()
+	foundServices := []*AREDNService{}
+
+	// We need to go through the hosts and each of their children and add the services
+	// Remove the services from the servicesCopy list as we find them
+	for _, host := range ret {
+		for _, child := range host.Children {
+			for _, svc := range services {
+				url, err := url.Parse(svc.URL)
+				if err != nil {
+					continue
+				}
+				for _, foundSvc := range foundServices {
+					if foundSvc == svc {
+						continue
+					}
+				}
+				if child.Hostname == strings.ReplaceAll(url.Hostname(), ".mesh.local", "") {
+					child.Services = append(child.Services, svc)
+					foundServices = append(foundServices, svc)
+				}
+			}
+		}
+		for _, svc := range services {
+			url, err := url.Parse(svc.URL)
+			if err != nil {
+				continue
+			}
+			for _, foundSvc := range foundServices {
+				if foundSvc == svc {
+					continue
+				}
+			}
+			if host.Hostname == strings.ReplaceAll(url.Hostname(), ".mesh.local", "") {
+				host.Services = append(host.Services, svc)
+				foundServices = append(foundServices, svc)
+			}
+		}
+	}
+
+	// Now check if there are any services that we didn't find a host for
+	for _, svc := range services {
+		for _, foundSvc := range foundServices {
+			if foundSvc == svc {
+				continue
+			}
+			fmt.Printf("Found service with no host: %v\n", svc)
+		}
 	}
 
 	return

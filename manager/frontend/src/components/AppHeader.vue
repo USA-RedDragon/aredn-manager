@@ -7,7 +7,6 @@
       <nav>
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/nodes">Nodes</RouterLink>
-        <RouterLink to="/services">Services</RouterLink>
         <RouterLink to="/tunnels">Tunnels</RouterLink>
         <RouterLink to="/meshes">Meshes</RouterLink>
 

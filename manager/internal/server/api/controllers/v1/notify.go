@@ -31,22 +31,16 @@ func POSTNotify(c *gin.Context) {
 		return
 	}
 
-	olsrdParsers, ok := c.MustGet("OLSRDParsers").(*olsrd.Parsers)
+	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.HostsParser)
 	if !ok {
-		fmt.Println("POSTLogin: OLSRDParsers not found in context")
+		fmt.Println("POSTLogin: OLSRDHostParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
-	err := olsrdParsers.HostsParser.Parse()
+	err := olsrdParser.Parse()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing hosts"})
 		fmt.Println("Error parsing hosts:", err)
-		return
-	}
-	err = olsrdParsers.ServicesParser.Parse()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing services"})
-		fmt.Println("Error parsing services:", err)
 		return
 	}
 	err = bind.GenerateAndSave(config, db)
