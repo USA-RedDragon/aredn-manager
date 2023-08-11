@@ -29,6 +29,12 @@ func GETMeshes(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
+	config, ok := c.MustGet("Config").(*config.Config)
+	if !ok {
+		fmt.Println("GETMeshes: Unable to get Config from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
 	meshes, err := models.ListSupernodes(db)
 	if err != nil {
 		fmt.Printf("GETMeshes: Error getting meshes: %v\n", err)
@@ -41,6 +47,15 @@ func GETMeshes(c *gin.Context) {
 		fmt.Printf("GETMeshes: Error getting mesh count: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting mesh count"})
 		return
+	}
+
+	if config.Supernode {
+		// We never add ourselves to the database as a supernode
+		// but we do want to show up in the list to the users
+		meshes = append(meshes, models.Supernode{
+			MeshName: config.SupernodeZone,
+			IPs:      []string{config.NodeIP},
+		})
 	}
 
 	c.JSON(http.StatusOK, gin.H{
