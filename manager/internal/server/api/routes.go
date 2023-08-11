@@ -59,11 +59,11 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	// v1Tunnels.PATCH("/:id", middleware.RequireLogin(config), v1Controllers.PATCHTunnel)
 	v1Tunnels.DELETE("/:id", middleware.RequireLogin(config), v1Controllers.DELETETunnel)
 
-	// v1Meshes := group.Group("/meshes")
+	v1Meshes := group.Group("/meshes")
 	// // Paginated
-	// v1Meshes.GET("", v1Controllers.GETMeshes)
-	// v1Meshes.POST("", middleware.RequireLogin(config), v1Controllers.POSTMesh)
+	v1Meshes.GET("", v1Controllers.GETMeshes)
+	v1Meshes.POST("", middleware.RequireLogin(config), v1Controllers.POSTMesh)
 	// v1Meshes.GET("/:id", v1Controllers.GETMesh)
 	// v1Meshes.PATCH("/:id", middleware.RequireLogin(config), v1Controllers.PATCHMesh)
-	// v1Meshes.DELETE("/:id", middleware.RequireLogin(config), v1Controllers.DELETEMesh)
+	v1Meshes.DELETE("/:id", middleware.RequireLogin(config), v1Controllers.DELETEMesh)
 }

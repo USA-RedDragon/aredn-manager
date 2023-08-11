@@ -104,7 +104,6 @@ export default {
       expandedRows: [],
       loading: false,
       totalRecords: 0,
-      timer: null,
     };
   },
   mounted() {
