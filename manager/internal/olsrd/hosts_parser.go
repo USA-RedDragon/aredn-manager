@@ -201,6 +201,7 @@ func parseHosts() (ret []*AREDNHost, err error) {
 				rawURL := strings.ReplaceAll(svc.URL, ":0/", "/")
 				url, err := url.Parse(rawURL)
 				if err != nil {
+					fmt.Printf("Error parsing URL: %v\n", err)
 					continue
 				}
 				for _, foundSvc := range foundServices {
@@ -218,6 +219,7 @@ func parseHosts() (ret []*AREDNHost, err error) {
 		for _, svc := range services {
 			url, err := url.Parse(svc.URL)
 			if err != nil {
+				fmt.Printf("Error parsing URL: %v\n", err)
 				continue
 			}
 			for _, foundSvc := range foundServices {
