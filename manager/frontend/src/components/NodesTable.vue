@@ -25,6 +25,7 @@
         </p>
       </template>
     </Column>
+    <Column field="services" header="Services"></Column>
   </DataTable>
 </template>
 

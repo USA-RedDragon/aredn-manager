@@ -198,7 +198,8 @@ func parseHosts() (ret []*AREDNHost, err error) {
 	for _, host := range ret {
 		for _, child := range host.Children {
 			for _, svc := range services {
-				url, err := url.Parse(svc.URL)
+				rawURL := strings.ReplaceAll(svc.URL, ":0/", "/")
+				url, err := url.Parse(rawURL)
 				if err != nil {
 					continue
 				}
@@ -207,6 +208,7 @@ func parseHosts() (ret []*AREDNHost, err error) {
 						continue
 					}
 				}
+				fmt.Printf("child.Hostname=%s\turl.Hostname()=%s\tcmp=%s\n", child.Hostname, url.Hostname(), strings.ReplaceAll(url.Hostname(), ".mesh.local", ""))
 				if child.Hostname == strings.ReplaceAll(url.Hostname(), ".mesh.local", "") {
 					child.Services = append(child.Services, svc)
 					foundServices = append(foundServices, svc)
