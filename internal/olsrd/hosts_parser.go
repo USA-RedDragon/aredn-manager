@@ -195,8 +195,8 @@ func parseHosts() (ret []*AREDNHost, err error) {
 
 	// We need to go through the hosts and each of their children and add the services
 	// Remove the services from the servicesCopy list as we find them
-	for _, host := range ret {
-		for _, child := range host.Children {
+	for hostIdx, host := range ret {
+		for childIdx, child := range host.Children {
 			for _, svc := range services {
 				url, err := url.Parse(svc.URL)
 				if err != nil {
@@ -213,9 +213,8 @@ func parseHosts() (ret []*AREDNHost, err error) {
 				if serviceAlreadyFound {
 					continue
 				}
-				fmt.Printf("child.Hostname=%s\turl.Hostname()=%s\n", child.Hostname, url.Hostname())
 				if strings.EqualFold(child.Hostname, url.Hostname()) {
-					child.Services = append(child.Services, svc)
+					ret[hostIdx].Children[childIdx].Services = append(ret[hostIdx].Children[childIdx].Services, svc)
 					foundServices = append(foundServices, svc)
 				}
 			}
@@ -236,7 +235,7 @@ func parseHosts() (ret []*AREDNHost, err error) {
 				continue
 			}
 			if strings.EqualFold(host.Hostname, url.Hostname()) {
-				host.Services = append(host.Services, svc)
+				ret[hostIdx].Services = append(ret[hostIdx].Services, svc)
 				foundServices = append(foundServices, svc)
 			}
 		}
@@ -244,10 +243,14 @@ func parseHosts() (ret []*AREDNHost, err error) {
 
 	// Now check if there are any services that we didn't find a host for
 	for _, svc := range services {
+		hasFoundService := false
 		for _, foundSvc := range foundServices {
 			if foundSvc == svc {
-				continue
+				hasFoundService = true
+				break
 			}
+		}
+		if !hasFoundService {
 			fmt.Printf("Found service with no host: %v\n", svc)
 		}
 	}
