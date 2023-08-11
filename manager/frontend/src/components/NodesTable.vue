@@ -19,9 +19,7 @@
     <Column field="children" header="Devices">
       <template #body="slotProps">
         <p v-for="child in slotProps.data.children" v-bind:key="child.hostname">
-          <a target="_blank" :href="'http://' + child.hostname + '.local.mesh'">
-            {{ child.hostname }}
-          </a> ({{ child.ip }})
+          {{ child.hostname }} ({{ child.ip }})
         </p>
       </template>
     </Column>
