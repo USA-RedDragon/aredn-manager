@@ -76,6 +76,28 @@ export default {
           if (!res.data.nodes) {
             res.data.nodes = [];
           }
+
+          // Iterate through each node's services and each node's child's services
+          // and make them a new URL()
+          res.data.nodes.forEach((node) => {
+            if (node.services != null) {
+              node.services.forEach((service) => {
+                service.url = new URL(service.url);
+                service.url.hostname = service.url.hostname + '.local.mesh';
+              });
+            }
+            if (node.children != null) {
+              node.children.forEach((child) => {
+                if (child.services != null) {
+                  child.services.forEach((service) => {
+                    service.url = new URL(service.url);
+                    service.url.hostname = service.url.hostname + '.local.mesh';
+                  });
+                }
+              });
+            }
+          });
+
           this.hosts = res.data.nodes;
           this.totalRecords = res.data.nodes.length;
           this.loading = false;
