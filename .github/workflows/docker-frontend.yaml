@@ -39,7 +39,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: usa-reddragon/aredn-manager-frontend
+          images: ghcr.io/usa-reddragon/aredn-manager-frontend
 
       - name: Build and push Docker image
         if: github.event_name != 'pull_request'
