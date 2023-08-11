@@ -125,7 +125,8 @@ ${SUPERNODE_MESH_NAME}      NS ns${COUNT}.${SUPERNODE_MESH_NAME}
 func GenerateAndSave(config *config.Config, db *gorm.DB) error {
 	gen := Generate(config, db)
 	for path, content := range gen {
-		err := os.WriteFile(path, []byte(content), 0600)
+		//nolint:golint,gosec
+		err := os.WriteFile(path, []byte(content), 0644)
 		if err != nil {
 			return err
 		}

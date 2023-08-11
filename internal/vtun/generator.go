@@ -73,7 +73,8 @@ func GenerateAndSave(config *config.Config, db *gorm.DB) error {
 		return fmt.Errorf("failed to generate vtun.conf")
 	}
 
-	return os.WriteFile("/etc/vtundsrv.conf", []byte(conf), 0600)
+	//nolint:golint,gosec
+	return os.WriteFile("/etc/vtundsrv.conf", []byte(conf), 0644)
 }
 
 // This file will generate the vtun.conf file

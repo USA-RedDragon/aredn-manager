@@ -84,7 +84,8 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	}
 	// Write the current PID to the PID file
 	pidStr := fmt.Sprintf("%d", os.Getpid())
-	err := os.WriteFile(config.PIDFile, []byte(pidStr), 0600)
+	//nolint:golint,gosec
+	err := os.WriteFile(config.PIDFile, []byte(pidStr), 0644)
 	if err != nil {
 		return err
 	}
