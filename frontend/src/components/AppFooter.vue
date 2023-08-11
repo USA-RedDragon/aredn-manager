@@ -2,7 +2,7 @@
   <div class="footer">
     <p>
       This project proudly open
-      <a href="https://github.com/USA-RedDragon/aredn-virtual-node" target="_blank"
+      <a href="https://github.com/USA-RedDragon/aredn-manager" target="_blank"
         >source</a
       >
     </p>
