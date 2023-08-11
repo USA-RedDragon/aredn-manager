@@ -44,7 +44,7 @@ ${OTHER_SUPERNODE_IPS}
 };
 
 masters "supernodes" {
-${OTHER_SUPERNODES_IPS}
+${OTHER_SUPERNODE_IPS}
 };
 
 zone "${SUPERNODE_ZONE}.mesh" {
@@ -72,7 +72,7 @@ $ORIGIN ${SUPERNODE_ZONE}.mesh.
   604800    ; Expire
   60        ; TTL
 )
-@           NS ns0
+           NS ns0
 ns0        A  ${NODE_IP}
 `
 
@@ -85,8 +85,8 @@ $ORIGIN local.mesh.
   604800      ; Expire
   60          ; TTL
 )
-@     NS ns0
-ns0 A  ${NODE_IP}
+      NS ns0
+ns0   A  ${NODE_IP}
 `
 
 	meshZone = `$TTL 60
@@ -98,7 +98,7 @@ $ORIGIN mesh.
   604800      ; Expire
   60          ; TTL
 )
-@ NS ns0.local
+          NS ns0.local
 ns0.local A  ${NODE_IP}
 local     NS ns0.local
 `
