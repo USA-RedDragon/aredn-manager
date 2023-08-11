@@ -13,11 +13,11 @@ import (
 type IPs []string
 
 func (ips *IPs) Scan(src any) error {
-	bytes, ok := src.([]byte)
+	bytes, ok := src.(string)
 	if !ok {
-		return errors.New("src value cannot cast to []byte")
+		return errors.New("src value cannot cast to string")
 	}
-	*ips = strings.Split(string(bytes), ",")
+	*ips = strings.Split(bytes, ",")
 	return nil
 }
 
