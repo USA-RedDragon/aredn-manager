@@ -25,7 +25,21 @@
         </p>
       </template>
     </Column>
-    <Column field="services" header="Services"></Column>
+    <Column field="services" header="Services">
+      <template #body="slotProps">
+        <span v-for="child in slotProps.data.children" v-bind:key="child.hostname">
+          <p v-for="service in child.services" v-bind:key="service.url">
+            {{ service.name }}
+          </p>
+        </span>
+        <p v-for="service in slotProps.data.services" v-bind:key="service.url">
+          <span v-if="service.should_link">
+            <a target="_blank" :href="service.url">{{ service.name }}</a>
+          </span>
+          <span v-else>{{ service.name }}</span>
+        </p>
+      </template>
+    </Column>
   </DataTable>
 </template>
 
