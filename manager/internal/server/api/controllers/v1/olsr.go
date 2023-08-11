@@ -9,14 +9,14 @@ import (
 )
 
 func GETOLSRHosts(c *gin.Context) {
-	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.Parsers)
+	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.HostsParser)
 	if !ok {
 		fmt.Println("POSTLogin: OLSRDHostParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	nodes := olsrdParser.HostsParser.GetHosts()
+	nodes := olsrdParser.GetHosts()
 	c.JSON(http.StatusOK, gin.H{"nodes": nodes})
 }
 
