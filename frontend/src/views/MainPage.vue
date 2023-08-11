@@ -70,6 +70,9 @@ export default {
       });
       API.get('/tunnels').then((res) => {
         this.tunnelsConnected = 0;
+        if ('tunnels' in res.data == false || res.data.tunnels == undefined || res.data.tunnels == null) {
+          return;
+        }
         for (const tunnel of res.data.tunnels) {
           if (tunnel.active) {
             this.tunnelsConnected++;
