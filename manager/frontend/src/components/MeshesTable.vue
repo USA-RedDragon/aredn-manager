@@ -21,8 +21,18 @@
       </div>
     </template>
     <Column :expander="true" v-if="$props.admin" />
-    <Column field="name" header="Name"></Column>
-    <Column field="ips" header="IP Addresses"></Column>
+    <Column field="mesh_name" header="Mesh Name">
+      <template #body="slotProps">
+        {{ slotProps.data.mesh_name }}.mesh
+      </template>
+    </Column>
+    <Column field="ips" header="Supernode IPs">
+      <template #body="slotProps">
+        <p v-for="ip in slotProps.data.ips" v-bind:key="ip">
+          {{ ip  }}
+        </p>
+      </template>
+    </Column>
     <template #expansion="slotProps" v-if="$props.admin">
       <PVButton
         class="p-button-raised p-button-rounded p-button-primary"
@@ -110,7 +120,7 @@ export default {
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
         accept: () => {
-          API.delete('/mesh/' + mesh.id)
+          API.delete('/meshes/' + mesh.id)
             .then((_res) => {
               this.$toast.add({
                 summary: 'Confirmed',
