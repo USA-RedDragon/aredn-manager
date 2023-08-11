@@ -14,7 +14,7 @@ RUN [ -f ./internal/sdk/commit.txt ] || go generate ./...
 
 RUN go build -o aredn-manager ./main.go
 
-FROM node:18-alpine AS aredn-manager-frontend
+FROM node:20-alpine AS aredn-manager-frontend
 
 WORKDIR /app
 
