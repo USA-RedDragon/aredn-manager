@@ -1,7 +1,7 @@
 THIS_FILE := $(lastword $(MAKEFILE_LIST))
 
-APP_NAME := aredn-manger
-APP_PATH := github.com/USA-RedDragon/aredn-manger
+APP_NAME := aredn-manager
+APP_PATH := github.com/USA-RedDragon/aredn-manager
 
 GOFMT_FILES?=$$(find . -name '*.go' | grep -v vendor)
 
