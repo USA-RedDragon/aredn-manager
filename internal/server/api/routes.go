@@ -6,7 +6,6 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	websocketControllers "github.com/USA-RedDragon/aredn-manager/internal/server/api/websocket"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/websocket"
-
 	"github.com/gin-gonic/gin"
 )
 

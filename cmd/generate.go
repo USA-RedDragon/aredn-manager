@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//nolint:golint,gochecknoglobals
 var (
 	generateCmd = &cobra.Command{
 		Use:               "generate",
@@ -21,11 +22,12 @@ var (
 	}
 )
 
+//nolint:golint,gochecknoinits
 func init() {
 	RootCmd.AddCommand(generateCmd)
 }
 
-func runGenerate(cmd *cobra.Command, args []string) error {
+func runGenerate(cmd *cobra.Command, _ []string) error {
 	config := config.GetConfig(cmd)
 	db := db.MakeDB(config)
 

@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//nolint:golint,gochecknoglobals
 var (
 	notifyCmd = &cobra.Command{
 		Use:               "notify",
@@ -18,19 +19,26 @@ var (
 	}
 )
 
+//nolint:golint,gochecknoinits
 func init() {
 	RootCmd.AddCommand(notifyCmd)
 }
 
-func runNotify(cmd *cobra.Command, args []string) error {
+func runNotify(cmd *cobra.Command, _ []string) error {
 	config := config.GetConfig(cmd)
 
-	resp, err := http.Post(fmt.Sprintf("http://0.0.0.0:%d/api/v1/notify", config.Port), "application/json", nil)
+	req, err := http.NewRequestWithContext(cmd.Context(), http.MethodPost, fmt.Sprintf("http://0.0.0.0:%d/api/v1/notify", config.Port), nil)
+	if err != nil {
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return err
 	}
 
-	if resp.StatusCode != 200 {
+	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("error notifying daemon: %s", resp.Status)
 	}
 

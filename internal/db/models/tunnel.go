@@ -89,7 +89,7 @@ func GetNextIP(db *gorm.DB) (string, error) {
 	}
 	// We need to find the next available ip.
 	// We can do this by finding the highest ip, and adding 4 to it.
-	var highestIP net.IP = net.ParseIP("172.31.180.12").To4() // Use 12 so the +4 later starts at 16
+	var highestIP = net.ParseIP("172.31.180.12").To4() // Use 12 so the +4 later starts at 16
 	for _, tunnel := range tunnels {
 		ip := net.ParseIP(tunnel.IP)
 		ip = ip.To4()

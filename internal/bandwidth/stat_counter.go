@@ -195,7 +195,11 @@ func (s *StatCounterManager) Remove(iface string) error {
 	if !ok {
 		return fmt.Errorf("stat counter not found for interface %s", iface)
 	}
-	statCounter.(*StatCounter).Stop()
+	sc, ok := statCounter.(*StatCounter)
+	if !ok {
+		return fmt.Errorf("stat counter type assertion error")
+	}
+	sc.Stop()
 	s.counters.Delete(iface)
 	return nil
 }
@@ -205,13 +209,21 @@ func (s *StatCounterManager) Get(iface string) *StatCounter {
 	if !ok {
 		return nil
 	}
-	return statCounter.(*StatCounter)
+	sc, ok := statCounter.(*StatCounter)
+	if !ok {
+		return nil
+	}
+	return sc
 }
 
 func (s *StatCounterManager) GetAll() []*StatCounter {
 	var counters []*StatCounter
 	s.counters.Range(func(key, value interface{}) bool {
-		counters = append(counters, value.(*StatCounter))
+		sc, ok := value.(*StatCounter)
+		if !ok {
+			return false
+		}
+		counters = append(counters, sc)
 		return true
 	})
 	return counters
@@ -220,7 +232,11 @@ func (s *StatCounterManager) GetAll() []*StatCounter {
 func (s *StatCounterManager) Stop() {
 	s.running = false
 	s.counters.Range(func(key, value interface{}) bool {
-		value.(*StatCounter).Stop()
+		sc, ok := value.(*StatCounter)
+		if !ok {
+			return false
+		}
+		sc.Stop()
 		return true
 	})
 }

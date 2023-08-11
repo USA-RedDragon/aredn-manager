@@ -77,7 +77,7 @@ func (s *UsersSeeder) Seed(db *gorm.DB) error {
 }
 
 func (s *UsersSeeder) Clear(db *gorm.DB) error {
-	return nil
+	return db.Delete(&User{ID: 0}).Error
 }
 
 func DeleteUser(db *gorm.DB, id uint) error {

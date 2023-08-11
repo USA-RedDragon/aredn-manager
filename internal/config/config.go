@@ -41,18 +41,11 @@ type Config struct {
 	postgresDatabase         string
 }
 
-var defaultConfig Config = Config{
-	Debug:     false,
-	PIDFile:   "/var/run/aredn-manager.pid",
-	Port:      3333,
-	Daemonize: true,
-}
-
 func loadConfig() Config {
 	portStr := os.Getenv("HTTP_PORT")
 	httpPort, err := strconv.ParseInt(portStr, 10, 0)
 	if err != nil {
-		httpPort = int64(defaultConfig.Port)
+		httpPort = int64(3333)
 	}
 
 	portStr = os.Getenv("PG_PORT")
@@ -85,7 +78,7 @@ func loadConfig() Config {
 	}
 
 	if tmpConfig.PIDFile == "" {
-		tmpConfig.PIDFile = defaultConfig.PIDFile
+		tmpConfig.PIDFile = "/var/run/aredn-manager.pid"
 	}
 
 	if tmpConfig.Supernode && tmpConfig.SupernodeZone == "" {

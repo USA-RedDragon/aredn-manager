@@ -8,13 +8,10 @@ import (
 
 func ProcessIsRunning(pid int) bool {
 	// Check if the PID is running
-	if process, err := os.FindProcess(int(pid)); err == nil {
+	if process, err := os.FindProcess(pid); err == nil {
 		// Workaround since FindProcess doesn't actually check if the process is running
 		err := process.Signal(syscall.Signal(0))
-		if err == nil {
-			return false
-		}
-		return true
+		return err != nil
 	}
 	return false
 }

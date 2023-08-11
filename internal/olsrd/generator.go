@@ -89,7 +89,7 @@ func GenerateAndSave(config *config.Config, db *gorm.DB) error {
 		return fmt.Errorf("failed to generate olsrd.conf")
 	}
 
-	return os.WriteFile("/etc/olsrd/olsrd.conf", []byte(conf), 0644)
+	return os.WriteFile("/etc/olsrd/olsrd.conf", []byte(conf), 0600)
 }
 
 func Generate(config *config.Config, db *gorm.DB) string {
@@ -124,7 +124,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 			if tunnelNumber != tunnelCount-1 {
 				tunnelString += " "
 			}
-			tun += 1
+			tun++
 		}
 
 		if config.Supernode {

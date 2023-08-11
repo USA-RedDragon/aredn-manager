@@ -18,6 +18,7 @@ import (
 	"github.com/ztrue/shutdown"
 )
 
+//nolint:golint,gochecknoglobals
 var (
 	serverCmd = &cobra.Command{
 		Use:               "server",
@@ -28,6 +29,7 @@ var (
 	}
 )
 
+//nolint:golint,gochecknoinits
 func init() {
 	serverCmd.Flags().String("pid-file", "/var/run/aredn-manager.pid", "file to write the daemon PID to")
 	serverCmd.Flags().IntP("port", "p", 3333, "port to listen on")
@@ -35,7 +37,7 @@ func init() {
 	RootCmd.AddCommand(serverCmd)
 }
 
-func runServer(cmd *cobra.Command, args []string) error {
+func runServer(cmd *cobra.Command, _ []string) error {
 	config := config.GetConfig(cmd)
 
 	// Check if the PID file exists
@@ -64,6 +66,7 @@ func runServer(cmd *cobra.Command, args []string) error {
 	if config.Daemonize {
 		// Fork a child process that runs this same command, but with --no-daemon
 		// The child process will write its PID to the PID file and start the server
+		//nolint:golint,gosec
 		_, err := syscall.ForkExec(os.Args[0], append(os.Args, "--no-daemon"),
 			&syscall.ProcAttr{
 				Env: os.Environ(),
@@ -78,73 +81,75 @@ func runServer(cmd *cobra.Command, args []string) error {
 		}
 		fmt.Println("aredn-manager daemon started")
 		return nil
-	} else {
-		// Write the current PID to the PID file
-		pidStr := fmt.Sprintf("%d", os.Getpid())
-		err := os.WriteFile(config.PIDFile, []byte(pidStr), 0644)
-		if err != nil {
-			return err
-		}
-
-		// Start the server
-		fmt.Println("starting server")
-
-		db := db.MakeDB(config)
-		err = models.ClearActiveFromAllTunnels(db)
-		if err != nil {
-			return err
-		}
-
-		ifWatcher := ifacewatcher.NewWatcher(db)
-		err = ifWatcher.Watch()
-		if err != nil {
-			return err
-		}
-
-		srv := server.NewServer(config, db, ifWatcher.Stats)
-		srv.Run()
-
-		stop := func(sig os.Signal) {
-			wg := new(sync.WaitGroup)
-
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				srv.Stop()
-			}()
-
-			wg.Add(1)
-			go func() {
-				defer wg.Done()
-				ifWatcher.Stop()
-			}()
-
-			_ = models.ClearActiveFromAllTunnels(db)
-
-			const timeout = 10 * time.Second
-			c := make(chan struct{})
-			go func() {
-				defer close(c)
-				wg.Wait()
-			}()
-			clearPID := func() {
-				err := os.Remove(config.PIDFile)
-				if err != nil {
-					log.Fatal("failed to remove PID file")
-				}
-			}
-			select {
-			case <-c:
-				clearPID()
-				os.Exit(0)
-			case <-time.After(timeout):
-				clearPID()
-				os.Exit(1)
-			}
-		}
-		shutdown.AddWithParam(stop)
-		shutdown.Listen(syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGQUIT)
 	}
+	// Write the current PID to the PID file
+	pidStr := fmt.Sprintf("%d", os.Getpid())
+	err := os.WriteFile(config.PIDFile, []byte(pidStr), 0600)
+	if err != nil {
+		return err
+	}
+
+	// Start the server
+	fmt.Println("starting server")
+
+	db := db.MakeDB(config)
+	err = models.ClearActiveFromAllTunnels(db)
+	if err != nil {
+		return err
+	}
+
+	ifWatcher := ifacewatcher.NewWatcher(db)
+	err = ifWatcher.Watch()
+	if err != nil {
+		return err
+	}
+
+	srv := server.NewServer(config, db, ifWatcher.Stats)
+	err = srv.Run()
+	if err != nil {
+		return err
+	}
+
+	stop := func(sig os.Signal) {
+		wg := new(sync.WaitGroup)
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			srv.Stop()
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			ifWatcher.Stop()
+		}()
+
+		_ = models.ClearActiveFromAllTunnels(db)
+
+		const timeout = 10 * time.Second
+		c := make(chan struct{})
+		go func() {
+			defer close(c)
+			wg.Wait()
+		}()
+		clearPID := func() {
+			err := os.Remove(config.PIDFile)
+			if err != nil {
+				log.Fatal("failed to remove PID file")
+			}
+		}
+		select {
+		case <-c:
+			clearPID()
+			os.Exit(0)
+		case <-time.After(timeout):
+			clearPID()
+			os.Exit(1)
+		}
+	}
+	shutdown.AddWithParam(stop)
+	shutdown.Listen(syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGQUIT)
 
 	return nil
 }

@@ -18,10 +18,10 @@ func CreateHostsWebsocket() *HostsWebsocket {
 	return &HostsWebsocket{}
 }
 
-func (c *HostsWebsocket) OnMessage(ctx context.Context, r *http.Request, w websocket.Writer, _ sessions.Session, msg []byte, t int) {
+func (c *HostsWebsocket) OnMessage(_ context.Context, _ *http.Request, _ websocket.Writer, _ sessions.Session, _ []byte, _ int) {
 }
 
-func (c *HostsWebsocket) OnConnect(ctx context.Context, r *http.Request, w websocket.Writer, session sessions.Session) {
+func (c *HostsWebsocket) OnConnect(ctx context.Context, _ *http.Request, w websocket.Writer, _ sessions.Session) {
 	newCtx, cancel := context.WithCancel(ctx)
 	c.cancel = cancel
 
@@ -36,13 +36,13 @@ func (c *HostsWebsocket) OnConnect(ctx context.Context, r *http.Request, w webso
 			case msg := <-channel:
 				w.WriteMessage(websocket.Message{
 					Type: gorillaWebsocket.TextMessage,
-					Data: []byte(msg.Data),
+					Data: msg.Data,
 				})
 			}
 		}
 	}()
 }
 
-func (c *HostsWebsocket) OnDisconnect(ctx context.Context, r *http.Request, _ sessions.Session) {
+func (c *HostsWebsocket) OnDisconnect(_ context.Context, _ *http.Request, _ sessions.Session) {
 	c.cancel()
 }

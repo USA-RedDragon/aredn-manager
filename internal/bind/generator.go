@@ -63,6 +63,7 @@ zone "${SUPERNODE_ZONE}.mesh" {
     file "/etc/bind/${SUPERNODE_ZONE}.mesh.zone";
 };`
 
+	//nolint:golint,dupword
 	supernodeMasterZone = `$TTL 60
 $ORIGIN ${SUPERNODE_ZONE}.mesh.
 @  SOA  ns0.${SUPERNODE_ZONE}.mesh. root.${SUPERNODE_ZONE}.mesh. (
@@ -76,6 +77,7 @@ $ORIGIN ${SUPERNODE_ZONE}.mesh.
 ns0        A  ${NODE_IP}
 `
 
+	//nolint:golint,dupword
 	localMeshZone = `$TTL 60
 $ORIGIN local.mesh.
 @  SOA ns.local.mesh. master.local.mesh. (
@@ -88,7 +90,7 @@ $ORIGIN local.mesh.
       NS ns0
 ns0   A  ${NODE_IP}
 `
-
+	//nolint:golint,dupword
 	meshZone = `$TTL 60
 $ORIGIN mesh.
 @  SOA ns.mesh. master.mesh. (
@@ -103,6 +105,7 @@ ns0.local A  ${NODE_IP}
 local     NS ns0.local
 `
 
+	//nolint:golint,dupword
 	meshZoneSupernode = `         NS ns${COUNT}.${SUPERNODE_MESH_NAME}
 ns${COUNT}.${SUPERNODE_MESH_NAME} A  ${SUPERNODE_MESH_IP}
 ${SUPERNODE_MESH_NAME}      NS ns${COUNT}.${SUPERNODE_MESH_NAME}
@@ -122,7 +125,7 @@ ${SUPERNODE_MESH_NAME}      NS ns${COUNT}.${SUPERNODE_MESH_NAME}
 func GenerateAndSave(config *config.Config, db *gorm.DB) error {
 	gen := Generate(config, db)
 	for path, content := range gen {
-		err := os.WriteFile(path, []byte(content), 0644)
+		err := os.WriteFile(path, []byte(content), 0600)
 		if err != nil {
 			return err
 		}
@@ -146,7 +149,7 @@ func Generate(config *config.Config, db *gorm.DB) map[string]string {
 	return ret
 }
 
-func generateLocalMeshZone(config *config.Config, db *gorm.DB) string {
+func generateLocalMeshZone(config *config.Config, _ *gorm.DB) string {
 	ret := localMeshZone
 	utils.ShellReplace(&ret, map[string]string{
 		"NODE_IP": config.NodeIP,
@@ -223,7 +226,7 @@ func generateNamedSupernodeConf(config *config.Config, db *gorm.DB) string {
 	return ret
 }
 
-func generateSupernodeMasterZone(config *config.Config, db *gorm.DB) string {
+func generateSupernodeMasterZone(config *config.Config, _ *gorm.DB) string {
 	ret := supernodeMasterZone
 	utils.ShellReplace(&ret, map[string]string{
 		"NODE_IP":        config.NodeIP,

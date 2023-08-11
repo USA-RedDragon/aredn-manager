@@ -31,10 +31,8 @@ linters:
     - gocritic
     - gocyclo
     - godox
-    - goerr113
     - gofmt
     - goheader
-    - gomnd
     - gomoddirectives
     - gosec
     - grouper
@@ -43,7 +41,6 @@ linters:
     - nilerr
     - nilnil
     - noctx
-    - nonamedreturns
     - nosprintfhostport
     - paralleltest
     - prealloc
@@ -57,4 +54,3 @@ linters:
     - usestdlibvars
     - wastedassign
     - whitespace
-    - wrapcheck

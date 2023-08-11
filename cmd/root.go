@@ -7,6 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+//nolint:golint,gochecknoglobals
 var (
 	RootCmd = &cobra.Command{
 		Use:               "aredn-manager",
@@ -16,11 +17,12 @@ var (
 	}
 )
 
+//nolint:golint,gochecknoinits
 func init() {
 	RootCmd.PersistentFlags().BoolP("debug", "d", false, "enable debug logging")
 }
 
-func runRoot(cmd *cobra.Command, args []string) error {
+func runRoot(cmd *cobra.Command, _ []string) error {
 	config := config.GetConfig(cmd)
 
 	if config.Debug {

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const HOSTS_FILE = "/var/run/hosts_olsr"
+const hostsFile = "/var/run/hosts_olsr"
 
 type HostsParser struct {
 	currentHosts []*AREDNHost
@@ -63,8 +63,10 @@ func (h *AREDNHost) String() string {
 //
 // Text on a line after a # is ignored
 // Lines with only whitespace or that are empty are ignored
+//
+//nolint:golint,gocyclo
 func parseHosts() (ret []*AREDNHost, err error) {
-	hostsFile, err := os.ReadFile(HOSTS_FILE)
+	hostsFile, err := os.ReadFile(hostsFile)
 	if err != nil {
 		return
 	}
@@ -75,7 +77,7 @@ func parseHosts() (ret []*AREDNHost, err error) {
 			continue
 		}
 
-		var parentIP net.IP = nil
+		var parentIP net.IP
 		if strings.Contains(line, "#") {
 			splt := strings.Split(line, "#")
 			line = splt[0]

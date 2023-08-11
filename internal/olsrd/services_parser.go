@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const SERVICES_FILE = "/var/run/services_olsr"
+const servicesFile = "/var/run/services_olsr"
 
 type AREDNService struct {
 	URL        string `json:"url"`
@@ -45,7 +45,7 @@ func (p *servicesParser) getServices() []*AREDNService {
 }
 
 func parseServices() (ret []*AREDNService, err error) {
-	servicesFile, err := os.ReadFile(SERVICES_FILE)
+	servicesFile, err := os.ReadFile(servicesFile)
 	if err != nil {
 		return
 	}

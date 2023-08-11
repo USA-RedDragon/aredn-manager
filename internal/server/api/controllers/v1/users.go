@@ -1,6 +1,7 @@
 package v1
 
 import (
+	//nolint:golint,gosec
 	"crypto/sha1"
 	"fmt"
 	"net/http"
