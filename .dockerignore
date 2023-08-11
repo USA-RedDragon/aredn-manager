@@ -1,6 +1,2 @@
-.terraformignore
-LICENSE.md
-README.md
-infra/
-.github/
-manager/.db/
+.env
+internal/sdk/commit.txt

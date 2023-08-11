@@ -1,0 +1,62 @@
+name: Per-architecture test
+
+on:
+  pull_request:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19.7"
+
+      - run: make build-frontend
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: frontend
+          path: frontend/dist
+          if-no-files-found: error
+          retention-days: 1
+
+  test-linux:
+    name: Test Linux
+    runs-on: ubuntu-latest
+    needs: frontend
+    strategy:
+      fail-fast: false
+      matrix:
+        goos: [linux]
+        goarch: [arm, amd64, arm64, riscv64]
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+
+      - run: docker run --privileged --rm tonistiigi/binfmt --install all
+
+      - name: Copy built frontend
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend
+          path: frontend/dist
+
+      - uses: Wandalen/wretry.action@master
+        with:
+          command: make build-ci && make test
+          attempt_limit: 3
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: "0"

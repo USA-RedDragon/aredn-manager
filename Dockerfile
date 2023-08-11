@@ -1,51 +1,7 @@
-FROM golang:1.21-alpine AS aredn-manager
+FROM scratch
 
-WORKDIR /app
+# this pulls directly from the upstream image, which already has ca-certificates:
+COPY --from=alpine:latest /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-RUN apk add --no-cache git bash
-
-COPY manager/go.mod manager/go.sum ./
-RUN go mod download
-
-COPY manager/. .
-COPY .git .git
-
-RUN [ -f ./internal/sdk/commit.txt ] || go generate ./...
-
-RUN go build -o aredn-manager ./main.go
-
-FROM node:20-alpine AS aredn-manager-frontend
-
-WORKDIR /app
-
-COPY manager/frontend/package.json manager/frontend/package-lock.json ./
-RUN npm ci
-
-COPY manager/frontend/. .
-
-ENV NODE_ENV=production
-
-RUN npm run build
-
-FROM ghcr.io/usa-reddragon/aredn-base:main
-
-COPY --from=aredn-manager /app/aredn-manager /usr/bin/aredn-manager
-RUN chmod a+x /usr/bin/aredn-manager
-
-COPY --from=aredn-manager-frontend /app/dist /www/aredn-manager
-
-RUN apk add --no-cache \
-    nginx
-
-# Install API dependencies
-COPY api /api
-RUN cd /api \
-    && npm ci
-
-COPY --chown=root:root rootfs /
-
-# Expose ports.
-EXPOSE 5525
-
-# Define default command.
-CMD ["bash", "/usr/bin/start.sh"]
+COPY aredn-manager /
+ENTRYPOINT ["/aredn-manager"]

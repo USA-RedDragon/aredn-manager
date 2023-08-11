@@ -1,5 +1,5 @@
-.db/
 .env
 olsrd.conf
 vtund.conf
 internal/sdk/commit.txt
+hack/frontend/dist/

@@ -1,4 +1,0 @@
-#!/bin/sh
-
-cd /api
-exec node src/index.js

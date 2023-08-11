@@ -5,7 +5,7 @@ let baseURL;
 // nodejs development
 if (window.location.port == 5173) {
   // Change port to 3333
-  baseURL = 'http://localhost:3333/api/v1';
+  baseURL = 'http://ki5vmf-cloud-tunnel.local.mesh:81/api/v1';
 } else {
   baseURL = '/api/v1';
 }

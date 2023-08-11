@@ -1,0 +1,373 @@
+name: Tests
+
+on:
+  pull_request:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19.7"
+
+      - run: make build-frontend
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: frontend
+          path: frontend/dist
+          if-no-files-found: error
+          retention-days: 1
+
+  frontend-eslint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19.7"
+
+      - run: cd frontend && npm ci
+
+      - name: Save Code Linting Report JSON
+        run: cd frontend && npm run lint:report
+
+      - name: Annotate Code Linting Results
+        if: always()
+        uses: ataylorme/eslint-annotate-action@v2
+        with:
+          repo-token: "${{ secrets.GITHUB_TOKEN }}"
+          report-json: "frontend/eslint_report.json"
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: frontend-eslint-report
+          if-no-files-found: error
+          retention-days: 30
+          path: frontend/eslint_report.json
+
+  frontend-unit-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19.7"
+
+      - run: cd frontend && npm ci
+
+      - run: make frontend-unit-test
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: frontend-unit-test-report
+          if-no-files-found: error
+          retention-days: 30
+          path: frontend/reports/unit
+
+      - name: Publish Test Report
+        if: always()
+        uses: mikepenz/action-junit-report@v3
+        with:
+          report_paths: "frontend/reports/unit/*.xml"
+          test_files_prefix: "frontend"
+          require_tests: true
+          check_retries: true
+          detailed_summary: true
+          fail_on_failure: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          check_name: Frontend Unit Tests
+          job_name: Tests
+
+      - uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: frontend-unit
+          files: ./coverage/unit/lcov.info
+          fail_ci_if_error: true
+          working-directory: ./frontend
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: frontend-unit-coverage
+          path: frontend/coverage/unit
+          if-no-files-found: error
+          retention-days: 30
+
+  frontend-e2e-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: ["firefox", "chrome", "electron"]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+
+      - name: Use Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "19.7"
+
+      - run: cd frontend && npm ci
+
+      - run: make frontend-e2e-test-${{ matrix.browser }}
+
+      - uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: frontend-e2e-${{ matrix.browser }}
+          files: ./coverage/e2e/lcov.info
+          fail_ci_if_error: true
+          working-directory: ./frontend
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: frontend-e2e-coverage-${{ matrix.browser }}
+          path: frontend/coverage/e2e
+          if-no-files-found: error
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: frontend-e2e-test-report-${{ matrix.browser }}
+          if-no-files-found: error
+          retention-days: 30
+          path: frontend/reports/e2e
+
+      - name: Publish Test Report
+        if: always()
+        uses: mikepenz/action-junit-report@v3
+        with:
+          report_paths: "frontend/reports/e2e/*.xml"
+          test_files_prefix: "frontend"
+          require_tests: true
+          check_retries: true
+          detailed_summary: true
+          fail_on_failure: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          check_name: Frontend E2E Tests (${{ matrix.browser }})
+          job_name: Tests
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: frontend-e2e-screenshots-${{ matrix.browser }}
+          path: frontend/cypress/screenshots
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: frontend-e2e-videos-${{ matrix.browser }}
+          path: frontend/cypress/videos
+          if-no-files-found: ignore
+          retention-days: 30
+
+  backend-benchmark-tests:
+    runs-on: ubuntu-latest
+    needs: frontend
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+
+      - name: Copy built frontend
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend
+          path: frontend/dist
+
+      - run: go generate ./...
+
+      - run: make benchmark
+
+  backend-race-tests:
+    runs-on: ubuntu-latest
+    needs: frontend
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+
+      - name: Copy built frontend
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend
+          path: frontend/dist
+
+      - run: go generate ./...
+
+      - name: Race tests
+        run: |
+          go test ./... -race
+
+  backend-unit-tests:
+    runs-on: ubuntu-latest
+    needs: frontend
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+
+      - name: Copy built frontend
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend
+          path: frontend/dist
+
+      - run: go generate ./...
+
+      - name: Unit tests
+        run: |
+          go install github.com/jstemmer/go-junit-report/v2@latest
+          go install github.com/vakenbolt/go-test-report@latest
+          env CGO_ENABLED=0 go test -v ./... 2>&1 > out.txt || true
+          env CGO_ENABLED=0 go test -v ./... -json 2>&1 > json-out.txt || true
+          cat out.txt | go-junit-report -out report.xml -iocopy
+          cat json-out.txt | go-test-report -o report.html
+
+      - name: Publish Test Report
+        if: always()
+        uses: mikepenz/action-junit-report@v3
+        with:
+          report_paths: "report.xml"
+          require_tests: true
+          check_retries: true
+          detailed_summary: true
+          fail_on_failure: true
+          token: ${{ secrets.GITHUB_TOKEN }}
+          check_name: Backend Unit Tests
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: backend-test-report
+          path: report.xml
+          if-no-files-found: error
+          retention-days: 30
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: backend-test-report
+          path: report.html
+          if-no-files-found: error
+          retention-days: 30
+
+  backend-unit-tests-coverage:
+    runs-on: ubuntu-latest
+    needs: frontend
+    permissions:
+      contents: read
+      checks: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up Go
+        uses: actions/setup-go@v3
+        with:
+          go-version-file: go.mod
+
+      - name: Copy built frontend
+        uses: actions/download-artifact@v3
+        with:
+          name: frontend
+          path: frontend/dist
+
+      - run: go generate ./...
+
+      - name: Unit tests
+        run: |
+          env CGO_ENABLED=0 go test -v ./... -coverprofile coverage.out -coverpkg=./... -covermode atomic
+
+      - uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          flags: backend
+          fail_ci_if_error: true
+
+      - uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: backend-coverage
+          path: coverage.out
+          if-no-files-found: error
+          retention-days: 30

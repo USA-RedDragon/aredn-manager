@@ -2,16 +2,12 @@ name: Docker
 
 on:
   push:
-    branches: ['main']
-  pull_request:
+    tags:
+      - "v*"
 
 concurrency:
   group: '${{ github.workflow }} @ ${{ github.ref }}'
   cancel-in-progress: true
-
-env:
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
 
 jobs:
   build-and-push-image:
@@ -24,19 +20,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version-file: manager/go.mod
-
-      - name: Run Go generate
-        run: go generate ./...
-
-      - name: Log in to the Container registry
+      - name: Log in to GHCR
         uses: docker/login-action@v2
-        if: github.event_name != 'pull_request'
         with:
-          registry: ${{ env.REGISTRY }}
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
@@ -52,27 +39,16 @@ jobs:
         id: meta
         uses: docker/metadata-action@v4
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          images: usa-reddragon/aredn-manager-frontend
 
       - name: Build and push Docker image
         if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v4
         with:
           context: .
+          file: ./Dockerfile.frontend
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=local,src=/tmp/.buildx-cache
-          cache-to: type=local,dest=/tmp/.buildx-cache-new
-
-      - name: Build Docker image
-        if: github.event_name == 'pull_request'
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          platforms: linux/amd64,linux/arm64
-          push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
