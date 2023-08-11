@@ -54,4 +54,9 @@ export default [
     name: 'AdminTunnelsCreate',
     component: () => import('../views/admin/TunnelsCreatePage.vue'),
   },
+  {
+    path: '/admin/meshes/link',
+    name: 'AdminMeshLink',
+    component: () => import('../views/admin/MeshLinkPage.vue'),
+  },
 ];

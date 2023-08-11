@@ -11,8 +11,8 @@
     :scrollable="true"
     @page="onPage($event)"
   >
-    <template #header>
-      <div class="table-header-container" v-if="$props.admin">
+    <template #header v-if="$props.admin">
+      <div class="table-header-container">
         <RouterLink to="/admin/tunnels/create">
           <PVButton
             class="p-button-raised p-button-rounded p-button-success"
@@ -56,7 +56,7 @@
         slotProps.data.created_at.fromNow()
       }}</template>
     </Column>
-    <template #expansion="slotProps">
+    <template #expansion="slotProps" v-if="$props.admin">
       <PVButton
         class="p-button-raised p-button-rounded p-button-primary"
         icon="pi pi-pencil"

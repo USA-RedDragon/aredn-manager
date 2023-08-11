@@ -5,7 +5,7 @@
     <Card>
       <template #title>Manage Meshes</template>
       <template #content>
-        <p>Main</p>
+        <MeshesTable admin />
       </template>
     </Card>
   </div>
@@ -13,10 +13,12 @@
 
 <script>
 import Card from 'primevue/card';
+import MeshesTable from '../../components/MeshesTable.vue';
 
 export default {
   components: {
     Card,
+    MeshesTable,
   },
   created() {},
   mounted() {},

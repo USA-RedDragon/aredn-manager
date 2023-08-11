@@ -211,6 +211,37 @@ export default {
         });
         return;
       }
+
+      if (this.hostname.length < 3) {
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Hostname must be at least 3 characters',
+          life: 3000,
+        });
+        return;
+      }
+
+      if (this.hostname.length > 63) {
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Hostname must be less than 64 characters',
+          life: 3000,
+        });
+        return;
+      }
+
+      if (!/^[A-Za-z0-9\-]+$/.test(this.hostname)) {
+        this.$toast.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'Hostname must be alphanumeric or -',
+          life: 3000,
+        });
+        return;
+      }
+
       API.post('/tunnels', {
         hostname: this.hostname.trim().toUpperCase(),
         password: this.password.trim(),

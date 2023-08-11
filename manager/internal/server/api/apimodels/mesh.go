@@ -14,7 +14,7 @@ func (r *CreateMesh) IsValidHostname() (bool, string) {
 	if len(r.Name) > maxHostnameLength {
 		return false, "Name must be less than 64 characters"
 	}
-	if !regexp.MustCompile(`^[A-Z0-9\-]+$`).MatchString(r.Name) {
+	if !regexp.MustCompile(`^[A-Za-z0-9\-]+$`).MatchString(r.Name) {
 		return false, "Name must be alphanumeric or -"
 	}
 	return true, ""
