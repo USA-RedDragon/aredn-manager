@@ -34,6 +34,14 @@ mkdir -p /docker-data/netdata
 chown -R root:201 /docker-data/netdata
 chmod -R g+w /docker-data/netdata
 
+CH="http://${server_name}.local.mesh:81${extra_cors_hosts}"
+
+# If ${supernode} is set
+if [[ "${supernode}" != "" ]]; then
+    # Add http://${server_name}.${supernode_zone}.mesh:81 to the CH
+    CH="$CH,http://${server_name}.${supernode_zone}.mesh:81"
+fi
+
 # Run the Docker image
 docker run \
     --cap-add=NET_ADMIN \
@@ -45,7 +53,7 @@ docker run \
     -e PG_DATABASE='${pg_db}' \
     -e SESSION_SECRET='${session_secret}' \
     -e PASSWORD_SALT='${password_salt}' \
-    -e CORS_HOSTS=http://${server_name}.local.mesh:81${extra_cors_hosts} \
+    -e CORS_HOSTS="$CH" \
     -e INIT_ADMIN_USER_PASSWORD='${init_admin_user_password}' \
     -e SERVER_NAME=${server_name} \
     -e SUPERNODE="${supernode}" \
