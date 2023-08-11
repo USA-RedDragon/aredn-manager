@@ -14,7 +14,7 @@ const initialReconnectDelay = 300;
 const maxReconnectDelay = 15000;
 
 class Websocket {
-  constructor (url, onMessage) {
+  constructor(url, onMessage) {
     this.url = url;
     this.timeoutTimer = null;
     this.timeout = 3000;

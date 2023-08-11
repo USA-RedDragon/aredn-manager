@@ -171,7 +171,7 @@ export default {
         return;
       }
 
-      if (!/^[A-Za-z0-9\-]+$/.test(this.name)) {
+      if (!/^[A-Za-z0-9-]+$/.test(this.name)) {
         this.$toast.add({
           severity: 'error',
           summary: 'Error',

@@ -232,7 +232,7 @@ export default {
         return;
       }
 
-      if (!/^[A-Za-z0-9\-]+$/.test(this.hostname)) {
+      if (!/^[A-Za-z0-9-]+$/.test(this.hostname)) {
         this.$toast.add({
           severity: 'error',
           summary: 'Error',
