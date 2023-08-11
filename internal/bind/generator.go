@@ -166,6 +166,9 @@ func generateLocalMeshZone(config *config.Config, _ *gorm.DB) string {
 	hosts := hostParser.GetHosts()
 	for _, host := range hosts {
 		ret += host.Hostname + " A " + host.IP.String() + "\n"
+		for _, child := range host.Children {
+			ret += child.Hostname + " A " + child.IP.String() + "\n"
+		}
 	}
 	return ret
 }
@@ -244,6 +247,9 @@ func generateSupernodeMasterZone(config *config.Config, _ *gorm.DB) string {
 	hosts := hostParser.GetHosts()
 	for _, host := range hosts {
 		ret += host.Hostname + " A " + host.IP.String() + "\n"
+		for _, child := range host.Children {
+			ret += child.Hostname + " A " + child.IP.String() + "\n"
+		}
 	}
 	return ret
 }
