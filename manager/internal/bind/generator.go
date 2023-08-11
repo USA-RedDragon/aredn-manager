@@ -196,18 +196,19 @@ func generateMeshZone(config *config.Config, db *gorm.DB) string {
 func generateNamedSupernodeConf(config *config.Config, db *gorm.DB) string {
 	ret := namedSupernodeConf
 	utils.ShellReplace(&ret, map[string]string{
-		"OTHER_SUPERNODE_IPS": "",
-		"SUPERNODE_ZONE":      config.SupernodeZone,
+		"SUPERNODE_ZONE": config.SupernodeZone,
 	})
 	supernodes, err := models.ListSupernodes(db)
 	if err != nil {
 		panic(fmt.Errorf("could not list supernodes: %w", err))
 	}
+	perLineIPs := ""
 	for _, node := range supernodes {
 		r2 := supernodeSlaveZone
 		nodeIPs := ""
 		for _, ip := range node.IPs {
 			nodeIPs += ip + "; "
+			perLineIPs += ip + ";\n"
 		}
 		utils.ShellReplace(&r2, map[string]string{
 			"SUPERNODE_IPS":  nodeIPs,
@@ -215,6 +216,10 @@ func generateNamedSupernodeConf(config *config.Config, db *gorm.DB) string {
 		})
 		ret += "\n" + r2
 	}
+	utils.ShellReplace(&ret, map[string]string{
+		"OTHER_SUPERNODE_IPS": perLineIPs,
+	})
+
 	return ret
 }
 
