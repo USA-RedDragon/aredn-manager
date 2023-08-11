@@ -198,19 +198,23 @@ func parseHosts() (ret []*AREDNHost, err error) {
 	for _, host := range ret {
 		for _, child := range host.Children {
 			for _, svc := range services {
-				rawURL := strings.ReplaceAll(svc.URL, ":0/", "/")
-				url, err := url.Parse(rawURL)
+				url, err := url.Parse(svc.URL)
 				if err != nil {
 					fmt.Printf("Error parsing URL: %v\n", err)
 					continue
 				}
+
+				serviceAlreadyFound := false
 				for _, foundSvc := range foundServices {
 					if foundSvc == svc {
-						continue
+						serviceAlreadyFound = true
 					}
 				}
-				fmt.Printf("child.Hostname=%s\turl.Hostname()=%s\tcmp=%s\n", child.Hostname, url.Hostname(), strings.ReplaceAll(url.Hostname(), ".mesh.local", ""))
-				if child.Hostname == strings.ReplaceAll(url.Hostname(), ".mesh.local", "") {
+				if serviceAlreadyFound {
+					continue
+				}
+				fmt.Printf("child.Hostname=%s\turl.Hostname()=%s\n", child.Hostname, url.Hostname())
+				if strings.EqualFold(child.Hostname, url.Hostname()) {
 					child.Services = append(child.Services, svc)
 					foundServices = append(foundServices, svc)
 				}
@@ -222,12 +226,16 @@ func parseHosts() (ret []*AREDNHost, err error) {
 				fmt.Printf("Error parsing URL: %v\n", err)
 				continue
 			}
+			serviceAlreadyFound := false
 			for _, foundSvc := range foundServices {
 				if foundSvc == svc {
-					continue
+					serviceAlreadyFound = true
 				}
 			}
-			if host.Hostname == strings.ReplaceAll(url.Hostname(), ".mesh.local", "") {
+			if serviceAlreadyFound {
+				continue
+			}
+			if strings.EqualFold(host.Hostname, url.Hostname()) {
 				host.Services = append(host.Services, svc)
 				foundServices = append(foundServices, svc)
 			}
