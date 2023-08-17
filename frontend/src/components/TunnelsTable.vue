@@ -33,22 +33,22 @@
         <span v-else>{{slotProps.data.connection_time.fromNow()}}</span>
       </template>
     </Column>
-    <Column field="rx_bytes" header="Session Bytes RX/TX" v-if="!$props.admin">
+    <Column field="rx_bytes" header="Session Traffic" v-if="!$props.admin">
       <template #body="slotProps">
-        <p>{{slotProps.data.rx_bytes}} bytes</p>
-        <p>{{slotProps.data.tx_bytes}} bytes</p>
+        <p><span style="font-weight: bold;">RX:</span> {{prettyBytes(slotProps.data.rx_bytes)}}</p>
+        <p><span style="font-weight: bold;">TX:</span> {{prettyBytes(slotProps.data.tx_bytes)}}</p>
       </template>
     </Column>
-    <Column field="total_rx_mb" header="Total Megabytes RX/TX" v-if="!$props.admin">
+    <Column field="total_rx_mb" header="Total Traffic" v-if="!$props.admin">
       <template #body="slotProps">
-        <p>{{slotProps.data.total_rx_mb}} MBytes</p>
-        <p>{{slotProps.data.total_tx_mb}} MBytes</p>
+        <p><span style="font-weight: bold;">RX:</span> {{prettyBytes(slotProps.data.total_rx_mb)}}</p>
+        <p><span style="font-weight: bold;">TX:</span> {{prettyBytes(slotProps.data.total_tx_mb)}}</p>
       </template>
     </Column>
-    <Column field="rx_bytes_per_sec" header="Bandwidth Usage (bytes/second)" v-if="!$props.admin">
+    <Column field="rx_bytes_per_sec" header="Bandwidth Usage" v-if="!$props.admin">
       <template #body="slotProps">
-        <p>{{slotProps.data.rx_bytes_per_sec}} bytes/s</p>
-        <p>{{slotProps.data.tx_bytes_per_sec}} bytes/s</p>
+        <p><span style="font-weight: bold;">RX:</span> {{prettyBytes(slotProps.data.rx_bytes_per_sec)}}/s</p>
+        <p><span style="font-weight: bold;">TX:</span> {{prettyBytes(slotProps.data.tx_bytes_per_sec)}}/s</p>
       </template>
     </Column>
     <Column field="created_at" header="Created" v-if="$props.admin">
@@ -80,6 +80,7 @@ import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 
 import moment from 'moment';
+import prettyBytes from 'pretty-bytes';
 
 import { mapStores } from 'pinia';
 import { useSettingsStore } from '@/store';
@@ -112,6 +113,12 @@ export default {
   unmounted() {
   },
   methods: {
+    prettyBytes(bytes) {
+      if (!bytes) {
+        return '0 B';
+      }
+      return prettyBytes(bytes);
+    },
     onPage(event) {
       this.loading = true;
       this.fetchData(event.page + 1, event.rows);
@@ -137,10 +144,14 @@ export default {
             if (res.data.tunnels[i].total_rx_mb != 0) {
               // Truncate to 2 decimal places
               res.data.tunnels[i].total_rx_mb = Math.round(res.data.tunnels[i].total_rx_mb * 100) / 100;
+              // Convert to bytes
+              res.data.tunnels[i].total_rx_mb = res.data.tunnels[i].total_rx_mb * 1024 * 1024;
             }
             if (res.data.tunnels[i].total_tx_mb != 0) {
               // Truncate to 2 decimal places
               res.data.tunnels[i].total_tx_mb = Math.round(res.data.tunnels[i].total_tx_mb * 100) / 100;
+              // Convert to bytes
+              res.data.tunnels[i].total_tx_mb = res.data.tunnels[i].total_tx_mb * 1024 * 1024;
             }
           }
           this.tunnels = res.data.tunnels;

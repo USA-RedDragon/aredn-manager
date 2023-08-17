@@ -20,13 +20,13 @@
           <h3 style="font-weight: bold;">Tunnels Connected</h3>
           <p>{{ tunnelsConnected }}/{{ totalTunnels }}</p>
           <br />
-          <h3 style="font-weight: bold;">Bytes RX/TX per Second</h3>
-          <p>{{ stats.total_rx_bytes_per_sec }} bytes/s</p>
-          <p>{{ stats.total_tx_bytes_per_sec }} bytes/s</p>
+          <h3 style="font-weight: bold;">Current Bandwidth</h3>
+          <p><span style="font-weight: bold;">RX:</span> {{ prettyBytes(stats.total_rx_bytes_per_sec) }}/s</p>
+          <p><span style="font-weight: bold;">TX:</span> {{ prettyBytes(stats.total_tx_bytes_per_sec) }}/s</p>
           <br />
-          <h3 style="font-weight: bold;">Total Bytes RX/TX</h3>
-          <p>{{ stats.total_rx_mb }} MBytes</p>
-          <p>{{ stats.total_tx_mb }} MBytes</p>
+          <h3 style="font-weight: bold;">Total Traffic Since Restart</h3>
+          <p><span style="font-weight: bold;">RX:</span> {{ prettyBytes(stats.total_rx_mb) }}</p>
+          <p><span style="font-weight: bold;">TX:</span> {{ prettyBytes(stats.total_tx_mb) }}</p>
         </template>
       </Card>
     </span>
@@ -35,6 +35,8 @@
 
 <script>
 import Card from 'primevue/card';
+
+import prettyBytes from 'pretty-bytes';
 
 import API from '@/services/API';
 
@@ -58,6 +60,12 @@ export default {
     };
   },
   methods: {
+    prettyBytes(bytes) {
+      if (!bytes) {
+        return '0 B';
+      }
+      return prettyBytes(bytes);
+    },
     fetchData() {
       API.get('/olsr/running').then((res) => {
         this.olsrdRunning = res.data.running;
@@ -84,10 +92,14 @@ export default {
         if (res.data.stats.total_rx_mb != 0) {
           // Truncate to 2 decimal places
           res.data.stats.total_rx_mb = Math.round(res.data.stats.total_rx_mb * 100) / 100;
+          // Convert to bytes
+          res.data.stats.total_rx_mb = res.data.stats.total_rx_mb * 1024 * 1024;
         }
         if (res.data.stats.total_tx_mb != 0) {
           // Truncate to 2 decimal places
           res.data.stats.total_tx_mb = Math.round(res.data.stats.total_tx_mb * 100) / 100;
+          // Convert to bytes
+          res.data.stats.total_tx_mb = res.data.stats.total_tx_mb * 1024 * 1024;
         }
         this.stats = res.data.stats;
       });
