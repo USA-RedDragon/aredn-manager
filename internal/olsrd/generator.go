@@ -43,11 +43,16 @@ LoadPlugin "olsrd_watchdog.so.0.1"
 {
     PlParam "file" "/tmp/olsrd.watchdog"
     PlParam "interval" "5"
-}
+}`
 
-Interface "eth0"
+	snippetOlsrdConfEth0Supernode = `Interface "eth0"
 {
     Mode "ether"
+}`
+
+	snippetOlsrdConfEth0Standard = `Interface "eth0"
+{
+	Mode "isolated"
 }`
 
 	snippetOlsrdConfNameservice = `LoadPlugin "olsrd_nameservice.so.0.4"
@@ -95,6 +100,12 @@ func GenerateAndSave(config *config.Config, db *gorm.DB) error {
 
 func Generate(config *config.Config, db *gorm.DB) string {
 	ret := snippetOlsrdConf
+	ret += "\n\n"
+	if config.Supernode {
+		ret += snippetOlsrdConfEth0Supernode
+	} else {
+		ret += snippetOlsrdConfEth0Standard
+	}
 	ret += "\n\n"
 
 	// We need to replace shell variables in the template with the actual values
