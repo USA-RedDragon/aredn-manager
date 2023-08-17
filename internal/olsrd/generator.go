@@ -48,6 +48,9 @@ LoadPlugin "olsrd_watchdog.so.0.1"
 	snippetOlsrdConfEth0Supernode = `Interface "eth0"
 {
     Mode "isolated"
+    Ip4Broadcast 255.255.255.255
+    HnaInterval 1.0
+    HnaValidityTime 600.0
 }`
 
 	snippetOlsrdConfEth0Standard = `Interface "eth0"
@@ -70,18 +73,10 @@ LoadPlugin "olsrd_watchdog.so.0.1"
     10.128.0.0 255.128.0.0
 }`
 
-	snippetOlsrdConfStandardTunnel = `Interface ${IFACES}
+	snippetOlsrdConfTunnel = `Interface ${IFACES}
 {
     Ip4Broadcast 255.255.255.255
     Mode "ether"
-}`
-
-	snippetOlsrdConfSupernodeTunnel = `Interface ${IFACES}
-{
-    Ip4Broadcast 255.255.255.255
-    Mode "isolated"
-    HnaInterval 1.0
-    HnaValidityTime 600.0
 }`
 )
 
@@ -151,27 +146,15 @@ func Generate(config *config.Config, db *gorm.DB) string {
 			tun++
 		}
 
-		if config.Supernode {
-			ret += "\n\n"
-			cpSnippetOlsrdConfSupernodeTunnel := snippetOlsrdConfSupernodeTunnel
-			utils.ShellReplace(
-				&cpSnippetOlsrdConfSupernodeTunnel,
-				map[string]string{
-					"IFACES": tunnelString,
-				},
-			)
-			ret += cpSnippetOlsrdConfSupernodeTunnel
-		} else {
-			ret += "\n\n"
-			cpSnippetOlsrdConfStandardTunnel := snippetOlsrdConfStandardTunnel
-			utils.ShellReplace(
-				&cpSnippetOlsrdConfStandardTunnel,
-				map[string]string{
-					"IFACES": tunnelString,
-				},
-			)
-			ret += cpSnippetOlsrdConfStandardTunnel
-		}
+		ret += "\n\n"
+		cpSnippetOlsrdConfTunnel := snippetOlsrdConfTunnel
+		utils.ShellReplace(
+			&cpSnippetOlsrdConfTunnel,
+			map[string]string{
+				"IFACES": tunnelString,
+			},
+		)
+		ret += cpSnippetOlsrdConfTunnel
 	}
 
 	return ret
