@@ -10,11 +10,6 @@ export default [
     component: () => import('../views/LoginPage.vue'),
   },
   {
-    path: '/meshes',
-    name: 'Meshes',
-    component: () => import('../views/MeshesPage.vue'),
-  },
-  {
     path: '/tunnels',
     name: 'Tunnels',
     component: () => import('../views/TunnelsPage.vue'),
@@ -35,11 +30,6 @@ export default [
     component: () => import('../views/admin/RegisterPage.vue'),
   },
   {
-    path: '/admin/meshes',
-    name: 'AdminMeshes',
-    component: () => import('../views/admin/MeshesPage.vue'),
-  },
-  {
     path: '/admin/tunnels',
     name: 'AdminTunnels',
     component: () => import('../views/admin/TunnelsPage.vue'),
@@ -48,10 +38,5 @@ export default [
     path: '/admin/tunnels/create',
     name: 'AdminTunnelsCreate',
     component: () => import('../views/admin/TunnelsCreatePage.vue'),
-  },
-  {
-    path: '/admin/meshes/link',
-    name: 'AdminMeshLink',
-    component: () => import('../views/admin/MeshLinkPage.vue'),
   },
 ];

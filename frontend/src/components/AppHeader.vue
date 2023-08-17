@@ -8,7 +8,6 @@
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/nodes">Nodes</RouterLink>
         <RouterLink to="/tunnels">Tunnels</RouterLink>
-        <RouterLink to="/meshes">Meshes</RouterLink>
 
         <router-link
           v-if="this.userStore.loggedIn"
@@ -33,10 +32,6 @@
             {
               label: '&nbsp;&nbsp;Tunnels',
               to: '/admin/tunnels',
-            },
-            {
-              label: '&nbsp;&nbsp;Meshes',
-              to: '/admin/meshes',
             },
             {
               label: '&nbsp;&nbsp;Admin Users',
