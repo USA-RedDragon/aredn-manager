@@ -47,12 +47,12 @@ LoadPlugin "olsrd_watchdog.so.0.1"
 
 	snippetOlsrdConfEth0Supernode = `Interface "eth0"
 {
-    Mode "ether"
+    Mode "isolated"
 }`
 
 	snippetOlsrdConfEth0Standard = `Interface "eth0"
 {
-    Mode "isolated"
+    Mode "ether"
 }`
 
 	snippetOlsrdConfNameservice = `LoadPlugin "olsrd_nameservice.so.0.4"
