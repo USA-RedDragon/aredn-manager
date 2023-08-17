@@ -52,7 +52,7 @@ LoadPlugin "olsrd_watchdog.so.0.1"
 
 	snippetOlsrdConfEth0Standard = `Interface "eth0"
 {
-	Mode "isolated"
+    Mode "isolated"
 }`
 
 	snippetOlsrdConfNameservice = `LoadPlugin "olsrd_nameservice.so.0.4"
@@ -61,8 +61,7 @@ LoadPlugin "olsrd_watchdog.so.0.1"
     PlParam "timeout" "300"
     PlParam "name-change-script" "aredn-manager notify"
     PlParam "name" "${SERVER_NAME}"
-    PlParam "service" "http://${SERVER_NAME}:80/map|tcp|ki5vmf-cloud-tunnel-map"
-    PlParam "service" "http://${SERVER_NAME}:81/|tcp|ki5vmf-cloud-tunnel-console"
+    ${SERVICES}
 }`
 
 	snippetOlsrdConfSupernode = `Hna4
@@ -110,10 +109,23 @@ func Generate(config *config.Config, db *gorm.DB) string {
 
 	// We need to replace shell variables in the template with the actual values
 	cpSnippetOlsrdConfNameservice := snippetOlsrdConfNameservice
+	servicesText := "PlParam \"service\" \"http://${SERVER_NAME}:81/|tcp|${SERVER_NAME}-console\""
+	if !config.Supernode {
+		servicesText += "\n    PlParam \"service\" \"http://${SERVER_NAME}:80/map/|tcp|${SERVER_NAME}-map\""
+	}
+
+	utils.ShellReplace(
+		&servicesText,
+		map[string]string{
+			"SERVER_NAME": config.ServerName,
+		},
+	)
+
 	utils.ShellReplace(
 		&cpSnippetOlsrdConfNameservice,
 		map[string]string{
 			"SERVER_NAME": config.ServerName,
+			"SERVICES":    servicesText,
 		},
 	)
 	ret += cpSnippetOlsrdConfNameservice
