@@ -5,13 +5,25 @@
         <template #title>Daemon Status</template>
         <template #content>
           <h3 style="font-weight: bold;">VTun Daemon</h3>
-          <p>{{ vtundRunning ? 'Running':'Stopped' }}</p>
+          <p>
+            <PVBadge v-if="vtundRunning" value="✔️" severity="success"></PVBadge>
+            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
+            {{ vtundRunning ? 'Running':'Stopped' }}
+          </p>
           <br />
           <h3 style="font-weight: bold;">OLSR Daemon</h3>
-          <p>{{ olsrdRunning ? 'Running':'Stopped' }}</p>
+          <p>
+            <PVBadge v-if="olsrdRunning" value="✔️" severity="success"></PVBadge>
+            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
+            {{ olsrdRunning ? 'Running':'Stopped' }}
+          </p>
           <br />
           <h3 style="font-weight: bold;">DNSMasq</h3>
-          <p>{{ dnsRunning ? 'Running':'Stopped' }}</p>
+          <p>
+            <PVBadge v-if="dnsRunning" value="✔️" severity="success"></PVBadge>
+            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
+            {{ dnsRunning ? 'Running':'Stopped' }}
+          </p>
         </template>
       </Card>
       <Card style="width: 48%;">
@@ -34,6 +46,7 @@
 </template>
 
 <script>
+import Badge from 'primevue/badge';
 import Card from 'primevue/card';
 
 import prettyBytes from 'pretty-bytes';
@@ -43,6 +56,7 @@ import API from '@/services/API';
 export default {
   components: {
     Card,
+    PVBadge: Badge,
   },
   created() {
     this.fetchData();

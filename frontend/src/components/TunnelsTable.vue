@@ -23,14 +23,21 @@
       </div>
     </template>
     <Column :expander="true" v-if="$props.admin" />
-    <Column field="active" header="Connected"></Column>
+    <Column field="active" header="Connected">
+      <template #body="slotProps">
+        <PVBadge v-if="slotProps.data.active" value="✔️" severity="success"></PVBadge>
+        <PVBadge v-else value="✖️" severity="danger"></PVBadge>
+        &nbsp;<span v-if="slotProps.data.connection_time == 'Never'">{{slotProps.data.connection_time}}</span>
+        <span v-else>{{slotProps.data.connection_time.fromNow()}}</span>
+      </template>
+    </Column>
     <Column field="hostname" header="Name"></Column>
     <Column field="ip" header="IP"></Column>
     <Column field="password" header="Password" v-if="$props.admin"></Column>
-    <Column field="connection_time" header="Connection Time" v-if="!$props.admin">
+    <Column field="rx_bytes_per_sec" header="Bandwidth Usage" v-if="!$props.admin">
       <template #body="slotProps">
-        <span v-if="slotProps.data.connection_time == 'Never'">{{slotProps.data.connection_time}}</span>
-        <span v-else>{{slotProps.data.connection_time.fromNow()}}</span>
+        <p><span style="font-weight: bold;">RX:</span> {{prettyBytes(slotProps.data.rx_bytes_per_sec)}}/s</p>
+        <p><span style="font-weight: bold;">TX:</span> {{prettyBytes(slotProps.data.tx_bytes_per_sec)}}/s</p>
       </template>
     </Column>
     <Column field="rx_bytes" header="Session Traffic" v-if="!$props.admin">
@@ -43,12 +50,6 @@
       <template #body="slotProps">
         <p><span style="font-weight: bold;">RX:</span> {{prettyBytes(slotProps.data.total_rx_mb)}}</p>
         <p><span style="font-weight: bold;">TX:</span> {{prettyBytes(slotProps.data.total_tx_mb)}}</p>
-      </template>
-    </Column>
-    <Column field="rx_bytes_per_sec" header="Bandwidth Usage" v-if="!$props.admin">
-      <template #body="slotProps">
-        <p><span style="font-weight: bold;">RX:</span> {{prettyBytes(slotProps.data.rx_bytes_per_sec)}}/s</p>
-        <p><span style="font-weight: bold;">TX:</span> {{prettyBytes(slotProps.data.tx_bytes_per_sec)}}/s</p>
       </template>
     </Column>
     <Column field="created_at" header="Created" v-if="$props.admin">
@@ -76,8 +77,9 @@
 
 <script>
 import Button from 'primevue/button';
-import DataTable from 'primevue/datatable';
+import Badge from 'primevue/badge';
 import Column from 'primevue/column';
+import DataTable from 'primevue/datatable';
 
 import moment from 'moment';
 import prettyBytes from 'pretty-bytes';
@@ -98,6 +100,7 @@ export default {
     PVButton: Button,
     DataTable,
     Column,
+    PVBadge: Badge,
   },
   data: function() {
     return {
