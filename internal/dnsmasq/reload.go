@@ -1,4 +1,4 @@
-package bind
+package dnsmasq
 
 import (
 	"os"
@@ -6,9 +6,9 @@ import (
 	"syscall"
 )
 
-// This file will run bind
+// This file will run dnsmasq
 const (
-	pidFile = "/var/run/named/named.pid"
+	pidFile = "/var/run/dnsmasq.pid"
 )
 
 func Reload() error {
@@ -25,23 +25,6 @@ func Reload() error {
 		return err
 	}
 	return syscall.Kill(int(pid), syscall.SIGHUP)
-}
-
-func Restart() error {
-	// Read the PID file
-	pidBytes, err := os.ReadFile(pidFile)
-	if err != nil {
-		return err
-	}
-	pidStr := string(pidBytes)
-	// Trim newline
-	pidStr = pidStr[:len(pidStr)-1]
-	pid, err := strconv.ParseInt(pidStr, 10, 64)
-	if err != nil {
-		return err
-	}
-	return syscall.Kill(int(pid), syscall.SIGTERM)
-	// SNEAKY: s6 will restart the process, so we don't need to do anything else
 }
 
 func IsRunning() bool {

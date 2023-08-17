@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/bind"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/aredn-manager/internal/dnsmasq"
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
@@ -172,17 +172,10 @@ func POSTTunnel(c *gin.Context) {
 			return
 		}
 
-		err = bind.GenerateAndSave(config, db)
+		err = dnsmasq.Reload()
 		if err != nil {
-			fmt.Printf("Error generating bind config: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating bind config"})
-			return
-		}
-
-		err = bind.Reload()
-		if err != nil {
-			fmt.Printf("Error reloading bind: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading bind"})
+			fmt.Printf("Error reloading DNS: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading DNS"})
 			return
 		}
 
@@ -256,17 +249,10 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
-	err = bind.GenerateAndSave(config, db)
+	err = dnsmasq.Reload()
 	if err != nil {
-		fmt.Printf("Error generating bind config: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating bind config"})
-		return
-	}
-
-	err = bind.Reload()
-	if err != nil {
-		fmt.Printf("Error reloading bind: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading bind"})
+		fmt.Printf("Error reloading DNS: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading DNS"})
 		return
 	}
 

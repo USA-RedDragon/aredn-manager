@@ -4,30 +4,15 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/bind"
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/aredn-manager/internal/dnsmasq"
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func POSTNotify(c *gin.Context) {
 	if (c.RemoteIP() != "127.0.0.1" && c.RemoteIP() != "::1") || c.GetHeader("X-Forwarded-For") != "" {
 		fmt.Println("Forbidden notify from", c.RemoteIP())
 		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
-		return
-	}
-	db, ok := c.MustGet("DB").(*gorm.DB)
-	if !ok {
-		fmt.Println("POSTLogin: Unable to get DB from context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
-	}
-
-	config, ok := c.MustGet("Config").(*config.Config)
-	if !ok {
-		fmt.Println("POSTLogin: Unable to get Config from context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
@@ -43,19 +28,11 @@ func POSTNotify(c *gin.Context) {
 		fmt.Println("Error parsing hosts:", err)
 		return
 	}
-	err = bind.GenerateAndSave(config, db)
+	err = dnsmasq.Reload()
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating bind config"})
-		fmt.Println("Error generating bind config:", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error regenerating DNS"})
+		fmt.Println("Error reloading DNS config:", err)
 		return
 	}
-
-	err = bind.Reload()
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error notifying bind"})
-		fmt.Println("Error notifying bind:", err)
-		return
-	}
-
 	c.JSON(http.StatusOK, gin.H{"status": "OK"})
 }

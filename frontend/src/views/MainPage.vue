@@ -10,8 +10,8 @@
           <h3 style="font-weight: bold;">OLSR Daemon</h3>
           <p>{{ olsrdRunning ? 'Running':'Stopped' }}</p>
           <br />
-          <h3 style="font-weight: bold;">BIND DNS</h3>
-          <p>{{ bindRunning ? 'Running':'Stopped' }}</p>
+          <h3 style="font-weight: bold;">DNSMasq</h3>
+          <p>{{ dnsRunning ? 'Running':'Stopped' }}</p>
         </template>
       </Card>
       <Card style="width: 48%;">
@@ -51,7 +51,7 @@ export default {
     return {
       vtundRunning: true,
       olsrdRunning: true,
-      bindRunning: true,
+      dnsRunning: true,
       tunnelsConnected: 0,
       totalTunnels: 0,
       stats: {},
@@ -65,8 +65,8 @@ export default {
       API.get('/vtun/running').then((res) => {
         this.vtundRunning = res.data.running;
       });
-      API.get('/bind/running').then((res) => {
-        this.bindRunning = res.data.running;
+      API.get('/dns/running').then((res) => {
+        this.dnsRunning = res.data.running;
       });
       API.get('/tunnels').then((res) => {
         this.tunnelsConnected = 0;
