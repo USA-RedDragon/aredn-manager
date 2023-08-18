@@ -53,7 +53,7 @@ func FindTunnelByIP(db *gorm.DB, ip net.IP) (Tunnel, error) {
 
 func ListTunnels(db *gorm.DB) ([]Tunnel, error) {
 	var tunnels []Tunnel
-	err := db.Find(&tunnels).Error
+	err := db.Order("id asc").Find(&tunnels).Error
 	return tunnels, err
 }
 

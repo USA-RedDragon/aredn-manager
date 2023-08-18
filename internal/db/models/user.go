@@ -43,7 +43,7 @@ func FindUserByID(db *gorm.DB, id uint) (User, error) {
 
 func ListUsers(db *gorm.DB) ([]User, error) {
 	var users []User
-	err := db.Find(&users).Error
+	err := db.Order("id asc").Find(&users).Error
 	return users, err
 }
 
