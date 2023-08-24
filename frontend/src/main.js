@@ -10,6 +10,7 @@ import ConfirmDialog from 'primevue/confirmdialog';
 
 import App from './App.vue';
 import router from './router';
+import EventBus from '@/services/EventBus';
 
 import 'primeflex/primeflex.scss';
 import 'primeicons/primeicons.css';
@@ -26,6 +27,7 @@ app.use(ConfirmationService);
 app.use(pinia);
 app.use(PrimeVue);
 app.use(router);
+app.use(EventBus);
 
 app.component('PVToast', Toast);
 app.component('ConfirmDialog', ConfirmDialog);

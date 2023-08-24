@@ -112,10 +112,30 @@ export default {
   },
   mounted() {
     this.fetchData();
+    this.$EventBus.on('tunnel_stats', this.updateTunnel);
+    this.$EventBus.on('tunnel_connected', this.updateTunnel);
+    this.$EventBus.on('tunnel_disconnected', this.updateTunnel);
   },
   unmounted() {
+    this.$EventBus.off('tunnel_stats', this.updateTunnel);
+    this.$EventBus.off('tunnel_connected', this.updateTunnel);
+    this.$EventBus.off('tunnel_disconnected', this.updateTunnel);
   },
   methods: {
+    updateTunnel(tunnel) {
+      tunnel.created_at = moment(tunnel.created_at);
+      tunnel.connection_time = moment(tunnel.created_at);
+      tunnel.total_rx_mb = Math.round(tunnel.total_rx_mb * 100) / 100;
+      tunnel.total_rx_mb = tunnel.total_rx_mb * 1024 * 1024;
+      tunnel.total_tx_mb = Math.round(tunnel.total_tx_mb * 100) / 100;
+      tunnel.total_tx_mb = tunnel.total_tx_mb * 1024 * 1024;
+      for (let i = 0; i < this.tunnels.length; i++) {
+        if (this.tunnels[i].id == tunnel.id) {
+          this.tunnels[i] = tunnel;
+          return;
+        }
+      }
+    },
     prettyBytes(bytes) {
       if (!bytes) {
         return '0 B';
@@ -137,7 +157,7 @@ export default {
             res.data.tunnels[i].created_at = moment(
               res.data.tunnels[i].created_at,
             );
-            if (res.data.tunnels[i].connection_time == '0001-01-01T00:00:00Z') {
+            if (res.data.tunnels[i].connection_time == '0001-01-01T00:00:00Z' || !res.data.tunnels[i].connection_time) {
               res.data.tunnels[i].connection_time = 'Never';
             } else {
               res.data.tunnels[i].connection_time = moment(

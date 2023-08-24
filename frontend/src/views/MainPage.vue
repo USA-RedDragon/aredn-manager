@@ -61,8 +61,18 @@ export default {
   created() {
     this.fetchData();
   },
-  mounted() {},
-  unmounted() {},
+  mounted() {
+    this.$EventBus.on('tunnel_disconnection', this.tunnelDisconnected);
+    this.$EventBus.on('tunnel_connection', this.tunnelConnected);
+    this.$EventBus.on('total_traffic', this.totalTraffic);
+    this.$EventBus.on('total_bandwidth', this.totalBandwidth);
+  },
+  unmounted() {
+    this.$EventBus.off('tunnel_disconnection', this.tunnelDisconnected);
+    this.$EventBus.off('tunnel_connection', this.tunnelConnected);
+    this.$EventBus.off('total_traffic', this.totalTraffic);
+    this.$EventBus.off('total_bandwidth', this.totalBandwidth);
+  },
   data: function() {
     return {
       vtundRunning: true,
@@ -74,6 +84,31 @@ export default {
     };
   },
   methods: {
+    tunnelDisconnected(_) {
+      this.tunnelsConnected--;
+    },
+    tunnelConnected(_) {
+      this.tunnelsConnected++;
+    },
+    totalBandwidth(event) {
+      if ('TX' in event) {
+        this.stats.total_rx_bytes_per_sec = event.RX;
+        this.stats.total_tx_bytes_per_sec = event.TX;
+      }
+    },
+    totalTraffic(event) {
+      // Truncate to 2 decimal places
+      let rx = Math.round(event.RX * 100) / 100;
+      // Convert to bytes
+      rx = rx * 1024 * 1024;
+      this.stats.total_rx_mb = rx;
+
+      // Truncate to 2 decimal places
+      let tx = Math.round(event.TX * 100) / 100;
+      // Convert to bytes
+      tx = tx * 1024 * 1024;
+      this.stats.total_tx_mb = tx;
+    },
     prettyBytes(bytes) {
       if (!bytes) {
         return '0 B';
