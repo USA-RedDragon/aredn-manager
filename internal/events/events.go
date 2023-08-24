@@ -1,15 +1,15 @@
 package events
 
-type EventType uint
+type EventType string
 
 const (
-	EventTypeTunnelDisconnection EventType = iota
-	EventTypeTunnelConnection
-	EventTypeTunnelBandwidth
-	EventTypeTunnelSessionTraffic
-	EventTypeTunnelTotalTraffic
-	EventTypeTotalBandwidth
-	EventTypeTotalTraffic
+	EventTypeTunnelDisconnection  EventType = "tunnel_disconnection"
+	EventTypeTunnelConnection     EventType = "tunnel_connection"
+	EventTypeTunnelBandwidth      EventType = "tunnel_bandwidth"
+	EventTypeTunnelSessionTraffic EventType = "tunnel_session_traffic"
+	EventTypeTunnelTotalTraffic   EventType = "tunnel_total_traffic"
+	EventTypeTotalBandwidth       EventType = "total_bandwidth"
+	EventTypeTotalTraffic         EventType = "total_traffic"
 )
 
 type Event struct {
