@@ -16,7 +16,7 @@ func ApplyRoutes(router *gin.Engine, eventsChannel chan events.Event, config *co
 	v1(apiV1, config)
 
 	ws := router.Group("/ws")
-	ws.GET("/events", middleware.RequireLogin(config), websocket.CreateHandler(websocketControllers.CreateEventsWebsocket(eventsChannel), config))
+	ws.GET("/events", websocket.CreateHandler(websocketControllers.CreateEventsWebsocket(eventsChannel), config))
 }
 
 func v1(group *gin.RouterGroup, config *config.Config) {
