@@ -119,12 +119,7 @@ func (s *StatCounter) Start() error {
 			s.lastTXBytes = txBytes
 
 			s.eventsChannel <- events.Event{
-				Type: events.EventTypeTunnelBandwidth,
-				Data: tunnel,
-			}
-
-			s.eventsChannel <- events.Event{
-				Type: events.EventTypeTotalBandwidth,
+				Type: events.EventTypeTunnelStats,
 				Data: tunnel,
 			}
 

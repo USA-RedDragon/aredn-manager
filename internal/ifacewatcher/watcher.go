@@ -165,15 +165,7 @@ func (w *Watcher) reconcileDB() {
 				Data: iface.AssociatedTunnel,
 			}
 			w.eventChannel <- events.Event{
-				Type: events.EventTypeTunnelTotalTraffic,
-				Data: iface.AssociatedTunnel,
-			}
-			w.eventChannel <- events.Event{
-				Type: events.EventTypeTunnelBandwidth,
-				Data: iface.AssociatedTunnel,
-			}
-			w.eventChannel <- events.Event{
-				Type: events.EventTypeTunnelSessionTraffic,
+				Type: events.EventTypeTunnelStats,
 				Data: iface.AssociatedTunnel,
 			}
 			w.db.Save(iface.AssociatedTunnel)

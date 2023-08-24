@@ -3,13 +3,11 @@ package events
 type EventType string
 
 const (
-	EventTypeTunnelDisconnection  EventType = "tunnel_disconnection"
-	EventTypeTunnelConnection     EventType = "tunnel_connection"
-	EventTypeTunnelBandwidth      EventType = "tunnel_bandwidth"
-	EventTypeTunnelSessionTraffic EventType = "tunnel_session_traffic"
-	EventTypeTunnelTotalTraffic   EventType = "tunnel_total_traffic"
-	EventTypeTotalBandwidth       EventType = "total_bandwidth"
-	EventTypeTotalTraffic         EventType = "total_traffic"
+	EventTypeTunnelDisconnection EventType = "tunnel_disconnection"
+	EventTypeTunnelConnection    EventType = "tunnel_connection"
+	EventTypeTunnelStats         EventType = "tunnel_bandwidth"
+	EventTypeTotalBandwidth      EventType = "total_bandwidth"
+	EventTypeTotalTraffic        EventType = "total_traffic"
 )
 
 type Event struct {
