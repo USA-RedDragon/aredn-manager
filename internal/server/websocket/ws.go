@@ -41,7 +41,9 @@ func CreateHandler(ws Websocket, config *config.Config) func(*gin.Context) {
 				if origin == "" {
 					return false
 				}
+				origin = strings.ToLower(origin)
 				for _, host := range config.CORSHosts {
+					host = strings.ToLower(host)
 					if strings.HasSuffix(host, ":443") && strings.HasPrefix(origin, "https://") {
 						host = strings.TrimSuffix(host, ":443")
 					}
