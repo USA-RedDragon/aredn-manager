@@ -12,6 +12,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	"github.com/USA-RedDragon/aredn-manager/internal/ifacewatcher"
 	"github.com/USA-RedDragon/aredn-manager/internal/server"
 	"github.com/spf13/cobra"
@@ -99,13 +100,16 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	ifWatcher := ifacewatcher.NewWatcher(db)
+	eventBus := events.NewEventBus()
+	defer eventBus.Close()
+
+	ifWatcher := ifacewatcher.NewWatcher(db, eventBus.GetChannel())
 	err = ifWatcher.Watch()
 	if err != nil {
 		return err
 	}
 
-	srv := server.NewServer(config, db, ifWatcher.Stats)
+	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel())
 	err = srv.Run()
 	if err != nil {
 		return err
@@ -118,6 +122,12 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		go func() {
 			defer wg.Done()
 			srv.Stop()
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			eventBus.Close()
 		}()
 
 		wg.Add(1)

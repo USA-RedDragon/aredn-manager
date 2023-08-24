@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	v1Controllers "github.com/USA-RedDragon/aredn-manager/internal/server/api/controllers/v1"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	websocketControllers "github.com/USA-RedDragon/aredn-manager/internal/server/api/websocket"
@@ -10,12 +11,12 @@ import (
 )
 
 // ApplyRoutes to the HTTP Mux.
-func ApplyRoutes(router *gin.Engine, config *config.Config) {
+func ApplyRoutes(router *gin.Engine, eventsChannel chan events.Event, config *config.Config) {
 	apiV1 := router.Group("/api/v1")
 	v1(apiV1, config)
 
 	ws := router.Group("/ws")
-	ws.GET("/hosts", middleware.RequireLogin(config), websocket.CreateHandler(websocketControllers.CreateHostsWebsocket(), config))
+	ws.GET("/events", middleware.RequireLogin(config), websocket.CreateHandler(websocketControllers.CreateEventsWebsocket(eventsChannel), config))
 }
 
 func v1(group *gin.RouterGroup, config *config.Config) {

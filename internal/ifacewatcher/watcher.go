@@ -8,6 +8,7 @@ import (
 
 	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	"gorm.io/gorm"
 )
 
@@ -22,13 +23,15 @@ type Watcher struct {
 	interfaces               []_iface
 	interfacesToMarkInactive []_iface
 	Stats                    *bandwidth.StatCounterManager
+	eventChannel             chan events.Event
 }
 
-func NewWatcher(db *gorm.DB) *Watcher {
+func NewWatcher(db *gorm.DB, events chan events.Event) *Watcher {
 	w := &Watcher{
-		stopped: true,
-		db:      db,
-		Stats:   bandwidth.NewStatCounterManager(db),
+		stopped:      true,
+		db:           db,
+		Stats:        bandwidth.NewStatCounterManager(db, events),
+		eventChannel: events,
 	}
 	w.Stats.Start()
 	return w
@@ -85,6 +88,10 @@ func (w *Watcher) watch() {
 		for _, iface := range w.interfaces {
 			if !netInterfaceContainsIface(interfaces, iface) {
 				fmt.Printf("Interface %s is no longer present\n", iface.Name)
+				w.eventChannel <- events.Event{
+					Type: events.EventTypeTunnelDisconnection,
+					Data: iface.AssociatedTunnel,
+				}
 				err = w.Stats.Remove(iface.Name)
 				if err != nil {
 					fmt.Println(err)
@@ -99,6 +106,7 @@ func (w *Watcher) watch() {
 		for _, iface := range interfaces {
 			if strings.HasPrefix(iface.Name, "tun") && !ifaceContainsNetInterface(w.interfaces, iface) {
 				fmt.Printf("Interface %s is now present\n", iface.Name)
+				tunnel := w.findTunnel(iface)
 				err = w.Stats.Add(iface.Name)
 				if err != nil {
 					fmt.Println(err)
@@ -106,7 +114,7 @@ func (w *Watcher) watch() {
 				}
 				w.interfaces = append(w.interfaces, _iface{
 					iface,
-					w.findTunnel(iface),
+					tunnel,
 				})
 			}
 		}
@@ -152,6 +160,22 @@ func (w *Watcher) reconcileDB() {
 			iface.AssociatedTunnel.TotalTXMB += float64(iface.AssociatedTunnel.TXBytes) / 1024 / 1024
 			iface.AssociatedTunnel.RXBytes = 0
 			iface.AssociatedTunnel.TXBytes = 0
+			w.eventChannel <- events.Event{
+				Type: events.EventTypeTunnelDisconnection,
+				Data: iface.AssociatedTunnel,
+			}
+			w.eventChannel <- events.Event{
+				Type: events.EventTypeTunnelTotalTraffic,
+				Data: iface.AssociatedTunnel,
+			}
+			w.eventChannel <- events.Event{
+				Type: events.EventTypeTunnelBandwidth,
+				Data: iface.AssociatedTunnel,
+			}
+			w.eventChannel <- events.Event{
+				Type: events.EventTypeTunnelSessionTraffic,
+				Data: iface.AssociatedTunnel,
+			}
 			w.db.Save(iface.AssociatedTunnel)
 		}
 	}
@@ -163,6 +187,10 @@ func (w *Watcher) reconcileDB() {
 				iface.AssociatedTunnel.Active = true
 				iface.AssociatedTunnel.TunnelInterface = iface.Name
 				iface.AssociatedTunnel.ConnectionTime = time.Now()
+				w.eventChannel <- events.Event{
+					Type: events.EventTypeTunnelConnection,
+					Data: iface.AssociatedTunnel,
+				}
 				w.db.Save(iface.AssociatedTunnel)
 			}
 		}

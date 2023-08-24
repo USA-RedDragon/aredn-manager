@@ -10,6 +10,7 @@ import (
 	ratelimit "github.com/JGLTechnologies/gin-rate-limit"
 	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
@@ -33,14 +34,16 @@ type Server struct {
 	db              *gorm.DB
 	shutdownChannel chan bool
 	stats           *bandwidth.StatCounterManager
+	eventsChannel   chan events.Event
 }
 
-func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager) *Server {
+func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager, eventsChannel chan events.Event) *Server {
 	return &Server{
 		config:          config,
 		db:              db,
 		shutdownChannel: make(chan bool),
 		stats:           stats,
+		eventsChannel:   eventsChannel,
 	}
 }
 
@@ -57,7 +60,7 @@ func (s *Server) Run() error {
 
 	s.addMiddleware(r)
 
-	api.ApplyRoutes(r, s.config)
+	api.ApplyRoutes(r, s.eventsChannel, s.config)
 
 	writeTimeout := defTimeout
 	if s.config.Debug {

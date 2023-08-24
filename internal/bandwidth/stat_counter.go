@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	"gorm.io/gorm"
 )
 
@@ -28,9 +29,10 @@ type StatCounter struct {
 	RXBandwidth    uint64
 	TXBandwidth    uint64
 	statsCallback  func(rxMb float64, txMb float64)
+	eventsChannel  chan events.Event
 }
 
-func newStatCounter(iface string, db *gorm.DB, statsCallback func(rxMb float64, txMb float64)) *StatCounter {
+func newStatCounter(iface string, db *gorm.DB, events chan events.Event, statsCallback func(rxMb float64, txMb float64)) *StatCounter {
 	return &StatCounter{
 		iface: iface,
 		db:    db,
@@ -39,6 +41,7 @@ func newStatCounter(iface string, db *gorm.DB, statsCallback func(rxMb float64, 
 				statsCallback(rxMb, txMb)
 			}
 		},
+		eventsChannel: events,
 	}
 }
 
@@ -115,6 +118,16 @@ func (s *StatCounter) Start() error {
 			s.lastNewTXBytes = newBytes
 			s.lastTXBytes = txBytes
 
+			s.eventsChannel <- events.Event{
+				Type: events.EventTypeTunnelBandwidth,
+				Data: tunnel,
+			}
+
+			s.eventsChannel <- events.Event{
+				Type: events.EventTypeTotalBandwidth,
+				Data: tunnel,
+			}
+
 			s.statsCallback(float64(s.lastNewRXBytes)/1024/1024, float64(s.lastNewTXBytes)/1024/1024)
 
 			count++
@@ -151,11 +164,13 @@ type StatCounterManager struct {
 	TotalTXMB        float64
 	TotalRXBandwidth uint64
 	TotalTXBandwidth uint64
+	eventsChannel    chan events.Event
 }
 
-func NewStatCounterManager(db *gorm.DB) *StatCounterManager {
+func NewStatCounterManager(db *gorm.DB, events chan events.Event) *StatCounterManager {
 	return &StatCounterManager{
-		db: db,
+		db:            db,
+		eventsChannel: events,
 	}
 }
 
@@ -171,7 +186,7 @@ func (s *StatCounterManager) Start() {
 }
 
 func (s *StatCounterManager) Add(iface string) error {
-	statCounter := newStatCounter(iface, s.db, s.totalStatsUpdate)
+	statCounter := newStatCounter(iface, s.db, s.eventsChannel, s.totalStatsUpdate)
 	s.counters.Store(iface, statCounter)
 	return statCounter.Start()
 }
@@ -179,6 +194,14 @@ func (s *StatCounterManager) Add(iface string) error {
 func (s *StatCounterManager) totalStatsUpdate(rxMb float64, txMb float64) {
 	s.TotalRXMB += rxMb
 	s.TotalTXMB += txMb
+
+	s.eventsChannel <- events.Event{
+		Type: events.EventTypeTotalTraffic,
+		Data: map[string]float64{
+			"RX": s.TotalRXMB,
+			"TX": s.TotalTXMB,
+		},
+	}
 }
 
 func (s *StatCounterManager) updateTotalBandwidth() {
@@ -187,6 +210,13 @@ func (s *StatCounterManager) updateTotalBandwidth() {
 	for _, counter := range s.GetAll() {
 		s.TotalRXBandwidth += counter.RXBandwidth
 		s.TotalTXBandwidth += counter.TXBandwidth
+	}
+	s.eventsChannel <- events.Event{
+		Type: events.EventTypeTotalBandwidth,
+		Data: map[string]uint64{
+			"RX": s.TotalRXBandwidth,
+			"TX": s.TotalTXBandwidth,
+		},
 	}
 }
 
