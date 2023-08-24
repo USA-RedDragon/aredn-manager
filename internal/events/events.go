@@ -5,7 +5,7 @@ type EventType string
 const (
 	EventTypeTunnelDisconnection EventType = "tunnel_disconnection"
 	EventTypeTunnelConnection    EventType = "tunnel_connection"
-	EventTypeTunnelStats         EventType = "tunnel_bandwidth"
+	EventTypeTunnelStats         EventType = "tunnel_stats"
 	EventTypeTotalBandwidth      EventType = "total_bandwidth"
 	EventTypeTotalTraffic        EventType = "total_traffic"
 )
