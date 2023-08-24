@@ -40,7 +40,7 @@ func (c *EventsWebsocket) OnConnect(ctx context.Context, _ *http.Request, w webs
 			case <-newCtx.Done():
 				return
 			case event := <-c.eventsChannel:
-				eventDataJSON, err := json.Marshal(event.Data)
+				eventDataJSON, err := json.Marshal(event)
 				if err != nil {
 					fmt.Println("Error marshalling event data:", err)
 					continue

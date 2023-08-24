@@ -13,8 +13,8 @@ const (
 )
 
 type Event struct {
-	Type EventType
-	Data interface{}
+	Type EventType   `json:"type"`
+	Data interface{} `json:"data"`
 }
 
 type EventBus struct {
