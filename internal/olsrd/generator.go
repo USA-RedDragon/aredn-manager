@@ -69,8 +69,7 @@ LoadPlugin "olsrd_watchdog.so.0.1"
 
 	snippetOlsrdConfSupernode = `Hna4
 {
-    10.0.0.0   255.128.0.0
-    10.128.0.0 255.128.0.0
+    10.0.0.0   255.0.0.0
 }`
 
 	snippetOlsrdConfTunnel = `Interface ${IFACES}
