@@ -68,7 +68,7 @@ func (s *StatCounter) Start() error {
 			tunnel, err := models.FindTunnelByInterface(s.db, s.iface)
 			if err != nil {
 				fmt.Println("Error finding tunnel:", err)
-				continue
+				return
 			}
 			if !tunnel.Active {
 				return
