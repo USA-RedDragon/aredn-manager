@@ -124,7 +124,11 @@ export default {
   methods: {
     updateTunnel(tunnel) {
       tunnel.created_at = moment(tunnel.created_at);
-      tunnel.connection_time = moment(tunnel.created_at);
+      if (tunnel.connection_time == '0001-01-01T00:00:00Z' || !tunnel.connection_time) {
+        tunnel.connection_time = 'Never';
+      } else {
+        tunnel.connection_time = moment(tunnel.connection_time);
+      }
       tunnel.total_rx_mb = Math.round(tunnel.total_rx_mb * 100) / 100;
       tunnel.total_rx_mb = tunnel.total_rx_mb * 1024 * 1024;
       tunnel.total_tx_mb = Math.round(tunnel.total_tx_mb * 100) / 100;
