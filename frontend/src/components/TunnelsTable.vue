@@ -135,6 +135,9 @@ export default {
       tunnel.total_tx_mb = tunnel.total_tx_mb * 1024 * 1024;
       for (let i = 0; i < this.tunnels.length; i++) {
         if (this.tunnels[i].id == tunnel.id) {
+          if ('password' in this.tunnels[i]) {
+            tunnel.password = this.tunnels[i].password;
+          }
           this.tunnels[i] = tunnel;
           return;
         }
