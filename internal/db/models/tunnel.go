@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"gorm.io/gorm"
 )
 
@@ -79,8 +80,8 @@ func ClearActiveFromAllTunnels(db *gorm.DB) error {
 	return db.Model(&Tunnel{}).Where("active = ?", true).Update("active", false).Error
 }
 
-func GetNextIP(db *gorm.DB) (string, error) {
-	// Each tunnel is added with an ip starting from 172.31.180.16 and incrementing by 4 for each tunnel
+func GetNextIP(db *gorm.DB, config *config.Config) (string, error) {
+	// Each tunnel is added with an ip starting from config.VTUNStartingAddress and incrementing by 4 for each tunnel
 	// We need to find the next available ip.
 	var tunnels []Tunnel
 	err := db.Find(&tunnels).Error
@@ -89,7 +90,7 @@ func GetNextIP(db *gorm.DB) (string, error) {
 	}
 	// We need to find the next available ip.
 	// We can do this by finding the highest ip, and adding 4 to it.
-	var highestIP = net.ParseIP("172.31.180.12").To4() // Use 12 so the +4 later starts at 16
+	var highestIP = net.ParseIP(config.VTUNStartingAddress).To4() // Use 12 so the +4 later starts at 16
 	for _, tunnel := range tunnels {
 		ip := net.ParseIP(tunnel.IP)
 		ip = ip.To4()

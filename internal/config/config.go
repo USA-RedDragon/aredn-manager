@@ -3,6 +3,7 @@ package config
 import (
 	"crypto/sha256"
 	"fmt"
+	"net"
 	"os"
 	"strconv"
 	"strings"
@@ -34,6 +35,7 @@ type Config struct {
 	DisableMap               bool
 	strSessionSecret         string
 	SessionSecret            []byte
+	VTUNStartingAddress      string
 	PostgresDSN              string
 	postgresUser             string
 	postgresPassword         string
@@ -72,11 +74,20 @@ func loadConfig() Config {
 		SupernodeZone:            os.Getenv("SUPERNODE_ZONE"),
 		DisableMap:               os.Getenv("DISABLE_MAP") != "",
 		strSessionSecret:         os.Getenv("SESSION_SECRET"),
+		VTUNStartingAddress:      os.Getenv("VTUN_STARTING_ADDRESS"),
 		postgresUser:             os.Getenv("PG_USER"),
 		postgresPassword:         os.Getenv("PG_PASSWORD"),
 		postgresHost:             os.Getenv("PG_HOST"),
 		postgresPort:             int(pgPort),
 		postgresDatabase:         os.Getenv("PG_DATABASE"),
+	}
+
+	if tmpConfig.VTUNStartingAddress == "" {
+		tmpConfig.VTUNStartingAddress = "172.31.180.12"
+	}
+
+	if net.ParseIP(tmpConfig.VTUNStartingAddress) == nil {
+		panic("VTUN starting address is not a valid IP address")
 	}
 
 	if tmpConfig.PIDFile == "" {

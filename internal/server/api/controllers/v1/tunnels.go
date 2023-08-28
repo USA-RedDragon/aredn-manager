@@ -130,7 +130,7 @@ func POSTTunnel(c *gin.Context) {
 			Hostname: json.Hostname,
 			Password: json.Password,
 		}
-		tunnel.IP, err = models.GetNextIP(db)
+		tunnel.IP, err = models.GetNextIP(db, config)
 		if err != nil {
 			fmt.Printf("POSTTunnel: Error getting next IP: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next IP"})
