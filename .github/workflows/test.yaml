@@ -105,7 +105,7 @@ jobs:
 
       - name: Publish Test Report
         if: always()
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v4
         with:
           report_paths: "frontend/reports/unit/*.xml"
           test_files_prefix: "frontend"
@@ -156,7 +156,7 @@ jobs:
 
       - name: Publish Test Report
         if: always()
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v4
         with:
           report_paths: "frontend/reports/e2e/*.xml"
           test_files_prefix: "frontend"
@@ -273,7 +273,7 @@ jobs:
 
       - name: Publish Test Report
         if: always()
-        uses: mikepenz/action-junit-report@v3
+        uses: mikepenz/action-junit-report@v4
         with:
           report_paths: "report.xml"
           require_tests: true
