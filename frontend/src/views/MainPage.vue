@@ -127,6 +127,9 @@ export default {
       });
       API.get('/tunnels').then((res) => {
         this.tunnelsConnected = 0;
+        if (typeof res.data == 'string') {
+          return;
+        }
         if ('tunnels' in res.data == false || res.data.tunnels == undefined || res.data.tunnels == null) {
           return;
         }
@@ -138,6 +141,9 @@ export default {
         this.totalTunnels = res.data.total;
       });
       API.get('/stats').then((res) => {
+        if (typeof res.data == 'string') {
+          return;
+        }
         if (!('stats' in res.data)) {
           return;
         }
