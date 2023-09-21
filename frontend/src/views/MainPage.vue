@@ -138,6 +138,9 @@ export default {
         this.totalTunnels = res.data.total;
       });
       API.get('/stats').then((res) => {
+        if (!('stats' in res.data)) {
+          return;
+        }
         if (res.data.stats.total_rx_mb != 0) {
           // Truncate to 2 decimal places
           res.data.stats.total_rx_mb = Math.round(res.data.stats.total_rx_mb * 100) / 100;
