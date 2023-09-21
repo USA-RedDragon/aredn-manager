@@ -2,7 +2,7 @@ codecov:
     notify:
         after_n_builds: 1
 comment:
-    require_changes: true
+    require_changes: false
     after_n_builds: 1
 github_checks:
     annotations: false
