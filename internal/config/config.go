@@ -42,6 +42,7 @@ type Config struct {
 	postgresHost             string
 	postgresPort             int
 	postgresDatabase         string
+	MetricsPort              int
 }
 
 func loadConfig() Config {
@@ -55,6 +56,12 @@ func loadConfig() Config {
 	pgPort, err := strconv.ParseInt(portStr, 10, 0)
 	if err != nil {
 		pgPort = 0
+	}
+
+	portStr = os.Getenv("METRICS_PORT")
+	metricsPort, err := strconv.ParseInt(portStr, 10, 0)
+	if err != nil {
+		metricsPort = 0
 	}
 
 	tmpConfig := Config{
@@ -80,6 +87,7 @@ func loadConfig() Config {
 		postgresHost:             os.Getenv("PG_HOST"),
 		postgresPort:             int(pgPort),
 		postgresDatabase:         os.Getenv("PG_DATABASE"),
+		MetricsPort:              int(metricsPort),
 	}
 
 	if tmpConfig.VTUNStartingAddress == "" {
@@ -220,5 +228,6 @@ func (config *Config) ToString() string {
 		"PostgresPort: " + strconv.Itoa(config.postgresPort) + "\n" +
 		"PostgresDatabase: " + config.postgresDatabase + "\n" +
 		"CORSHosts: " + strings.Join(config.CORSHosts, ",") + "\n" +
-		"TrustedProxies: " + strings.Join(config.TrustedProxies, ",") + "\n"
+		"TrustedProxies: " + strings.Join(config.TrustedProxies, ",") + "\n" +
+		"MetricsPort: " + strconv.Itoa(config.MetricsPort) + "\n"
 }

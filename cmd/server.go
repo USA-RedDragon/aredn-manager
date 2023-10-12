@@ -14,6 +14,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	"github.com/USA-RedDragon/aredn-manager/internal/ifacewatcher"
+	"github.com/USA-RedDragon/aredn-manager/internal/metrics"
 	"github.com/USA-RedDragon/aredn-manager/internal/server"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
@@ -93,6 +94,8 @@ func runServer(cmd *cobra.Command, _ []string) error {
 
 	// Start the server
 	fmt.Println("starting server")
+
+	go metrics.CreateMetricsServer(config)
 
 	db := db.MakeDB(config)
 	err = models.ClearActiveFromAllTunnels(db)
