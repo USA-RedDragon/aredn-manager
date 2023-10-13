@@ -12,7 +12,7 @@ type CreateTunnel struct {
 	Hostname string `json:"hostname" binding:"required"`
 	Password string `json:"password" binding:"required"`
 	IP       string `json:"ip"`
-	Client   bool   `json:"client" binding:"required"`
+	Client   bool   `json:"client"`
 }
 
 func (r *CreateTunnel) IsValidHostname() (bool, string) {
