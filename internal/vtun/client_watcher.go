@@ -48,6 +48,14 @@ func (v *VTunClientWatcher) Stop() {
 	v.started = false
 	for _, cancel := range v.cancels {
 		cancel.cancel()
+		err := cancel.cmd.Process.Kill()
+		if err != nil {
+			fmt.Printf("VTunClientWatcher: Error killing vtun client: %v\n", err)
+		}
+		err = cancel.cmd.Process.Release()
+		if err != nil {
+			fmt.Printf("VTunClientWatcher: Error releasing vtun client: %v\n", err)
+		}
 	}
 }
 
@@ -61,6 +69,14 @@ func (v *VTunClientWatcher) ReloadTunnel(id uint) {
 	}
 	if cancel.cancel != nil {
 		cancel.cancel()
+		err := cancel.cmd.Process.Kill()
+		if err != nil {
+			fmt.Printf("VTunClientWatcher: Error killing vtun client %d: %v\n", id, err)
+		}
+		err = cancel.cmd.Process.Release()
+		if err != nil {
+			fmt.Printf("VTunClientWatcher: Error releasing vtun client %d: %v\n", id, err)
+		}
 	}
 }
 
