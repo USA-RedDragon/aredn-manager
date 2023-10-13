@@ -37,5 +37,11 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	}
 
 	fmt.Println("Generating vtund config")
-	return vtun.GenerateAndSave(config, db)
+	err = vtun.GenerateAndSave(config, db)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Generating vtund client config")
+	return vtun.GenerateAndSaveClient(config, db)
 }

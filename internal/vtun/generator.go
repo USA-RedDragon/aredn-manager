@@ -85,7 +85,7 @@ func GenerateAndSave(config *config.Config, db *gorm.DB) error {
 func Generate(config *config.Config, db *gorm.DB) string {
 	ret := snippetVtunConf
 
-	tunnels, err := models.ListTunnels(db)
+	tunnels, err := models.ListServerTunnels(db)
 	if err != nil {
 		return ""
 	}

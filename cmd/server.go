@@ -16,6 +16,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/ifacewatcher"
 	"github.com/USA-RedDragon/aredn-manager/internal/metrics"
 	"github.com/USA-RedDragon/aredn-manager/internal/server"
+	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
 )
@@ -112,6 +113,9 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	vtunClientWatcher := vtun.NewVTunClientWatcher(db, config)
+	vtunClientWatcher.Run()
+
 	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel())
 	err = srv.Run()
 	if err != nil {
@@ -125,6 +129,12 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		go func() {
 			defer wg.Done()
 			srv.Stop()
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			vtunClientWatcher.Stop()
 		}()
 
 		wg.Add(1)

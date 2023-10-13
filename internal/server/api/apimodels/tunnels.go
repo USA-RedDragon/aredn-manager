@@ -11,6 +11,8 @@ const maxHostnameLength = 63
 type CreateTunnel struct {
 	Hostname string `json:"hostname" binding:"required"`
 	Password string `json:"password" binding:"required"`
+	IP       string `json:"ip"`
+	Client   bool   `json:"client" binding:"required"`
 }
 
 func (r *CreateTunnel) IsValidHostname() (bool, string) {
@@ -28,6 +30,7 @@ func (r *CreateTunnel) IsValidHostname() (bool, string) {
 
 type TunnelWithPass struct {
 	ID        uint      `json:"id"`
+	Client    bool      `json:"client"`
 	Hostname  string    `json:"hostname"`
 	IP        string    `json:"ip"`
 	Password  string    `json:"password"`

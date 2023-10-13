@@ -47,3 +47,11 @@ html {
 .p-toast {
   max-width: calc(100vw - 40px);
 }
+
+.card-section-header {
+  border-bottom: 1px solid #ebebeb;
+}
+
+.card-section {
+  padding-left: .6em;
+}

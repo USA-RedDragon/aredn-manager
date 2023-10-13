@@ -2,8 +2,11 @@ package v1
 
 import (
 	"fmt"
+	"net"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
@@ -72,6 +75,7 @@ func GETTunnels(c *gin.Context) {
 				Hostname:  tunnel.Hostname,
 				IP:        tunnel.IP,
 				Password:  tunnel.Password,
+				Client:    tunnel.Client,
 				Active:    tunnel.Active,
 				CreatedAt: tunnel.CreatedAt,
 			})
@@ -103,65 +107,169 @@ func POSTTunnel(c *gin.Context) {
 		fmt.Printf("POSTTunnel: JSON data is invalid: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON data is invalid"})
 	} else {
-		isValid, errString := json.IsValidHostname()
-		if !isValid {
-			c.JSON(http.StatusBadRequest, gin.H{"error": errString})
-			return
-		}
-
 		if json.Password == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Password cannot be empty"})
 			return
 		}
 
-		// Check if the hostname is already taken
-		var tunnel models.Tunnel
-		err := db.Find(&tunnel, "hostname = ?", json.Hostname).Error
-		if err != nil {
-			fmt.Printf("POSTTunnel: Error getting tunnel: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
-			return
-		} else if tunnel.ID != 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Hostname is already taken"})
-			return
-		}
+		if !json.Client {
+			isValid, errString := json.IsValidHostname()
+			if !isValid {
+				c.JSON(http.StatusBadRequest, gin.H{"error": errString})
+				return
+			}
 
-		tunnel = models.Tunnel{
-			Hostname: json.Hostname,
-			Password: json.Password,
-		}
-		tunnel.IP, err = models.GetNextIP(db, config)
-		if err != nil {
-			fmt.Printf("POSTTunnel: Error getting next IP: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next IP"})
-			return
-		}
+			// Check if the hostname is already taken
+			var tunnel models.Tunnel
+			err := db.Find(&tunnel, "hostname = ?", json.Hostname).Error
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error getting tunnel: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
+				return
+			} else if tunnel.ID != 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Hostname is already taken"})
+				return
+			}
 
-		err = db.Create(&tunnel).Error
-		if err != nil {
-			fmt.Printf("POSTTunnel: Error creating tunnel: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating tunnel"})
-			return
-		}
+			tunnel = models.Tunnel{
+				Hostname: json.Hostname,
+				Password: json.Password,
+				Client:   json.Client,
+			}
+			tunnel.IP, err = models.GetNextIP(db, config)
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error getting next IP: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next IP"})
+				return
+			}
 
-		err = vtun.GenerateAndSave(config, db)
-		if err != nil {
-			fmt.Printf("POSTTunnel: Error generating vtun config: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
-			return
+			err = db.Create(&tunnel).Error
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error creating tunnel: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating tunnel"})
+				return
+			}
+
+			err = vtun.GenerateAndSave(config, db)
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error generating vtun config: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
+				return
+			}
+
+			err = vtun.Reload()
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error reloading vtun: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun"})
+				return
+			}
+
+		} else {
+			if json.IP == "" {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "IP cannot be empty"})
+				return
+			}
+
+			// Check to ensure the IP is valid
+			if net.ParseIP(json.IP) == nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "IP is not a valid IP address"})
+				return
+			}
+
+			// Check to ensure the IP is in the correct range: 172.16.0.0/12
+			ip := net.ParseIP(json.IP)
+			_, cidr, err := net.ParseCIDR("172.16.0.0/12")
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error parsing CIDR: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing CIDR"})
+				return
+			}
+			if !cidr.Contains(ip) {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "IP is not in the correct range"})
+				return
+			}
+
+			// Check to ensure the hostname is either a valid IP or a valid address (without protocol) with an optional port
+
+			// split the hostname by :
+			// if len(split) == 1, then it's just an IP address
+			// if len(split) == 2, then it's an address with an optional port
+			// if len(split) > 2, then it's invalid
+
+			split := strings.Split(json.Hostname, ":")
+			if len(split) > 2 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is invalid"})
+				return
+			}
+
+			// Check if the hostname is an IP address
+			if net.ParseIP(split[0]) == nil {
+				// Check if the hostname is a valid address
+				_, err := url.ParseRequestURI(split[0])
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is invalid"})
+					return
+				}
+			}
+
+			// Check if the port is valid
+			if len(split) == 2 {
+				port, err := strconv.ParseUint(split[1], 10, 16)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Server port is invalid"})
+					return
+				}
+				if port < 1 || port > 65535 {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Server port is invalid"})
+					return
+				}
+			}
+
+			// Check if the IP is already taken
+			var tunnel models.Tunnel
+			err = db.Find(&tunnel, "ip = ?", json.IP).Error
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error getting tunnel: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
+				return
+			} else if tunnel.ID != 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "IP address is already taken"})
+				return
+			}
+
+			tunnel = models.Tunnel{
+				Hostname: json.Hostname,
+				Password: json.Password,
+				IP:       json.IP,
+				Client:   json.Client,
+			}
+
+			err = db.Create(&tunnel).Error
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error creating tunnel: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating tunnel"})
+				return
+			}
+
+			err = vtun.GenerateAndSaveClient(config, db)
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error generating vtun client config: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
+				return
+			}
+
+			err = vtun.ReloadAllClients(db)
+			if err != nil {
+				fmt.Printf("POSTTunnel: Error reloading vtun client: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
+				return
+			}
 		}
 
 		err = olsrd.GenerateAndSave(config, db)
 		if err != nil {
 			fmt.Printf("POSTTunnel: Error generating olsrd config: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
-			return
-		}
-
-		err = vtun.Reload()
-		if err != nil {
-			fmt.Printf("POSTTunnel: Error reloading vtun: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun"})
 			return
 		}
 
@@ -228,6 +336,13 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
+	err = vtun.GenerateAndSaveClient(config, db)
+	if err != nil {
+		fmt.Printf("DELETETunnel: Error generating vtun client config: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
+		return
+	}
+
 	err = olsrd.GenerateAndSave(config, db)
 	if err != nil {
 		fmt.Printf("Error generating olsrd config: %v\n", err)
@@ -239,6 +354,13 @@ func DELETETunnel(c *gin.Context) {
 	if err != nil {
 		fmt.Printf("Error reloading vtun: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun"})
+		return
+	}
+
+	err = vtun.ReloadAllClients(db)
+	if err != nil {
+		fmt.Printf("DELETETunnel: Error reloading vtun client: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
 		return
 	}
 
