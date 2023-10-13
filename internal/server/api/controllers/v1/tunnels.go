@@ -205,7 +205,7 @@ func POSTTunnel(c *gin.Context) {
 			// Check if the hostname is an IP address
 			if net.ParseIP(split[0]) == nil {
 				// Check if the hostname is a valid address
-				_, err := url.ParseRequestURI(split[0])
+				_, err := url.ParseRequestURI("http://" + split[0])
 				if err != nil {
 					c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is invalid"})
 					return
