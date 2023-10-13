@@ -32,9 +32,9 @@ options {
     compress no;
     keepalive yes;
     up {
-        ip "addr add ${IP_PLUS_2} peer ${IP_PLUS_1} dev %% mtu 1450";
+        ip "addr add ${IP_PLUS_2} peer ${IP_PLUS_1} dev %%";
         ip "link set dev %% up";
-        ip "route add ${NET}/30 via ${IP_PLUS_1}";
+        ip "route add ${NET}/30 via ${IP_PLUS_1} mtu 1450";
         firewall "-A FORWARD -i %% -o eth0 -d 10.0.0.0/8 -j ACCEPT";
         firewall "-A FORWARD -i %% -o eth0 -j REJECT";
         firewall "-A FORWARD -i eth0 -o %% -s 10.0.0.0/8 -j ACCEPT";
