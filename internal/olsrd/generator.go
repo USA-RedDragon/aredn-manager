@@ -129,20 +129,27 @@ func Generate(config *config.Config, db *gorm.DB) string {
 		ret += snippetOlsrdConfSupernode
 	}
 
-	tunnelCount, err := models.CountTunnels(db)
+	tunnels, err := models.ListTunnels(db)
 	if err != nil {
 		panic(err)
 	}
 
-	if tunnelCount > 0 {
-		tun := 50
+	if len(tunnels) > 0 {
+		server_tun := 50
+		client_tun := 100
 		tunnelString := ""
-		for tunnelNumber := 0; tunnelNumber < tunnelCount; tunnelNumber++ {
-			tunnelString += "\"tun" + fmt.Sprintf("%d", tun) + "\""
-			if tunnelNumber != tunnelCount-1 {
+		for tunnelNumber := 0; tunnelNumber < len(tunnels); tunnelNumber++ {
+			tunnel := tunnels[tunnelNumber]
+			if tunnel.Client {
+				tunnelString += "\"tun" + fmt.Sprintf("%d", client_tun) + "\""
+				client_tun++
+			} else {
+				tunnelString += "\"tun" + fmt.Sprintf("%d", server_tun) + "\""
+				server_tun++
+			}
+			if tunnelNumber != len(tunnels)-1 {
 				tunnelString += " "
 			}
-			tun++
 		}
 
 		ret += "\n\n"
