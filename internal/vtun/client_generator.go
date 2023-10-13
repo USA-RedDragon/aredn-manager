@@ -26,12 +26,10 @@ options {
     passwd ${PWD};
     device tun${TUN};
     persist yes;
-    compress no;
-    keepalive yes;
     up {
-        ip "addr add ${IP_PLUS_2} peer ${IP_PLUS_1} dev %%";
+        ip "addr add ${IP_PLUS_1} peer ${IP_PLUS_2} dev %%";
         ip "link set dev %% up";
-        ip "route add ${NET}/30 via ${IP_PLUS_1} mtu 1450 src ${IP_PLUS_2}";
+        ip "route add ${NET}/30 via ${IP_PLUS_1} mtu 1450";
         firewall "-A FORWARD -i %% -o eth0 -d 10.0.0.0/8 -j ACCEPT";
         firewall "-A FORWARD -i %% -o eth0 -j REJECT";
         firewall "-A FORWARD -i eth0 -o %% -s 10.0.0.0/8 -j ACCEPT";
@@ -142,7 +140,7 @@ func generateClient(config *config.Config, tunInfo tunnelInfo) string {
 		map[string]string{
 			"NAME":             config.ServerName,
 			"DASHED_NET":       strings.ReplaceAll(tunnel.IP, ".", "-"),
-			"PWD":              tunnel.Password,
+			"PWD":              strings.TrimSpace(tunnel.Password),
 			"TUN":              fmt.Sprintf("%d", tun),
 			"IP_PLUS_1":        ipPlus1.String(),
 			"IP_PLUS_2":        ipPlus2.String(),
