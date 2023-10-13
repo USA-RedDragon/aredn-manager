@@ -67,7 +67,7 @@ func ListClientTunnels(db *gorm.DB) ([]Tunnel, error) {
 
 func ListServerTunnels(db *gorm.DB) ([]Tunnel, error) {
 	var tunnels []Tunnel
-	err := db.Where("client = ?", false).Order("id asc").Find(&tunnels).Error
+	err := db.Where("client = ?", false).Or("client IS NULL").Order("id asc").Find(&tunnels).Error
 	return tunnels, err
 }
 
