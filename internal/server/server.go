@@ -14,6 +14,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
+	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-contrib/sessions"
@@ -29,21 +30,23 @@ const rateLimitRate = time.Second
 const rateLimitLimit = 10
 
 type Server struct {
-	config          *config.Config
-	server          *http.Server
-	db              *gorm.DB
-	shutdownChannel chan bool
-	stats           *bandwidth.StatCounterManager
-	eventsChannel   chan events.Event
+	config            *config.Config
+	server            *http.Server
+	db                *gorm.DB
+	shutdownChannel   chan bool
+	stats             *bandwidth.StatCounterManager
+	eventsChannel     chan events.Event
+	vtunClientWatcher *vtun.VTunClientWatcher
 }
 
-func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager, eventsChannel chan events.Event) *Server {
+func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager, eventsChannel chan events.Event, vtunClientWatcher *vtun.VTunClientWatcher) *Server {
 	return &Server{
-		config:          config,
-		db:              db,
-		shutdownChannel: make(chan bool),
-		stats:           stats,
-		eventsChannel:   eventsChannel,
+		config:            config,
+		db:                db,
+		shutdownChannel:   make(chan bool),
+		stats:             stats,
+		eventsChannel:     eventsChannel,
+		vtunClientWatcher: vtunClientWatcher,
 	}
 }
 
@@ -128,6 +131,7 @@ func (s *Server) addMiddleware(r *gin.Engine) {
 	r.Use(middleware.ConfigProvider(s.config))
 	r.Use(middleware.DatabaseProvider(s.db))
 	r.Use(middleware.OLSRDProvider(olsrd.NewHostsParser()))
+	r.Use(middleware.VTunClientWatcherProvider(s.vtunClientWatcher))
 	r.Use(middleware.NetworkStats(s.stats))
 	r.Use(middleware.PaginatedDatabaseProvider(s.db, middleware.PaginationConfig{}))
 

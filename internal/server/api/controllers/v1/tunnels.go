@@ -101,6 +101,13 @@ func POSTTunnel(c *gin.Context) {
 		return
 	}
 
+	vtunClientWatcher, ok := c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
+	if !ok {
+		fmt.Println("DELETETunnel: Unable to get VTunClientWatcher from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
 	var json apimodels.CreateTunnel
 	err := c.ShouldBindJSON(&json)
 	if err != nil {
@@ -265,7 +272,7 @@ func POSTTunnel(c *gin.Context) {
 				return
 			}
 
-			err = vtun.ReloadAllClients(db)
+			err = vtun.ReloadAllClients(db, vtunClientWatcher)
 			if err != nil {
 				fmt.Printf("POSTTunnel: Error reloading vtun client: %v\n", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
@@ -308,6 +315,13 @@ func DELETETunnel(c *gin.Context) {
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
 		fmt.Println("DELETETunnel: Unable to get Config from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	vtunClientWatcher, ok := c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
+	if !ok {
+		fmt.Println("DELETETunnel: Unable to get VTunClientWatcher from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -364,7 +378,7 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
-	err = vtun.ReloadAllClients(db)
+	err = vtun.ReloadAllClients(db, vtunClientWatcher)
 	if err != nil {
 		fmt.Printf("DELETETunnel: Error reloading vtun client: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})

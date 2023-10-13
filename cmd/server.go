@@ -116,7 +116,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	vtunClientWatcher := vtun.NewVTunClientWatcher(db, config)
 	vtunClientWatcher.Run()
 
-	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel())
+	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher)
 	err = srv.Run()
 	if err != nil {
 		return err
