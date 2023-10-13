@@ -332,11 +332,11 @@ export default {
           return;
         }
 
-        if (!/^[A-Za-z0-9-]+$/.test(serverParts[0])) {
+        if (!/^[A-Za-z0-9-\\.]+$/.test(serverParts[0])) {
           this.$toast.add({
             severity: 'error',
             summary: 'Error',
-            detail: 'Server Address hostname must be alphanumeric or -',
+            detail: 'Server Address hostname must be alphanumeric, \'.\', or \'-\'',
             life: 3000,
           });
           return;
