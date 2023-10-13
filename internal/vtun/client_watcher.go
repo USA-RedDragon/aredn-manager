@@ -120,21 +120,32 @@ func (v *VTunClientWatcher) run(ctx context.Context, cmd exec.Cmd, tunnel models
 func (v *VTunClientWatcher) runClient(ctx context.Context, tunnel models.Tunnel) error {
 	// All we need to do is run the vtund client, it will daemonize itself and exit
 	// vtund \
+	//   -n
 	//   -f /etc/vtund-${tunnel.hostname}-${dashed-net}.conf \
+	//   -P ${port}
 	//   ${v.config.ServerName}-${dashed-net} \
 	//   ${tunnel.hostname}
+
+	split := strings.Split(tunnel.Hostname, ":")
+	host := split[0]
+	port := "5525"
+	if len(split) > 1 {
+		port = split[1]
+	}
+
 	cmd := exec.CommandContext(
 		ctx,
 		"vtund",
+		"-P", port,
 		"-n",
 		"-f", fmt.Sprintf("/etc/vtund-%s-%s.conf", strings.ReplaceAll(tunnel.Hostname, ":", "-"), strings.ReplaceAll(tunnel.IP, ".", "-")),
 		fmt.Sprintf("%s-%s", v.config.ServerName, strings.ReplaceAll(tunnel.IP, ".", "-")),
-		tunnel.Hostname,
+		host,
 	)
 
 	tunInfo, ok := v.cancels[tunnel.ID]
 	if !ok {
-		return fmt.Errorf("Tunnel %d not found in cancels map", tunnel.ID)
+		return fmt.Errorf("tunnel %d not found in cancels map", tunnel.ID)
 	}
 	tunInfo.cmd = *cmd
 	v.cancels[tunnel.ID] = tunInfo
