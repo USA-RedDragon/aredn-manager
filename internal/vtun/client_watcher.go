@@ -37,6 +37,7 @@ func (v *VTunClientWatcher) Run() {
 	if v.started {
 		return
 	}
+	v.started = true
 	go v.watch()
 }
 
