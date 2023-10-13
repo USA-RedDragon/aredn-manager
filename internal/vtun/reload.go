@@ -13,7 +13,7 @@ import (
 
 // This file will run vtund
 const (
-	pidFile = "/var/run/vtund.pid"
+	pidFile = "/usr/var/run/vtund.pid"
 )
 
 func Reload() error {
