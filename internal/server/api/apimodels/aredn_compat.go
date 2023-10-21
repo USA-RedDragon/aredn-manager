@@ -48,7 +48,7 @@ type Service struct {
 type LinkInfo struct {
 	HelloTime           uint64  `json:"helloTime"`
 	LostLinkTime        uint64  `json:"lostLinkTime"`
-	LinkQuality         uint64  `json:"linkQuality"`
+	LinkQuality         float32 `json:"linkQuality"`
 	VTime               uint64  `json:"vtime"`
 	LinkCost            float32 `json:"linkCost"`
 	LinkType            string  `json:"linkType"`
