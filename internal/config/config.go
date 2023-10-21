@@ -43,6 +43,9 @@ type Config struct {
 	postgresPort             int
 	postgresDatabase         string
 	MetricsPort              int
+	Latitude                 string
+	Longitude                string
+	Gridsquare               string
 }
 
 func loadConfig() Config {
@@ -88,6 +91,9 @@ func loadConfig() Config {
 		postgresPort:             int(pgPort),
 		postgresDatabase:         os.Getenv("PG_DATABASE"),
 		MetricsPort:              int(metricsPort),
+		Latitude:                 os.Getenv("SERVER_LAT"),
+		Longitude:                os.Getenv("SERVER_LON"),
+		Gridsquare:               os.Getenv("SERVER_GRIDSQUARE"),
 	}
 
 	if tmpConfig.VTUNStartingAddress == "" {

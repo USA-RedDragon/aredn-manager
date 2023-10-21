@@ -15,8 +15,14 @@ func ApplyRoutes(router *gin.Engine, eventsChannel chan events.Event, config *co
 	apiV1 := router.Group("/api/v1")
 	v1(apiV1, config)
 
+	arednCompat(router)
+
 	ws := router.Group("/ws")
 	ws.GET("/events", websocket.CreateHandler(websocketControllers.CreateEventsWebsocket(eventsChannel), config))
+}
+
+func arednCompat(router *gin.Engine) {
+	router.GET("/cgi-bin/sysinfo.json", v1Controllers.GETSysinfo)
 }
 
 func v1(group *gin.RouterGroup, config *config.Config) {
