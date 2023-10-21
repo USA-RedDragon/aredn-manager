@@ -39,6 +39,13 @@ func GETMetrics(c *gin.Context) {
 		return
 	}
 	defer nodeResp.Body.Close()
+	nodeMetrics := ""
+	buf := make([]byte, 128)
+	n, err := nodeResp.Body.Read(buf)
+	for err == nil {
+		nodeMetrics += string(buf[:n])
+		n, err = nodeResp.Body.Read(buf)
+	}
 
 	metricsResp, err := http.DefaultClient.Get(fmt.Sprintf("http://localhost:%d/metrics", config.MetricsPort))
 	if err != nil {
@@ -47,9 +54,16 @@ func GETMetrics(c *gin.Context) {
 		return
 	}
 	defer metricsResp.Body.Close()
+	metrics := ""
+	buf = make([]byte, 128)
+	n, err = metricsResp.Body.Read(buf)
+	for err == nil {
+		metrics += string(buf[:n])
+		n, err = metricsResp.Body.Read(buf)
+	}
 
 	// Combine the two responses and send them back
-	c.String(http.StatusOK, fmt.Sprintf("%s\n%s", nodeResp.Body, metricsResp.Body))
+	c.String(http.StatusOK, fmt.Sprintf("%s\n%s", nodeMetrics, metrics))
 }
 
 func GETSysinfo(c *gin.Context) {
