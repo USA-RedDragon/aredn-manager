@@ -103,7 +103,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 
 	// We need to replace shell variables in the template with the actual values
 	cpSnippetOlsrdConfNameservice := snippetOlsrdConfNameservice
-	servicesText := "PlParam \"service\" \"http://${SERVER_NAME}:81/|tcp|${SERVER_NAME}-console\""
+	servicesText := "PlParam \"service\" \"http://${SERVER_NAME}/|tcp|${SERVER_NAME}-console\""
 	if !config.DisableMap {
 		servicesText += "\n    PlParam \"service\" \"http://${SERVER_NAME}:80/map/|tcp|${SERVER_NAME}-map\""
 	}
