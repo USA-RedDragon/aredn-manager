@@ -19,6 +19,39 @@ import (
 	"gorm.io/gorm"
 )
 
+func GETMetrics(c *gin.Context) {
+	config, ok := c.MustGet("Config").(*config.Config)
+	if !ok {
+		fmt.Println("GETMetrics: Unable to get Config from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	if config.MetricsPort == 0 {
+		c.JSON(http.StatusOK, gin.H{"error": "Metrics port is not configured"})
+		return
+	}
+
+	nodeResp, err := http.DefaultClient.Get("http://localhost:9100/metrics")
+	if err != nil {
+		fmt.Printf("GETMetrics: Unable to get node-exporter metrics: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+	defer nodeResp.Body.Close()
+
+	metricsResp, err := http.DefaultClient.Get(fmt.Sprintf("http://localhost:%d/metrics", config.MetricsPort))
+	if err != nil {
+		fmt.Printf("GETMetrics: Unable to get metrics: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+	defer metricsResp.Body.Close()
+
+	// Combine the two responses and send them back
+	c.String(http.StatusOK, fmt.Sprintf("%s\n%s", nodeResp.Body, metricsResp.Body))
+}
+
 func GETSysinfo(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
@@ -79,7 +112,7 @@ func GETSysinfo(c *gin.Context) {
 			ActiveTunnelCount: activeTunnels,
 		},
 		LQM: apimodels.LQM{
-			Enabled: true,
+			Enabled: false,
 		},
 		Interfaces: getInterfaces(),
 		Hosts:      getHosts(),
@@ -125,12 +158,12 @@ func getInterfaces() []apimodels.Interface {
 }
 
 func getHosts() []apimodels.Host {
-	regexMid, err := regexp.Compile("^mid\\d+\\..*")
+	regexMid, err := regexp.Compile(`^mid\d+\..*`)
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to compile regex: %v", err)
 		return nil
 	}
-	regexDtd, err := regexp.Compile("^dtdlink\\..*")
+	regexDtd, err := regexp.Compile(`^dtdlink\..*`)
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to compile regex: %v", err)
 		return nil

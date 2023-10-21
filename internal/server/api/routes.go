@@ -23,6 +23,7 @@ func ApplyRoutes(router *gin.Engine, eventsChannel chan events.Event, config *co
 
 func arednCompat(router *gin.Engine) {
 	router.GET("/cgi-bin/sysinfo.json", v1Controllers.GETSysinfo)
+	router.GET("/cgi-bin/metrics", v1Controllers.GETMetrics)
 }
 
 func v1(group *gin.RouterGroup, config *config.Config) {
