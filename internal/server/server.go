@@ -74,6 +74,7 @@ func (s *Server) Run() error {
 	if err != nil {
 		fmt.Printf("%v\n", err)
 	}
+	r.TrustedPlatform = "X-Real-IP"
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%d", "127.0.0.1", s.config.Port),
