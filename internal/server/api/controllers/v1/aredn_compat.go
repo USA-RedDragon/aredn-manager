@@ -3,11 +3,13 @@ package v1
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net"
 	"net/http"
 	"net/url"
 	"regexp"
 	"strings"
+	"syscall"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
@@ -40,15 +42,23 @@ func GETSysinfo(c *gin.Context) {
 		return
 	}
 
+	var info syscall.Sysinfo_t
+	err = syscall.Sysinfo(&info)
+	if err != nil {
+		fmt.Printf("GETSysinfo: Unable to get system info: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
 	sysinfo := apimodels.SysinfoResponse{
 		Longitude: config.Longitude,
 		Latitude:  config.Latitude,
 		Sysinfo: apimodels.Sysinfo{
-			Uptime: "",
+			Uptime: secondsToClock(info.Uptime),
 			Loadavg: [3]float64{
-				0.0,
-				0.0,
-				0.0,
+				float64(info.Loads[0]) / float64(1<<16),
+				float64(info.Loads[1]) / float64(1<<16),
+				float64(info.Loads[2]) / float64(1<<16),
 			},
 		},
 		APIVersion: "1.11",
@@ -79,6 +89,18 @@ func GETSysinfo(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, sysinfo)
+}
+
+func secondsToClock(seconds int64) string {
+	if seconds <= 0 {
+		return "00:00:00"
+	} else {
+		days := fmt.Sprintf("%d", int(math.Floor(float64(seconds)/86400)))
+		hours := fmt.Sprintf("%d", int(math.Floor(math.Mod(float64(seconds), 86400)/3600)))
+		mins := fmt.Sprintf("%02d", int(math.Floor(math.Mod(float64(seconds), 3600)/60)))
+		secs := fmt.Sprintf("%02d", int(math.Floor(math.Mod(float64(seconds), 60))))
+		return days + " days, " + hours + ":" + mins + ":" + secs
+	}
 }
 
 func getInterfaces() []apimodels.Interface {
