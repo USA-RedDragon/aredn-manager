@@ -76,7 +76,7 @@ func (s *Server) Run() error {
 	}
 
 	server := &http.Server{
-		Addr:         fmt.Sprintf("%s:%d", "0.0.0.0", s.config.Port),
+		Addr:         fmt.Sprintf("%s:%d", "127.0.0.1", s.config.Port),
 		Handler:      r,
 		ReadTimeout:  defTimeout,
 		WriteTimeout: writeTimeout,
