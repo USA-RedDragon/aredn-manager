@@ -125,8 +125,18 @@ func getInterfaces() []apimodels.Interface {
 }
 
 func getHosts() []apimodels.Host {
+	regexMid, err := regexp.Compile("^mid\\d+\\..*")
+	if err != nil {
+		fmt.Printf("GETSysinfo: Unable to compile regex: %v", err)
+		return nil
+	}
+	regexDtd, err := regexp.Compile("^dtdlink\\..*")
+	if err != nil {
+		fmt.Printf("GETSysinfo: Unable to compile regex: %v", err)
+		return nil
+	}
 	parser := olsrd.NewHostsParser()
-	err := parser.Parse()
+	err = parser.Parse()
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to parse hosts file: %v", err)
 		return nil
@@ -134,21 +144,12 @@ func getHosts() []apimodels.Host {
 	hosts := parser.GetHosts()
 	ret := []apimodels.Host{}
 	for _, host := range hosts {
-		match, err := regexp.Match("^mid\\d+\\..*", []byte(host.Hostname))
-		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to match hostname: %v", err)
-			continue
-		}
+		match := regexMid.Match([]byte(host.Hostname))
 		if match {
 			continue
 		}
 
-		match, err = regexp.Match("^dtdlink\\..*", []byte(host.Hostname))
-		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to match hostname: %v", err)
-			continue
-		}
-
+		match = regexDtd.Match([]byte(host.Hostname))
 		if match {
 			continue
 		}
