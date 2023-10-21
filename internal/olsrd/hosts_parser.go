@@ -185,14 +185,14 @@ func parseHosts() (ret []*AREDNHost, err error) {
 		fmt.Printf("Found orphaned children: %v\n", orphanedChildren)
 	}
 
-	svcs := newServicesParser()
-	err = svcs.parse()
+	svcs := NewServicesParser()
+	err = svcs.Parse()
 	if err != nil {
 		fmt.Printf("Error parsing services: %v\n", err)
 		return
 	}
 
-	services := svcs.getServices()
+	services := svcs.GetServices()
 	foundServices := []*AREDNService{}
 
 	// We need to go through the hosts and each of their children and add the services

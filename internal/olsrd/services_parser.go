@@ -23,15 +23,15 @@ func (s *AREDNService) String() string {
 	return ret
 }
 
-type servicesParser struct {
+type ServicesParser struct {
 	currentServices []*AREDNService
 }
 
-func newServicesParser() *servicesParser {
-	return &servicesParser{}
+func NewServicesParser() *ServicesParser {
+	return &ServicesParser{}
 }
 
-func (p *servicesParser) parse() (err error) {
+func (p *ServicesParser) Parse() (err error) {
 	services, err := parseServices()
 	if err != nil {
 		return
@@ -40,7 +40,7 @@ func (p *servicesParser) parse() (err error) {
 	return
 }
 
-func (p *servicesParser) getServices() []*AREDNService {
+func (p *ServicesParser) GetServices() []*AREDNService {
 	return p.currentServices
 }
 
