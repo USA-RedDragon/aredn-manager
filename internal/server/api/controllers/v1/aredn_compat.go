@@ -167,7 +167,7 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 	// http request http://localhost:9090/links
 	resp, err := http.DefaultClient.Get("http://localhost:9090/links")
 	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to get links: %v", err)
+		fmt.Printf("GETSysinfo: Unable to get links: %v\n", err)
 		return nil
 	}
 	defer resp.Body.Close()
@@ -175,7 +175,7 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 	var links apimodels.OlsrdLinks
 	err = json.NewDecoder(resp.Body).Decode(&links)
 	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to decode links: %v", err)
+		fmt.Printf("GETSysinfo: Unable to decode links: %v\n", err)
 		return nil
 	}
 
@@ -183,7 +183,7 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 		// we need to take the hostname from the URL and resolve it to an IP
 		ips, err := net.LookupIP(link.Hostname)
 		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to resolve hostname: %v", err)
+			fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", link.Hostname, err)
 			continue
 		}
 
@@ -220,7 +220,7 @@ func getServices() []apimodels.Service {
 	parser := olsrd.NewServicesParser()
 	err := parser.Parse()
 	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to parse services file: %v", err)
+		fmt.Printf("GETSysinfo: Unable to parse services file: %v\n", err)
 		return nil
 	}
 	svcs := parser.GetServices()
@@ -229,12 +229,12 @@ func getServices() []apimodels.Service {
 		// we need to take the hostname from the URL and resolve it to an IP
 		url, err := url.Parse(svc.URL)
 		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to parse URL: %v", err)
+			fmt.Printf("GETSysinfo: Unable to parse URL: %v\n", err)
 			continue
 		}
 		ips, err := net.LookupIP(url.Hostname())
 		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to resolve hostname: %v", err)
+			fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", url.Hostname(), err)
 			continue
 		}
 		link := svc.URL
