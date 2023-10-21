@@ -77,6 +77,12 @@ func CountTunnels(db *gorm.DB) (int, error) {
 	return int(count), err
 }
 
+func CountActiveTunnels(db *gorm.DB) (int, error) {
+	var count int64
+	err := db.Model(&Tunnel{}).Where("active = ?", true).Count(&count).Error
+	return int(count), err
+}
+
 func DeleteTunnel(db *gorm.DB, id uint) error {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		tx.Unscoped().Delete(&Tunnel{ID: id})
