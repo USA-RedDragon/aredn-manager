@@ -13,71 +13,71 @@ import (
 
 var (
 	OLSRLinkAsymmetryTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_asymmetry_time",
+		Name: "node_olsr_link_asymmetry_time",
 		Help: "OLSR Link Asymmetry Time",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkHelloTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_hello_time",
+		Name: "node_olsr_link_hello_time",
 		Help: "OLSR Link Hello Time",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkHysteresis = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_hysteresis",
+		Name: "node_olsr_link_hysteresis",
 		Help: "OLSR Link Hysteresis",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLastHelloTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_last_hello_time",
+		Name: "node_olsr_link_last_hello_time",
 		Help: "OLSR Link Last Hello Time",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLinkCost = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_link_cost",
+		Name: "node_olsr_link_link_cost",
 		Help: "OLSR Link Link Cost",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLinkQuality = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_link_quality",
+		Name: "node_olsr_link_link_quality",
 		Help: "OLSR Link Link Quality",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLossHelloInterval = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_loss_hello_interval",
+		Name: "node_olsr_link_loss_hello_interval",
 		Help: "OLSR Link Loss Hello Interval",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLossMultiplier = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_loss_multiplier",
+		Name: "node_olsr_link_loss_multiplier",
 		Help: "OLSR Link Loss Multiplier",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLossTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_loss_time",
+		Name: "node_olsr_link_loss_time",
 		Help: "OLSR Link Loss Time",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLostLinkTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_lost_link_time",
+		Name: "node_olsr_link_lost_link_time",
 		Help: "OLSR Link Lost Link Time",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkNeighborLinkQuality = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_neighbor_link_quality",
+		Name: "node_olsr_link_neighbor_link_quality",
 		Help: "OLSR Link Neighbor Link Quality",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkPending = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_pending",
+		Name: "node_olsr_link_pending",
 		Help: "OLSR Link Pending",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkSeqno = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_seqno",
+		Name: "node_olsr_link_seqno",
 		Help: "OLSR Link Seqno",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkSeqnoValid = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_seqno_valid",
+		Name: "node_olsr_link_seqno_valid",
 		Help: "OLSR Link Seqno Valid",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkSymmetryTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_symmetry_time",
+		Name: "node_olsr_link_symmetry_time",
 		Help: "OLSR Link Symmetry Time",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkValidityTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_validity_time",
+		Name: "node_olsr_link_validity_time",
 		Help: "OLSR Link Validity Time",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkVTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
-		Name: "olsr_link_vtime",
+		Name: "node_olsr_link_vtime",
 		Help: "OLSR Link VTime",
 	}, []string{"device", "local_ip", "remote_ip"})
 )
