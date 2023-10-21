@@ -55,7 +55,7 @@ type LinkInfo struct {
 	Hostname            string  `json:"hostname"`
 	PreviousLinkStatus  string  `json:"previousLinkStatus"`
 	CurrentLinkStatus   string  `json:"currentLinkStatus"`
-	NeighborLinkQuality uint64  `json:"neighborLinkQuality"`
+	NeighborLinkQuality float32 `json:"neighborLinkQuality"`
 	SymmetryTime        uint64  `json:"symmetryTime"`
 	SeqnoValid          bool    `json:"seqnoValid"`
 	Pending             bool    `json:"pending"`
