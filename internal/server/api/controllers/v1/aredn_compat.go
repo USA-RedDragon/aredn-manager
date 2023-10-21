@@ -180,10 +180,38 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 	}
 
 	for _, link := range links.Links {
-		// we need to take the hostname from the URL and resolve it to an IP
-		ips, err := net.LookupIP(link.Hostname)
+		hosts, err := net.LookupHost(link.RemoteIP)
 		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", link.Hostname, err)
+			fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", link.RemoteIP, err)
+			continue
+		}
+
+		hostname := ""
+		if len(hosts) > 0 {
+			hostname = hosts[0]
+			// Strip off mid\d. from the hostname if it exists
+			regex := regexp.MustCompile(`^mid\d\.(.+)`)
+			matches := regex.FindStringSubmatch(hostname)
+			if len(matches) == 2 {
+				hostname = matches[1]
+			}
+			// Strip off dtdlink. from the hostname if it exists
+			regex = regexp.MustCompile(`^dtdlink\.(.+)`)
+			matches = regex.FindStringSubmatch(hostname)
+			if len(matches) == 2 {
+				hostname = matches[1]
+			}
+		} else {
+			continue
+		}
+
+		ips, err := net.LookupIP(hostname)
+		if err != nil {
+			fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", hostname, err)
+			continue
+		}
+
+		if len(ips) == 0 {
 			continue
 		}
 
@@ -194,7 +222,7 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 			VTime:               link.VTime,
 			LinkCost:            link.LinkCost,
 			LinkType:            link.LinkType,
-			Hostname:            link.Hostname,
+			Hostname:            hostname,
 			PreviousLinkStatus:  link.PreviousLinkStatus,
 			CurrentLinkStatus:   link.CurrentLinkStatus,
 			NeighborLinkQuality: link.NeighborLinkQuality,
