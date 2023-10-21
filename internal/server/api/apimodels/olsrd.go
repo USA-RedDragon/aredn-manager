@@ -24,7 +24,7 @@ type OlsrdLinkinfo struct {
 	Pending             bool    `json:"pending"`
 	LossHelloInterval   uint64  `json:"lossHelloInterval"`
 	LossMultiplier      uint64  `json:"lossMultiplier"`
-	Hysteresis          uint64  `json:"hysteresis"`
+	Hysteresis          float32 `json:"hysteresis"`
 	Seqno               uint64  `json:"seqno"`
 	LossTime            uint64  `json:"lossTime"`
 	ValidityTime        uint64  `json:"validityTime"`
