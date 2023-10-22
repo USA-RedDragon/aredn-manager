@@ -14,7 +14,6 @@ type OlsrdLinkinfo struct {
 	LinkQuality         float32 `json:"linkQuality"`
 	VTime               uint64  `json:"vtime"`
 	LinkCost            float32 `json:"linkCost"`
-	LinkType            string  `json:"linkType"`
 	PreviousLinkStatus  string  `json:"previousLinkStatus"`
 	CurrentLinkStatus   string  `json:"currentLinkStatus"`
 	NeighborLinkQuality float32 `json:"neighborLinkQuality"`
