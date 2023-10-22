@@ -237,17 +237,19 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 		if len(hosts) > 0 {
 			hostname = hosts[0]
 			// Strip off mid\d. from the hostname if it exists
-			regex := regexp.MustCompile(`^mid\d\.(.+)`)
+			regex := regexp.MustCompile(`^[mM][iI][dD]\d+\.(.+)`)
 			matches := regex.FindStringSubmatch(hostname)
 			if len(matches) == 2 {
 				hostname = matches[1]
 			}
 			// Strip off dtdlink. from the hostname if it exists
-			regex = regexp.MustCompile(`^dtdlink\.(.+)`)
+			regex = regexp.MustCompile(`^[dD][tT][dD][lL][iI][nN][kK]\.(.+)`)
 			matches = regex.FindStringSubmatch(hostname)
 			if len(matches) == 2 {
 				hostname = matches[1]
 			}
+			// Make sure the hostname doesn't end with a period
+			hostname = strings.TrimSuffix(hostname, ".")
 		} else {
 			continue
 		}
