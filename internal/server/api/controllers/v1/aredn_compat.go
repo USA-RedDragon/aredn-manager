@@ -42,7 +42,7 @@ func GETMetrics(c *gin.Context) {
 	nodeMetrics := ""
 	buf := make([]byte, 128)
 	n, err := nodeResp.Body.Read(buf)
-	for err == nil {
+	for err == nil || n > 0 {
 		nodeMetrics += string(buf[:n])
 		n, err = nodeResp.Body.Read(buf)
 	}
@@ -57,7 +57,7 @@ func GETMetrics(c *gin.Context) {
 	metrics := ""
 	buf = make([]byte, 128)
 	n, err = metricsResp.Body.Read(buf)
-	for err == nil {
+	for err == nil || n > 0 {
 		metrics += string(buf[:n])
 		n, err = metricsResp.Body.Read(buf)
 	}
