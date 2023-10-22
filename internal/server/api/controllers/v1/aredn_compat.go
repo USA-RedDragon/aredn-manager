@@ -227,7 +227,7 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 	}
 
 	for _, link := range links.Links {
-		hosts, err := net.LookupHost(link.RemoteIP)
+		hosts, err := net.LookupAddr(link.RemoteIP)
 		if err != nil {
 			fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", link.RemoteIP, err)
 			continue
@@ -278,7 +278,7 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 			VTime:               link.VTime,
 			LinkCost:            link.LinkCost,
 			LinkType:            linkType,
-			Hostname:            link.Hostname,
+			Hostname:            hostname,
 			PreviousLinkStatus:  link.PreviousLinkStatus,
 			CurrentLinkStatus:   link.CurrentLinkStatus,
 			NeighborLinkQuality: link.NeighborLinkQuality,
