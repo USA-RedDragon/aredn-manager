@@ -262,14 +262,23 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 			continue
 		}
 
+		linkType := ""
+		if strings.HasPrefix(link.OLSRInterface, "tun") {
+			linkType = "TUN"
+		} else if strings.HasPrefix(link.OLSRInterface, "eth") {
+			linkType = "DTD"
+		} else {
+			linkType = "UNKNOWN"
+		}
+
 		ret[ips[0].String()] = apimodels.LinkInfo{
 			HelloTime:           link.HelloTime,
 			LostLinkTime:        link.LostLinkTime,
 			LinkQuality:         link.LinkQuality,
 			VTime:               link.VTime,
 			LinkCost:            link.LinkCost,
-			LinkType:            link.LinkType,
-			Hostname:            hostname,
+			LinkType:            linkType,
+			Hostname:            link.Hostname,
 			PreviousLinkStatus:  link.PreviousLinkStatus,
 			CurrentLinkStatus:   link.CurrentLinkStatus,
 			NeighborLinkQuality: link.NeighborLinkQuality,
