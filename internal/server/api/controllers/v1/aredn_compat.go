@@ -250,6 +250,8 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 			}
 			// Make sure the hostname doesn't end with a period
 			hostname = strings.TrimSuffix(hostname, ".")
+			// Make sure the hostname doesn't end with .local.mesh
+			hostname = strings.TrimSuffix(hostname, ".local.mesh")
 		} else {
 			continue
 		}
