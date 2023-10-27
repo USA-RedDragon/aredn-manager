@@ -45,7 +45,7 @@ LoadPlugin "olsrd_watchdog.so.0.1"
     PlParam "interval" "5"
 }`
 
-	snippetOlsrdConfEth0Supernode = `Interface "eth0"
+	snippetOlsrdConfEth0Supernode = `Interface "br0"
 {
     Mode "isolated"
     Ip4Broadcast 255.255.255.255
@@ -53,7 +53,7 @@ LoadPlugin "olsrd_watchdog.so.0.1"
     HnaValidityTime 600.0
 }`
 
-	snippetOlsrdConfEth0Standard = `Interface "eth0"
+	snippetOlsrdConfEth0Standard = `Interface "br0"
 {
     Mode "ether"
 }`
