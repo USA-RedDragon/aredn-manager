@@ -2,7 +2,6 @@ package v1
 
 import (
 	"fmt"
-	"net"
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
