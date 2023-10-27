@@ -429,7 +429,7 @@ export default {
         }
 
         API.post('/tunnels', {
-          hostname: this.hostname.trim().toUpperCase(),
+          hostname: this.hostname.trim(),
           password: this.password.trim(),
           client: false,
         })
