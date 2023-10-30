@@ -22,7 +22,7 @@ func (r *CreateTunnel) IsValidHostname() (bool, string) {
 	if len(r.Hostname) > maxHostnameLength {
 		return false, "Hostname must be less than 64 characters"
 	}
-	if !regexp.MustCompile(`^[A-Z0-9\-]+$`).MatchString(r.Hostname) {
+	if !regexp.MustCompile(`^[A-Za-z0-9\-]+$`).MatchString(r.Hostname) {
 		return false, "Hostname must be alphanumeric or -"
 	}
 	return true, ""
