@@ -9,7 +9,7 @@ require (
 	github.com/gin-contrib/sessions v0.0.5
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.10.0
-	github.com/gorilla/websocket v1.5.0
+	github.com/gorilla/websocket v1.5.1
 	github.com/kachit/gorm-seeder v0.0.3
 	github.com/mavjs/goPwned v0.0.2
 	github.com/prometheus/client_golang v1.17.0
@@ -72,7 +72,7 @@ require (
 	github.com/wader/gormstore/v2 v2.0.0 // indirect
 	go.opentelemetry.io/otel/metric v1.19.0 // indirect
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/net v0.15.0 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
