@@ -5,6 +5,8 @@ import (
 	"net"
 	"net/http"
 
+	"golang.org/x/exp/slices"
+
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
@@ -15,23 +17,24 @@ import (
 )
 
 func POSTLogin(c *gin.Context) {
-	// If the IP is from the private ip ranges, reject the login. We cannot encrypt traffic over the mesh
-	if net.ParseIP(c.ClientIP()).IsPrivate() {
-		fmt.Println("POSTLogin: Login from private IP")
-		c.JSON(http.StatusUnavailableForLegalReasons, gin.H{"error": "Cannot encrypt traffic over the mesh. Please use the site via the internet."})
-		return
-	}
-	session := sessions.Default(c)
-	db, ok := c.MustGet("DB").(*gorm.DB)
+	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("POSTLogin: Unable to get DB from context")
+		fmt.Println("POSTLogin: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	config, ok := c.MustGet("Config").(*config.Config)
+	// If the IP is from the private ip ranges, reject the login. We cannot encrypt traffic over the mesh
+	if net.ParseIP(c.ClientIP()).IsPrivate() && !slices.Contains(config.TrustedProxies, c.ClientIP()) {
+		fmt.Println("POSTLogin: Login from private IP")
+		c.JSON(http.StatusUnavailableForLegalReasons, gin.H{"error": "Cannot encrypt traffic over the mesh. Please use the site via the internet."})
+		return
+	}
+
+	session := sessions.Default(c)
+	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Println("POSTLogin: Unable to get Config from context")
+		fmt.Println("POSTLogin: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
