@@ -15,6 +15,12 @@ import (
 )
 
 func POSTLogin(c *gin.Context) {
+	// If the IP is from the private ip ranges, reject the login. We cannot encrypt traffic over the mesh
+	if net.ParseIP(c.ClientIP()).IsPrivate() {
+		fmt.Println("POSTLogin: Login from private IP")
+		c.JSON(http.StatusUnavailableForLegalReasons, gin.H{"error": "Cannot encrypt traffic over the mesh. Please use the site via the internet."})
+		return
+	}
 	session := sessions.Default(c)
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
