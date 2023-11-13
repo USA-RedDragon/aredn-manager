@@ -42,6 +42,7 @@ type Config struct {
 	postgresHost             string
 	postgresPort             int
 	postgresDatabase         string
+	MetricsHost              string
 	MetricsPort              int
 	Latitude                 string
 	Longitude                string
@@ -90,6 +91,7 @@ func loadConfig() Config {
 		postgresHost:             os.Getenv("PG_HOST"),
 		postgresPort:             int(pgPort),
 		postgresDatabase:         os.Getenv("PG_DATABASE"),
+		MetricsHost:              os.Getenv("METRICS_HOST"),
 		MetricsPort:              int(metricsPort),
 		Latitude:                 os.Getenv("SERVER_LAT"),
 		Longitude:                os.Getenv("SERVER_LON"),
@@ -155,6 +157,10 @@ func loadConfig() Config {
 
 	if tmpConfig.postgresDatabase == "" {
 		tmpConfig.postgresDatabase = "postgres"
+	}
+
+	if tmpConfig.MetricsHost == "" {
+		tmpConfig.MetricsHost = "localhost"
 	}
 
 	tmpConfig.PostgresDSN = "host=" + tmpConfig.postgresHost + " port=" + strconv.FormatInt(int64(tmpConfig.postgresPort), 10) + " user=" + tmpConfig.postgresUser + " dbname=" + tmpConfig.postgresDatabase + " password=" + tmpConfig.postgresPassword

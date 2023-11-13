@@ -47,7 +47,7 @@ func GETMetrics(c *gin.Context) {
 		n, err = nodeResp.Body.Read(buf)
 	}
 
-	metricsResp, err := http.DefaultClient.Get(fmt.Sprintf("http://localhost:%d/metrics", config.MetricsPort))
+	metricsResp, err := http.DefaultClient.Get(fmt.Sprintf("http://%s:%d/metrics", config.MetricsHost, config.MetricsPort))
 	if err != nil {
 		fmt.Printf("GETMetrics: Unable to get metrics: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
