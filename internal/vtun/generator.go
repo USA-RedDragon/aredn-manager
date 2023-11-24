@@ -35,18 +35,18 @@ options {
         ip "addr add ${IP_PLUS_2} peer ${IP_PLUS_1} dev %%";
         ip "link set dev %% up";
         ip "route add ${NET}/30 via ${IP_PLUS_1} mtu 1450";
-        firewall "-A FORWARD -i %% -o eth0 -d 10.0.0.0/8 -j ACCEPT";
-        firewall "-A FORWARD -i %% -o eth0 -j REJECT";
-        firewall "-A FORWARD -i eth0 -o %% -s 10.0.0.0/8 -j ACCEPT";
-        firewall "-A FORWARD -i eth0 -o %% -j REJECT";
+        firewall "-A FORWARD -i %% -o br0 -d 10.0.0.0/8 -j ACCEPT";
+        firewall "-A FORWARD -i %% -o br0 -j REJECT";
+        firewall "-A FORWARD -i br0 -o %% -s 10.0.0.0/8 -j ACCEPT";
+        firewall "-A FORWARD -i br0 -o %% -j REJECT";
         ${EXTRA_UP_RULES}
     };
     down {
         ${EXTRA_DOWN_RULES}
-        firewall "-D FORWARD -i %% -o eth0 -d 10.0.0.0/8 -j ACCEPT";
-        firewall "-D FORWARD -i eth0 -o %% -s 10.0.0.0/8 -j ACCEPT";
-        firewall "-D FORWARD -i %% -o eth0 -j REJECT";
-        firewall "-D FORWARD -i eth0 -o %% -j REJECT";
+        firewall "-D FORWARD -i %% -o br0 -d 10.0.0.0/8 -j ACCEPT";
+        firewall "-D FORWARD -i br0 -o %% -s 10.0.0.0/8 -j ACCEPT";
+        firewall "-D FORWARD -i %% -o br0 -j REJECT";
+        firewall "-D FORWARD -i br0 -o %% -j REJECT";
         ip "route del ${NET}/30 via ${IP_PLUS_1}";
         ip "link set dev %% down";
         ip "addr del ${IP_PLUS_2} dev %%";
