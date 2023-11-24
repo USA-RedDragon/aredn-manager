@@ -18,6 +18,7 @@ AllowNoInt yes
 IpVersion 4
 LinkQualityAlgorithm "etx_ffeth"
 Willingness 7
+MainIp ${MAIN_IP}
 
 LoadPlugin "olsrd_arprefresh.so.0.1"
 {
@@ -93,6 +94,12 @@ func GenerateAndSave(config *config.Config, db *gorm.DB) error {
 
 func Generate(config *config.Config, db *gorm.DB) string {
 	ret := snippetOlsrdConf
+	utils.ShellReplace(
+		&ret,
+		map[string]string{
+			"MAIN_IP": config.NodeIP,
+		},
+	)
 	ret += "\n\n"
 	if config.Supernode {
 		ret += snippetOlsrdConfEth0Supernode
