@@ -42,7 +42,7 @@ type Config struct {
 	postgresHost             string
 	postgresPort             int
 	postgresDatabase         string
-	MetricsHost              string
+	MetricsNodeExporterHost  string
 	MetricsPort              int
 	Latitude                 string
 	Longitude                string
@@ -91,7 +91,7 @@ func loadConfig() Config {
 		postgresHost:             os.Getenv("PG_HOST"),
 		postgresPort:             int(pgPort),
 		postgresDatabase:         os.Getenv("PG_DATABASE"),
-		MetricsHost:              os.Getenv("METRICS_HOST"),
+		MetricsNodeExporterHost:  os.Getenv("METRICS_NODE_EXPORTER_HOST"),
 		MetricsPort:              int(metricsPort),
 		Latitude:                 os.Getenv("SERVER_LAT"),
 		Longitude:                os.Getenv("SERVER_LON"),
@@ -159,8 +159,8 @@ func loadConfig() Config {
 		tmpConfig.postgresDatabase = "postgres"
 	}
 
-	if tmpConfig.MetricsHost == "" {
-		tmpConfig.MetricsHost = "localhost"
+	if tmpConfig.MetricsNodeExporterHost == "" {
+		tmpConfig.MetricsNodeExporterHost = "node-exporter"
 	}
 
 	tmpConfig.PostgresDSN = "host=" + tmpConfig.postgresHost + " port=" + strconv.FormatInt(int64(tmpConfig.postgresPort), 10) + " user=" + tmpConfig.postgresUser + " dbname=" + tmpConfig.postgresDatabase + " password=" + tmpConfig.postgresPassword
