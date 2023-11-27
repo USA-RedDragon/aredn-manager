@@ -32,7 +32,7 @@ func GETMetrics(c *gin.Context) {
 		return
 	}
 
-	nodeResp, err := http.DefaultClient.Get("http://localhost:9100/metrics")
+	nodeResp, err := http.DefaultClient.Get(fmt.Sprintf("http://%s:9100/metrics", config.MetricsNodeExporterHost))
 	if err != nil {
 		fmt.Printf("GETMetrics: Unable to get node-exporter metrics: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -47,7 +47,7 @@ func GETMetrics(c *gin.Context) {
 		n, err = nodeResp.Body.Read(buf)
 	}
 
-	metricsResp, err := http.DefaultClient.Get(fmt.Sprintf("http://%s:%d/metrics", config.MetricsHost, config.MetricsPort))
+	metricsResp, err := http.DefaultClient.Get(fmt.Sprintf("http://localhost:%d/metrics", config.MetricsPort))
 	if err != nil {
 		fmt.Printf("GETMetrics: Unable to get metrics: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
