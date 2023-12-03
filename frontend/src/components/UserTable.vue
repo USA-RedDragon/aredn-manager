@@ -32,12 +32,6 @@
     </Column>
     <template #expansion="slotProps">
       <PVButton
-        class="p-button-raised p-button-rounded p-button-primary"
-        icon="pi pi-pencil"
-        label="Edit"
-        @click="editUser(slotProps.data)"
-      ></PVButton>
-      <PVButton
         class="p-button-raised p-button-rounded p-button-danger"
         icon="pi pi-trash"
         label="Delete"
@@ -105,14 +99,6 @@ export default {
         .catch((err) => {
           console.error(err);
         });
-    },
-    editUser(_user) {
-      this.$toast.add({
-        summary: 'Not Implemented',
-        severity: 'error',
-        detail: `Users cannot be edited yet.`,
-        life: 3000,
-      });
     },
     deleteUser(user) {
       if (user.id != 1) {
