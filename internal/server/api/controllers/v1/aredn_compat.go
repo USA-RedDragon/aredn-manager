@@ -96,6 +96,13 @@ func GETSysinfo(c *gin.Context) {
 		return
 	}
 
+	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.HostsParser)
+	if !ok {
+		fmt.Println("GETSysinfo: OLSRDHostParser not found in context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
 	sysinfo := apimodels.SysinfoResponse{
 		Longitude: config.Longitude,
 		Latitude:  config.Latitude,
@@ -129,7 +136,7 @@ func GETSysinfo(c *gin.Context) {
 			Enabled: false,
 		},
 		Interfaces: getInterfaces(),
-		Hosts:      getHosts(),
+		Hosts:      getHosts(olsrdParser),
 		Services:   getServices(),
 		LinkInfo:   getLinkInfo(),
 	}
@@ -171,23 +178,12 @@ func getInterfaces() []apimodels.Interface {
 	return ret
 }
 
-func getHosts() []apimodels.Host {
-	regexMid, err := regexp.Compile(`^mid\d+\..*`)
-	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to compile regex: %v", err)
-		return nil
-	}
-	regexDtd, err := regexp.Compile(`^dtdlink\..*`)
-	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to compile regex: %v", err)
-		return nil
-	}
-	parser := olsrd.NewHostsParser()
-	err = parser.Parse()
-	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to parse hosts file: %v", err)
-		return nil
-	}
+var (
+	regexMid = regexp.MustCompile(`^mid\d+\..*`)
+	regexDtd = regexp.MustCompile(`^dtdlink\..*`)
+)
+
+func getHosts(parser *olsrd.HostsParser) []apimodels.Host {
 	hosts := parser.GetHosts()
 	ret := []apimodels.Host{}
 	for _, host := range hosts {
