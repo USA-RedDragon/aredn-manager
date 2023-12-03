@@ -38,3 +38,10 @@ type TunnelWithPass struct {
 	ConnectionTime time.Time `json:"connection_time"`
 	CreatedAt      time.Time `json:"created_at"`
 }
+
+type EditTunnel struct {
+	ID       uint   `json:"id" binding:"required"`
+	Hostname string `json:"hostname" binding:"required"`
+	Password string `json:"password" binding:"required"`
+	IP       string `json:"ip" binding:"required"`
+}

@@ -31,9 +31,45 @@
         <span v-else>{{slotProps.data.connection_time.fromNow()}}</span>
       </template>
     </Column>
-    <Column field="hostname" header="Name"></Column>
-    <Column field="ip" header="IP"></Column>
-    <Column field="password" header="Password" v-if="$props.admin"></Column>
+    <Column field="hostname" header="Name">
+      <template #body="slotProps">
+        <span v-if="slotProps.data.editing">
+          <span class="p-float-label">
+            <InputText
+              type="text"
+              v-model="slotProps.data.hostname"
+            />
+          </span>
+        </span>
+        <span v-else>{{slotProps.data.hostname}}</span>
+      </template>
+    </Column>
+    <Column field="ip" header="IP">
+      <template #body="slotProps">
+        <span v-if="slotProps.data.editing">
+          <span class="p-float-label">
+            <InputText
+              type="text"
+              v-model="slotProps.data.ip"
+            />
+          </span>
+        </span>
+        <span v-else>{{slotProps.data.ip}}</span>
+      </template>
+    </Column>
+    <Column field="password" header="Password" v-if="$props.admin">
+      <template #body="slotProps">
+        <span v-if="slotProps.data.editing">
+          <span class="p-float-label">
+            <InputText
+              type="text"
+              v-model="slotProps.data.password"
+            />
+          </span>
+        </span>
+        <span v-else>{{slotProps.data.password}}</span>
+      </template>
+    </Column>
     <Column field="rx_bytes_per_sec" header="Bandwidth Usage" v-if="!$props.admin">
       <template #body="slotProps">
         <p><span style="font-weight: bold;">RX:</span> {{prettyBytes(slotProps.data.rx_bytes_per_sec)}}/s</p>
@@ -62,14 +98,22 @@
         class="p-button-raised p-button-rounded p-button-primary"
         icon="pi pi-pencil"
         label="Edit"
-        @click="editUser(slotProps.data)"
+        v-if="!slotProps.data.editing"
+        @click="editTunnel(slotProps.data.id)"
+      ></PVButton>
+      <PVButton
+        class="p-button-raised p-button-rounded p-button-primary"
+        icon="pi pi-pencil"
+        label="Save Changes"
+        v-else
+        @click="finishEditingTunnel(slotProps.data)"
       ></PVButton>
       <PVButton
         class="p-button-raised p-button-rounded p-button-danger"
         icon="pi pi-trash"
         label="Delete"
         style="margin-left: 0.5em"
-        @click="deleteUser(slotProps.data)"
+        @click="deleteTunnel(slotProps.data)"
       ></PVButton>
     </template>
   </DataTable>
@@ -80,6 +124,7 @@ import Button from 'primevue/button';
 import Badge from 'primevue/badge';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
+import InputText from 'primevue/inputtext';
 
 import moment from 'moment';
 import prettyBytes from 'pretty-bytes';
@@ -101,6 +146,7 @@ export default {
     DataTable,
     Column,
     PVBadge: Badge,
+    InputText,
   },
   data: function() {
     return {
@@ -161,6 +207,7 @@ export default {
             res.data.tunnels = [];
           }
           for (let i = 0; i < res.data.tunnels.length; i++) {
+            res.data.tunnels[i].editing = false;
             res.data.tunnels[i].created_at = moment(
               res.data.tunnels[i].created_at,
             );
@@ -193,27 +240,59 @@ export default {
           console.error(err);
         });
     },
-    editUser(_user) {
-      this.$toast.add({
-        summary: 'Not Implemented',
-        severity: 'error',
-        detail: `Tunnels cannot be edited yet.`,
-        life: 3000,
-      });
+    editTunnel(tunnelID) {
+      for (let i = 0; i < this.tunnels.length; i++) {
+        if (this.tunnels[i].id === tunnelID) {
+          this.tunnels[i].editing = true;
+          return;
+        }
+      }
     },
-    deleteUser(user) {
+    finishEditingTunnel(tunnel) {
+      for (let i = 0; i < this.tunnels.length; i++) {
+        if (this.tunnels[i].id === tunnel.id) {
+          this.tunnels[i].editing = false;
+          break;
+        }
+      }
+      // Send PATCH
+      API.patch('/tunnels/', {
+        id: tunnel.id,
+        hostname: tunnel.hostname,
+        password: tunnel.password,
+        ip: tunnel.ip,
+      })
+        .then((_res) => {
+          this.$toast.add({
+            summary: 'Confirmed',
+            severity: 'success',
+            detail: `Tunnel ${tunnel.id} updated`,
+            life: 3000,
+          });
+        })
+        .catch((err) => {
+          console.error(err);
+          this.$toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: `Error updating tunnel ${tunnel.id}`,
+            life: 3000,
+          });
+        });
+    },
+    deleteTunnel(tunnel) {
       this.$confirm.require({
         message: 'Are you sure you want to delete this tunnel?',
         header: 'Delete Tunnel',
         icon: 'pi pi-exclamation-triangle',
         acceptClass: 'p-button-danger',
         accept: () => {
-          API.delete('/tunnels/' + user.id)
+          API.delete('/tunnels/' + tunnel.id)
             .then((_res) => {
               this.$toast.add({
                 summary: 'Confirmed',
                 severity: 'success',
-                detail: `Tunnel ${user.id} deleted`,
+                detail: `Tunnel ${tunnel.id} deleted`,
                 life: 3000,
               });
               this.fetchData();
@@ -223,7 +302,7 @@ export default {
               this.$toast.add({
                 severity: 'error',
                 summary: 'Error',
-                detail: `Error deleting tunnel ${user.id}`,
+                detail: `Error deleting tunnel ${tunnel.id}`,
                 life: 3000,
               });
             });

@@ -62,6 +62,6 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1Tunnels.GET("", v1Controllers.GETTunnels)
 	v1Tunnels.POST("", middleware.RequireLogin(config), v1Controllers.POSTTunnel)
 	// v1Tunnels.GET("/:id", v1Controllers.GETTunnel)
-	// v1Tunnels.PATCH("/:id", middleware.RequireLogin(config), v1Controllers.PATCHTunnel)
+	v1Tunnels.PATCH("", middleware.RequireLogin(config), v1Controllers.PATCHTunnel)
 	v1Tunnels.DELETE("/:id", middleware.RequireLogin(config), v1Controllers.DELETETunnel)
 }

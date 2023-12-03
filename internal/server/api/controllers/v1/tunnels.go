@@ -306,6 +306,173 @@ func POSTTunnel(c *gin.Context) {
 	}
 }
 
+func PATCHTunnel(c *gin.Context) {
+	db, ok := c.MustGet("DB").(*gorm.DB)
+	if !ok {
+		fmt.Println("DB cast failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	config, ok := c.MustGet("Config").(*config.Config)
+	if !ok {
+		fmt.Println("PATCHTunnel: Unable to get Config from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	vtunClientWatcher, ok := c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
+	if !ok {
+		fmt.Println("PATCHTunnel: Unable to get VTunClientWatcher from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	var json apimodels.EditTunnel
+	err := c.ShouldBindJSON(&json)
+	if err != nil {
+		fmt.Printf("PATCHTunnel: JSON data is invalid: %v\n", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON data is invalid"})
+	} else {
+		exists, err := models.TunnelIDExists(db, json.ID)
+		if err != nil {
+			fmt.Printf("Error checking if tunnel exists: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking if tunnel exists"})
+			return
+		}
+		if !exists {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Tunnel does not exist"})
+			return
+		}
+		if json.IP == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "IP cannot be empty"})
+			return
+		}
+
+		// Check to ensure the IP is valid
+		if net.ParseIP(json.IP) == nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "IP is not a valid IP address"})
+			return
+		}
+
+		// Check to ensure the IP is in the correct range: 172.16.0.0/12
+		ip := net.ParseIP(json.IP)
+		_, cidr, err := net.ParseCIDR("172.16.0.0/12")
+		if err != nil {
+			fmt.Printf("PATCHTunnel: Error parsing CIDR: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing CIDR"})
+			return
+		}
+		if !cidr.Contains(ip) {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "IP is not in the correct range"})
+			return
+		}
+
+		// Check to ensure the hostname is either a valid IP or a valid address (without protocol) with an optional port
+
+		// split the hostname by :
+		// if len(split) == 1, then it's just an IP address
+		// if len(split) == 2, then it's an address with an optional port
+		// if len(split) > 2, then it's invalid
+
+		split := strings.Split(json.Hostname, ":")
+		if len(split) > 2 {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is invalid"})
+			return
+		}
+
+		// Check if the hostname is an IP address
+		if net.ParseIP(split[0]) == nil {
+			// Check if the hostname is a valid address
+			_, err := url.ParseRequestURI("http://" + split[0])
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is invalid"})
+				return
+			}
+
+			// Check that the hostname is resolvable
+			_, err = net.LookupIP(split[0])
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is not resolvable"})
+				return
+			}
+		}
+
+		// Check if the port is valid
+		if len(split) == 2 {
+			port, err := strconv.ParseUint(split[1], 10, 16)
+			if err != nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Server port is invalid"})
+				return
+			}
+			if port < 1 || port > 65535 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Server port is invalid"})
+				return
+			}
+		}
+
+		// Check if the IP is already taken
+		var tunnel models.Tunnel
+		err = db.Find(&tunnel, "ip = ?", json.IP).Error
+		if err != nil {
+			fmt.Printf("PATCHTunnel: Error getting tunnel: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
+			return
+		} else if tunnel.ID != 0 && tunnel.ID != json.ID {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "IP address is already taken"})
+			return
+		}
+
+		tunnel.Hostname = json.Hostname
+		tunnel.Password = json.Password
+		tunnel.IP = json.IP
+
+		err = db.Save(&tunnel).Error
+		if err != nil {
+			fmt.Printf("PATCHTunnel: Error saving tunnel: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving tunnel"})
+			return
+		}
+
+		err = vtun.GenerateAndSaveClient(config, db)
+		if err != nil {
+			fmt.Printf("PATCHTunnel: Error generating vtun client config: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
+			return
+		}
+
+		err = vtun.ReloadAllClients(db, vtunClientWatcher)
+		if err != nil {
+			fmt.Printf("PATCHTunnel: Error reloading vtun client: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
+			return
+		}
+
+		err = olsrd.GenerateAndSave(config, db)
+		if err != nil {
+			fmt.Printf("PATCHTunnel: Error generating olsrd config: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
+			return
+		}
+
+		err = olsrd.Reload()
+		if err != nil {
+			fmt.Printf("PATCHTunnel: Error reloading olsrd: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
+			return
+		}
+
+		err = dnsmasq.Reload()
+		if err != nil {
+			fmt.Printf("Error reloading DNS: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading DNS"})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "Tunnel updated"})
+	}
+}
+
 func DELETETunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
