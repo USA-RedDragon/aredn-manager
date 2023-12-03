@@ -103,6 +103,13 @@ func GETSysinfo(c *gin.Context) {
 		return
 	}
 
+	olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsrd.ServicesParser)
+	if !ok {
+		fmt.Println("GETSysinfo: OLSRDServicesParser not found in context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
 	sysinfo := apimodels.SysinfoResponse{
 		Longitude: config.Longitude,
 		Latitude:  config.Latitude,
@@ -137,7 +144,7 @@ func GETSysinfo(c *gin.Context) {
 		},
 		Interfaces: getInterfaces(),
 		Hosts:      getHosts(olsrdParser),
-		Services:   getServices(),
+		Services:   getServices(olsrdServicesParser),
 		LinkInfo:   getLinkInfo(),
 	}
 
@@ -300,13 +307,7 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 	return ret
 }
 
-func getServices() []apimodels.Service {
-	parser := olsrd.NewServicesParser()
-	err := parser.Parse()
-	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to parse services file: %v\n", err)
-		return nil
-	}
+func getServices(parser *olsrd.ServicesParser) []apimodels.Service {
 	svcs := parser.GetServices()
 	ret := []apimodels.Service{}
 	for _, svc := range svcs {

@@ -132,6 +132,7 @@ func (s *Server) addMiddleware(r *gin.Engine) {
 	r.Use(middleware.ConfigProvider(s.config))
 	r.Use(middleware.DatabaseProvider(s.db))
 	r.Use(middleware.OLSRDProvider(olsrd.NewHostsParser()))
+	r.Use(middleware.OLSRDServicesProvider(olsrd.NewServicesParser()))
 	r.Use(middleware.VTunClientWatcherProvider(s.vtunClientWatcher))
 	r.Use(middleware.NetworkStats(s.stats))
 	r.Use(middleware.PaginatedDatabaseProvider(s.db, middleware.PaginationConfig{}))
