@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"regexp"
 	"strings"
+	"sync"
 	"syscall"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
@@ -96,6 +97,35 @@ func GETSysinfo(c *gin.Context) {
 		return
 	}
 
+	interfacesChan := make(chan []apimodels.Interface)
+	hostsChan := make(chan []apimodels.Host)
+	servicesChan := make(chan []apimodels.Service)
+	linkInfoChan := make(chan map[string]apimodels.LinkInfo)
+	var wg sync.WaitGroup
+
+	wg.Add(1)
+	go func() {
+		getInterfaces(interfacesChan)
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		getHosts(hostsChan)
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		getServices(servicesChan)
+		wg.Done()
+	}()
+	wg.Add(1)
+	go func() {
+		getLinkInfo(linkInfoChan)
+		wg.Done()
+	}()
+
+	wg.Wait()
+
 	sysinfo := apimodels.SysinfoResponse{
 		Longitude: config.Longitude,
 		Latitude:  config.Latitude,
@@ -128,22 +158,27 @@ func GETSysinfo(c *gin.Context) {
 		LQM: apimodels.LQM{
 			Enabled: false,
 		},
-		Interfaces: getInterfaces(),
-		Hosts:      getHosts(),
-		Services:   getServices(),
-		LinkInfo:   getLinkInfo(),
+		Interfaces: <-interfacesChan,
+		Hosts:      <-hostsChan,
+		Services:   <-servicesChan,
+		LinkInfo:   <-linkInfoChan,
 	}
 
 	c.JSON(http.StatusOK, sysinfo)
+
+	close(interfacesChan)
+	close(hostsChan)
+	close(servicesChan)
+	close(linkInfoChan)
 }
 
-func getInterfaces() []apimodels.Interface {
+func getInterfaces(output chan []apimodels.Interface) {
 	ret := []apimodels.Interface{}
 
 	ifaces, err := net.Interfaces()
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to get interfaces: %v", err)
-		return nil
+		return
 	}
 
 	for _, iface := range ifaces {
@@ -168,54 +203,68 @@ func getInterfaces() []apimodels.Interface {
 			})
 		}
 	}
-	return ret
+	output <- ret
 }
 
-func getHosts() []apimodels.Host {
-	regexMid, err := regexp.Compile(`^mid\d+\..*`)
-	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to compile regex: %v", err)
-		return nil
-	}
-	regexDtd, err := regexp.Compile(`^dtdlink\..*`)
-	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to compile regex: %v", err)
-		return nil
-	}
+var (
+	regexMid = regexp.MustCompile(`^mid\d+\..*`)
+	regexDtd = regexp.MustCompile(`^dtdlink\..*`)
+)
+
+func getHosts(output chan []apimodels.Host) {
 	parser := olsrd.NewHostsParser()
-	err = parser.Parse()
+	err := parser.Parse()
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to parse hosts file: %v", err)
-		return nil
+		return
 	}
 	hosts := parser.GetHosts()
 	ret := []apimodels.Host{}
-	for _, host := range hosts {
-		match := regexMid.Match([]byte(host.Hostname))
-		if match {
-			continue
-		}
+	chans := make([]chan []string, len(hosts))
+	wg := sync.WaitGroup{}
 
-		match = regexDtd.Match([]byte(host.Hostname))
-		if match {
-			continue
-		}
+	for i, host := range hosts {
+		wg.Add(1)
+		chans[i] = make(chan []string)
+		go func(host *olsrd.AREDNHost, output chan []string) {
+			match := regexMid.Match([]byte(host.Hostname))
+			if match {
+				wg.Done()
+				return
+			}
 
-		ret = append(ret, apimodels.Host{
-			Name: host.Hostname,
-			IP:   host.IP.String(),
-		})
+			match = regexDtd.Match([]byte(host.Hostname))
+			if match {
+				wg.Done()
+				return
+			}
+
+			output <- []string{host.Hostname, host.IP.String()}
+
+			wg.Done()
+		}(host, chans[i])
 	}
-	return ret
+
+	wg.Wait()
+
+	for _, ch := range chans {
+		a := <-ch
+		ret = append(ret, apimodels.Host{
+			Name: a[0],
+			IP:   a[1],
+		})
+		close(ch)
+	}
+	output <- ret
 }
 
-func getLinkInfo() map[string]apimodels.LinkInfo {
+func getLinkInfo(output chan map[string]apimodels.LinkInfo) {
 	ret := make(map[string]apimodels.LinkInfo)
 	// http request http://localhost:9090/links
 	resp, err := http.DefaultClient.Get("http://localhost:9090/links")
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to get links: %v\n", err)
-		return nil
+		return
 	}
 	defer resp.Body.Close()
 	// Grab the body as json
@@ -223,120 +272,163 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 	err = json.NewDecoder(resp.Body).Decode(&links)
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to decode links: %v\n", err)
-		return nil
+		return
 	}
 
-	for _, link := range links.Links {
-		hosts, err := net.LookupAddr(link.RemoteIP)
-		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", link.RemoteIP, err)
-			continue
-		}
+	wg := sync.WaitGroup{}
+	type linkInfo struct {
+		LinkInfo apimodels.LinkInfo
+		IP       string
+	}
+	chans := make([]chan linkInfo, len(links.Links))
 
-		hostname := ""
-		if len(hosts) > 0 {
-			hostname = hosts[0]
-			// Strip off mid\d. from the hostname if it exists
-			regex := regexp.MustCompile(`^[mM][iI][dD]\d+\.(.+)`)
-			matches := regex.FindStringSubmatch(hostname)
-			if len(matches) == 2 {
-				hostname = matches[1]
+	for i, link := range links.Links {
+		wg.Add(1)
+		chans[i] = make(chan linkInfo)
+		go func(link apimodels.OlsrdLinkinfo, output chan linkInfo) {
+			hosts, err := net.LookupAddr(link.RemoteIP)
+			if err != nil {
+				fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", link.RemoteIP, err)
+				wg.Done()
+				return
 			}
-			// Strip off dtdlink. from the hostname if it exists
-			regex = regexp.MustCompile(`^[dD][tT][dD][lL][iI][nN][kK]\.(.+)`)
-			matches = regex.FindStringSubmatch(hostname)
-			if len(matches) == 2 {
-				hostname = matches[1]
+
+			hostname := ""
+			if len(hosts) > 0 {
+				hostname = hosts[0]
+				// Strip off mid\d. from the hostname if it exists
+				regex := regexp.MustCompile(`^[mM][iI][dD]\d+\.(.+)`)
+				matches := regex.FindStringSubmatch(hostname)
+				if len(matches) == 2 {
+					hostname = matches[1]
+				}
+				// Strip off dtdlink. from the hostname if it exists
+				regex = regexp.MustCompile(`^[dD][tT][dD][lL][iI][nN][kK]\.(.+)`)
+				matches = regex.FindStringSubmatch(hostname)
+				if len(matches) == 2 {
+					hostname = matches[1]
+				}
+				// Make sure the hostname doesn't end with a period
+				hostname = strings.TrimSuffix(hostname, ".")
+				// Make sure the hostname doesn't end with .local.mesh
+				hostname = strings.TrimSuffix(hostname, ".local.mesh")
+			} else {
+				wg.Done()
+				return
 			}
-			// Make sure the hostname doesn't end with a period
-			hostname = strings.TrimSuffix(hostname, ".")
-			// Make sure the hostname doesn't end with .local.mesh
-			hostname = strings.TrimSuffix(hostname, ".local.mesh")
-		} else {
-			continue
-		}
 
-		ips, err := net.LookupIP(hostname)
-		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", hostname, err)
-			continue
-		}
+			ips, err := net.LookupIP(hostname)
+			if err != nil {
+				fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", hostname, err)
+				wg.Done()
+				return
+			}
 
-		if len(ips) == 0 {
-			continue
-		}
+			if len(ips) == 0 {
+				wg.Done()
+				return
+			}
 
-		linkType := ""
-		if strings.HasPrefix(link.OLSRInterface, "tun") {
-			linkType = "TUN"
-		} else if strings.HasPrefix(link.OLSRInterface, "eth") {
-			linkType = "DTD"
-		} else {
-			linkType = "UNKNOWN"
-		}
+			linkType := ""
+			if strings.HasPrefix(link.OLSRInterface, "tun") {
+				linkType = "TUN"
+			} else if strings.HasPrefix(link.OLSRInterface, "eth") {
+				linkType = "DTD"
+			} else {
+				linkType = "UNKNOWN"
+			}
 
-		ret[ips[0].String()] = apimodels.LinkInfo{
-			HelloTime:           link.HelloTime,
-			LostLinkTime:        link.LostLinkTime,
-			LinkQuality:         link.LinkQuality,
-			VTime:               link.VTime,
-			LinkCost:            link.LinkCost,
-			LinkType:            linkType,
-			Hostname:            hostname,
-			PreviousLinkStatus:  link.PreviousLinkStatus,
-			CurrentLinkStatus:   link.CurrentLinkStatus,
-			NeighborLinkQuality: link.NeighborLinkQuality,
-			SymmetryTime:        link.SymmetryTime,
-			SeqnoValid:          link.SeqnoValid,
-			Pending:             link.Pending,
-			LossHelloInterval:   link.LossHelloInterval,
-			LossMultiplier:      link.LossMultiplier,
-			Hysteresis:          link.Hysteresis,
-			Seqno:               link.Seqno,
-			LossTime:            link.LossTime,
-			ValidityTime:        link.ValidityTime,
-			OLSRInterface:       link.OLSRInterface,
-			LastHelloTime:       link.LastHelloTime,
-			AsymmetryTime:       link.AsymmetryTime,
-		}
+			output <- linkInfo{
+				LinkInfo: apimodels.LinkInfo{
+					HelloTime:           link.HelloTime,
+					LostLinkTime:        link.LostLinkTime,
+					LinkQuality:         link.LinkQuality,
+					VTime:               link.VTime,
+					LinkCost:            link.LinkCost,
+					LinkType:            linkType,
+					Hostname:            hostname,
+					PreviousLinkStatus:  link.PreviousLinkStatus,
+					CurrentLinkStatus:   link.CurrentLinkStatus,
+					NeighborLinkQuality: link.NeighborLinkQuality,
+					SymmetryTime:        link.SymmetryTime,
+					SeqnoValid:          link.SeqnoValid,
+					Pending:             link.Pending,
+					LossHelloInterval:   link.LossHelloInterval,
+					LossMultiplier:      link.LossMultiplier,
+					Hysteresis:          link.Hysteresis,
+					Seqno:               link.Seqno,
+					LossTime:            link.LossTime,
+					ValidityTime:        link.ValidityTime,
+					OLSRInterface:       link.OLSRInterface,
+					LastHelloTime:       link.LastHelloTime,
+					AsymmetryTime:       link.AsymmetryTime,
+				},
+				IP: ips[0].String(),
+			}
+			wg.Done()
+		}(link, chans[i])
 	}
 
-	return ret
+	wg.Wait()
+
+	for _, ch := range chans {
+		link := <-ch
+		ret[link.IP] = link.LinkInfo
+		close(ch)
+	}
+
+	output <- ret
 }
 
-func getServices() []apimodels.Service {
+func getServices(output chan []apimodels.Service) {
 	parser := olsrd.NewServicesParser()
 	err := parser.Parse()
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to parse services file: %v\n", err)
-		return nil
+		return
 	}
 	svcs := parser.GetServices()
 	ret := []apimodels.Service{}
-	for _, svc := range svcs {
-		// we need to take the hostname from the URL and resolve it to an IP
-		url, err := url.Parse(svc.URL)
-		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to parse URL: %v\n", err)
-			continue
-		}
-		ips, err := net.LookupIP(url.Hostname())
-		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", url.Hostname(), err)
-			continue
-		}
-		link := svc.URL
-		// If the link ends with :0/, then it is a non-http link, so set link to ""
-		if strings.HasSuffix(svc.URL, ":0/") {
-			link = ""
-		}
-		ret = append(ret, apimodels.Service{
-			Name:     svc.Name,
-			IP:       ips[0].String(),
-			Protocol: svc.Protocol,
-			Link:     link,
-		})
+	chans := make([]chan apimodels.Service, len(svcs))
+	wg := sync.WaitGroup{}
+	for i, svc := range svcs {
+		wg.Add(1)
+		chans[i] = make(chan apimodels.Service)
+		go func(svc *olsrd.AREDNService, output chan apimodels.Service) {
+			// we need to take the hostname from the URL and resolve it to an IP
+			url, err := url.Parse(svc.URL)
+			if err != nil {
+				fmt.Printf("GETSysinfo: Unable to parse URL: %v\n", err)
+				wg.Done()
+				return
+			}
+			ips, err := net.LookupIP(url.Hostname())
+			if err != nil {
+				fmt.Printf("GETSysinfo: Unable to resolve hostname: %s\n%v\n", url.Hostname(), err)
+				wg.Done()
+				return
+			}
+			link := svc.URL
+			// If the link ends with :0/, then it is a non-http link, so set link to ""
+			if strings.HasSuffix(svc.URL, ":0/") {
+				link = ""
+			}
+			output <- apimodels.Service{
+				Name:     svc.Name,
+				IP:       ips[0].String(),
+				Protocol: svc.Protocol,
+				Link:     link,
+			}
+			wg.Done()
+		}(svc, chans[i])
 	}
 
-	return ret
+	wg.Wait()
+
+	for _, ch := range chans {
+		ret = append(ret, <-ch)
+		close(ch)
+	}
+
+	output <- ret
 }
