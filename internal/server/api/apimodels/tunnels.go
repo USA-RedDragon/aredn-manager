@@ -29,11 +29,12 @@ func (r *CreateTunnel) IsValidHostname() (bool, string) {
 }
 
 type TunnelWithPass struct {
-	ID        uint      `json:"id"`
-	Client    bool      `json:"client"`
-	Hostname  string    `json:"hostname"`
-	IP        string    `json:"ip"`
-	Password  string    `json:"password"`
-	Active    bool      `json:"active"`
-	CreatedAt time.Time `json:"created_at"`
+	ID             uint      `json:"id"`
+	Client         bool      `json:"client"`
+	Hostname       string    `json:"hostname"`
+	IP             string    `json:"ip"`
+	Password       string    `json:"password"`
+	Active         bool      `json:"active"`
+	ConnectionTime time.Time `json:"connection_time"`
+	CreatedAt      time.Time `json:"created_at"`
 }

@@ -71,13 +71,14 @@ func GETTunnels(c *gin.Context) {
 
 		for _, tunnel := range tunnels {
 			tunnelsWithPass = append(tunnelsWithPass, apimodels.TunnelWithPass{
-				ID:        tunnel.ID,
-				Hostname:  tunnel.Hostname,
-				IP:        tunnel.IP,
-				Password:  tunnel.Password,
-				Client:    tunnel.Client,
-				Active:    tunnel.Active,
-				CreatedAt: tunnel.CreatedAt,
+				ID:             tunnel.ID,
+				Hostname:       tunnel.Hostname,
+				IP:             tunnel.IP,
+				Password:       tunnel.Password,
+				Client:         tunnel.Client,
+				Active:         tunnel.Active,
+				ConnectionTime: tunnel.ConnectionTime,
+				CreatedAt:      tunnel.CreatedAt,
 			})
 		}
 		c.JSON(http.StatusOK, gin.H{"total": total, "tunnels": tunnelsWithPass})
