@@ -184,6 +184,7 @@ export default {
           if ('password' in this.tunnels[i]) {
             tunnel.password = this.tunnels[i].password;
           }
+          tunnel.editing = this.tunnels[i].editing;
           this.tunnels[i] = tunnel;
           return;
         }
