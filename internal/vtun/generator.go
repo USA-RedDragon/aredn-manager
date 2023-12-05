@@ -33,7 +33,7 @@ options {
     keepalive yes;
     up {
         ip "addr add ${IP_PLUS_2} peer ${IP_PLUS_1} dev %%";
-        ip "link set dev %% up";
+        ip "link set dev %% up mtu 1450";
         ip "route add ${NET}/30 via ${IP_PLUS_1} mtu 1450";
         firewall "-A FORWARD -i %% -o br0 -d 10.0.0.0/8 -j ACCEPT";
         firewall "-A FORWARD -i %% -o br0 -j REJECT";
