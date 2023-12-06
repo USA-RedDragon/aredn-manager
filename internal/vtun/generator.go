@@ -23,7 +23,7 @@ options {
     firewall /sbin/iptables;
 }`
 
-	snippetVtunConfStandardTunnel = `${NAME}-${DASHED_NET} {
+	snippetVtunConfStandardTunnel = `${CONNECTION_HOST} {
     passwd ${PWD};
     type tun;
     proto tcp;
@@ -128,11 +128,18 @@ func Generate(config *config.Config, db *gorm.DB) string {
 				"WG_TAP_PLUS_1": wgTapIPPlus1.String(),
 			})
 		}
+		dashedNet := strings.ReplaceAll(tunnel.IP, ".", "-")
+		nameLen := len(tunnel.Hostname)
+		maxNameLen := 36 - len(dashedNet)
+		name := tunnel.Hostname
+		if nameLen > maxNameLen {
+			name = name[:maxNameLen]
+		}
+		vtunConnectionHost := fmt.Sprintf("%s-%s", name, dashedNet)
 		utils.ShellReplace(
 			&cpSnippetVtunConfTunnel,
 			map[string]string{
-				"NAME":             tunnel.Hostname,
-				"DASHED_NET":       strings.ReplaceAll(tunnel.IP, ".", "-"),
+				"CONNECTION_HOST":  vtunConnectionHost,
 				"PWD":              tunnel.Password,
 				"TUN":              fmt.Sprintf("%d", tun),
 				"IP_PLUS_1":        ipPlus1.String(),

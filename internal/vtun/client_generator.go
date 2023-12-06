@@ -22,7 +22,7 @@ options {
     firewall /sbin/iptables;
 }`
 
-	snippetVtunClientConfStandardTunnel = `${NAME}-${DASHED_NET} {
+	snippetVtunClientConfStandardTunnel = `${CONNECTION_HOST} {
     passwd ${PWD};
     device tun${TUN};
     persist yes;
@@ -135,11 +135,19 @@ func generateClient(config *config.Config, tunInfo tunnelInfo) string {
 			"WG_TAP_PLUS_1": wgTapIPPlus1.String(),
 		})
 	}
+	dashedNet := strings.ReplaceAll(tunnel.IP, ".", "-")
+	nameLen := len(config.ServerName)
+	maxNameLen := 36 - len(dashedNet)
+	name := config.ServerName
+	if nameLen > maxNameLen {
+		name = name[:maxNameLen]
+	}
+	vtunConnectionHost := fmt.Sprintf("%s-%s", name, dashedNet)
+
 	utils.ShellReplace(
 		&cpSnippetVtunClientConfTunnel,
 		map[string]string{
-			"NAME":             config.ServerName,
-			"DASHED_NET":       strings.ReplaceAll(tunnel.IP, ".", "-"),
+			"CONNECTION_HOST":  vtunConnectionHost,
 			"PWD":              strings.TrimSpace(tunnel.Password),
 			"TUN":              fmt.Sprintf("%d", tun),
 			"IP_PLUS_1":        ipPlus1.String(),
