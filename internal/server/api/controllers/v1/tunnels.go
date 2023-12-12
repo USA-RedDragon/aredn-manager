@@ -120,6 +120,8 @@ func POSTTunnel(c *gin.Context) {
 			return
 		}
 
+		json.Hostname = strings.ToUpper(json.Hostname)
+
 		if !json.Client {
 			isValid, errString := json.IsValidHostname()
 			if !isValid {
@@ -374,6 +376,8 @@ func PATCHTunnel(c *gin.Context) {
 		// if len(split) == 1, then it's just an IP address
 		// if len(split) == 2, then it's an address with an optional port
 		// if len(split) > 2, then it's invalid
+
+		json.Hostname = strings.ToUpper(json.Hostname)
 
 		split := strings.Split(json.Hostname, ":")
 		if len(split) > 2 {
