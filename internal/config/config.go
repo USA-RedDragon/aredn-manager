@@ -32,7 +32,6 @@ type Config struct {
 	WireguardTapAddress      string
 	NodeIP                   string
 	SupernodeZone            string
-	DisableMap               bool
 	strSessionSecret         string
 	SessionSecret            []byte
 	VTUNStartingAddress      string
@@ -83,7 +82,6 @@ func loadConfig() Config {
 		WireguardTapAddress:      os.Getenv("WIREGUARD_TAP_ADDRESS"),
 		NodeIP:                   os.Getenv("NODE_IP"),
 		SupernodeZone:            os.Getenv("SUPERNODE_ZONE"),
-		DisableMap:               os.Getenv("DISABLE_MAP") != "",
 		strSessionSecret:         os.Getenv("SESSION_SECRET"),
 		VTUNStartingAddress:      os.Getenv("VTUN_STARTING_ADDRESS"),
 		postgresUser:             os.Getenv("PG_USER"),
