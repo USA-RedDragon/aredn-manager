@@ -76,7 +76,7 @@ func loadConfig() Config {
 		OTLPEndpoint:             os.Getenv("OTLP_ENDPOINT"),
 		InitialAdminUserPassword: os.Getenv("INIT_ADMIN_USER_PASSWORD"),
 		HIBPAPIKey:               os.Getenv("HIBP_API_KEY"),
-		ServerName:               os.Getenv("SERVER_NAME"),
+		ServerName:               strings.ToUpper(os.Getenv("SERVER_NAME")),
 		Supernode:                os.Getenv("SUPERNODE") != "",
 		Masquerade:               os.Getenv("MASQUERADE") != "",
 		WireguardTapAddress:      os.Getenv("WIREGUARD_TAP_ADDRESS"),
