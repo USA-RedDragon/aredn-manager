@@ -120,9 +120,8 @@ func POSTTunnel(c *gin.Context) {
 			return
 		}
 
-		json.Hostname = strings.ToUpper(json.Hostname)
-
 		if !json.Client {
+			json.Hostname = strings.ToUpper(json.Hostname)
 			isValid, errString := json.IsValidHostname()
 			if !isValid {
 				c.JSON(http.StatusBadRequest, gin.H{"error": errString})
