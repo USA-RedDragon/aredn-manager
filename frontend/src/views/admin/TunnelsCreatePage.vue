@@ -305,7 +305,7 @@ export default {
     },
     handleSubmit(isFormValid) {
       this.submitted = true;
-      if (!isFormValid) {
+      if (!isFormValid && this.v$.$errors.length > 0) {
         return;
       }
 
