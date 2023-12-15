@@ -1,14 +1,6 @@
 import axios from 'axios';
 
-let baseURL;
-
-// nodejs development
-if (window.location.port == 5173) {
-  // Change port to 3333
-  baseURL = 'http://ki5vmf-cloud-tunnel.local.mesh:81/api/v1';
-} else {
-  baseURL = '/api/v1';
-}
+const baseURL = '/api/v1';
 
 const instance = axios.create({
   baseURL,

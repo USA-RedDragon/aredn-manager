@@ -8,6 +8,24 @@ export default defineConfig({
   plugins: [
     vue(),
   ],
+  server: {
+    proxy: {
+      '/api': {
+        target: 'https://oklahoma.aredn.mcswain.cloud',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'wss://oklahoma.aredn.mcswain.cloud',
+        ws: true,
+        changeOrigin: true,
+      },
+      '/ws/events': {
+        target: 'wss://oklahoma.aredn.mcswain.cloud',
+        ws: true,
+        changeOrigin: true,
+      },
+    },
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),

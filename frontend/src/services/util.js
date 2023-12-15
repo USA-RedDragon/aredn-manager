@@ -6,14 +6,7 @@ export function getWebsocketURI() {
   } else {
     newURI = 'ws:';
   }
-  // nodejs development
-  if (window.location.port == 5173) {
-    // Change port to 3333
-    newURI += '//' + loc.hostname + ':3333';
-  } else {
-    newURI += '//' + loc.host;
-  }
-  newURI += '/ws';
+  newURI += '//' + loc.host + '/ws';
   console.log('Websocket URI: "' + newURI + '"');
   return newURI;
 }
