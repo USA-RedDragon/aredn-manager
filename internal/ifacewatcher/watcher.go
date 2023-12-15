@@ -143,8 +143,8 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 			tun, err = models.FindTunnelByIP(w.db, ip)
 			if err != nil {
 				fmt.Println(err)
+				continue
 			}
-			continue
 		}
 		return &tun
 	}
