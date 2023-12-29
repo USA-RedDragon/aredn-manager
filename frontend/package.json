@@ -34,7 +34,7 @@
     "@rushstack/eslint-patch": "^1.6.1",
     "@vitejs/plugin-vue": "^5.0.0",
     "@vitest/ui": "^1.1.0",
-    "@vue/eslint-config-prettier": "^8.0.0",
+    "@vue/eslint-config-prettier": "^9.0.0",
     "axios": "^1.6.3",
     "cypress": "^13.6.2",
     "cypress-mochawesome-reporter": "^3.8.0",
