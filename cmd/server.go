@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	"github.com/USA-RedDragon/aredn-manager/internal/ifacewatcher"
 	"github.com/USA-RedDragon/aredn-manager/internal/metrics"
+	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server"
 	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
 	"github.com/spf13/cobra"
@@ -96,6 +98,23 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	// Start the server
 	fmt.Println("starting server")
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	go func() {
+		err := olsrd.Run(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
+	go func() {
+		err := vtun.Run(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	go metrics.CreateMetricsServer(config)
 
 	db := db.MakeDB(config)
@@ -124,6 +143,12 @@ func runServer(cmd *cobra.Command, _ []string) error {
 
 	stop := func(sig os.Signal) {
 		wg := new(sync.WaitGroup)
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			cancel()
+		}()
 
 		wg.Add(1)
 		go func() {
