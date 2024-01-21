@@ -322,8 +322,13 @@ export default {
       }
       return password;
     },
-    generatePrivateKey() {
-
+    async generatePrivateKey() {
+      try {
+        const res = await API.get('/wireguard/genkey');
+        return res.data.key;
+      } catch (err) {
+        console.error(err);
+      }
     },
     handleSubmit(isFormValid) {
       this.submitted = true;
