@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/gin-gonic/gin"
@@ -16,8 +17,34 @@ func GETOLSRHosts(c *gin.Context) {
 		return
 	}
 
-	nodes := olsrdParser.GetHosts()
-	c.JSON(http.StatusOK, gin.H{"nodes": nodes})
+	pageStr, exists := c.GetQuery("page")
+	if !exists {
+		pageStr = "1"
+	}
+	pageInt, err := strconv.ParseInt(pageStr, 10, 64)
+	if err != nil {
+		fmt.Println("Error parsing page:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page"})
+		return
+	}
+	page := int(pageInt)
+
+	limitStr, exists := c.GetQuery("limit")
+	if !exists {
+		limitStr = "50"
+	}
+	limitInt, err := strconv.ParseInt(limitStr, 10, 64)
+	if err != nil {
+		fmt.Println("Error parsing limit:", err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit"})
+		return
+	}
+	limit := int(limitInt)
+
+	total := olsrdParser.GetHostsCount()
+
+	nodes := olsrdParser.GetHostsPaginated(page, limit)
+	c.JSON(http.StatusOK, gin.H{"nodes": nodes, "total": total})
 }
 
 func GETOLSRRunning(c *gin.Context) {

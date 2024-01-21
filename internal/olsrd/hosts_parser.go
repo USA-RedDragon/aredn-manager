@@ -22,6 +22,19 @@ func (p *HostsParser) GetHosts() []*AREDNHost {
 	return p.currentHosts
 }
 
+func (p *HostsParser) GetHostsCount() int {
+	return len(p.currentHosts)
+}
+
+func (p *HostsParser) GetHostsPaginated(page int, limit int) []*AREDNHost {
+	start := (page - 1) * limit
+	end := start + limit
+	if end > len(p.currentHosts) {
+		end = len(p.currentHosts)
+	}
+	return p.currentHosts[start:end]
+}
+
 func (p *HostsParser) Parse() (err error) {
 	hosts, err := parseHosts()
 	if err != nil {

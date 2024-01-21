@@ -4,6 +4,7 @@
     dataKey="ip"
     :paginator="false"
     :totalRecords="totalRecords"
+    :rows="50"
     :loading="loading"
     :scrollable="true"
     @page="onPage($event)"
@@ -72,9 +73,13 @@ export default {
   unmounted() {
   },
   methods: {
-    fetchData() {
+    onPage(event) {
       this.loading = true;
-      API.get(`/olsr/hosts`)
+      this.fetchData(event.page + 1, event.rows);
+    },
+    fetchData(page = 1, limit = 50) {
+      this.loading = true;
+      API.get(`/olsr/hosts?page=${page}&limit=${limit}`)
         .then((res) => {
           if (!res.data.nodes) {
             res.data.nodes = [];
@@ -82,27 +87,35 @@ export default {
 
           // Iterate through each node's services and each node's child's services
           // and make them a new URL()
-          res.data.nodes.forEach((node) => {
+          for (let i = 0; i < res.data.nodes.length; i++) {
+            const node = res.data.nodes[i];
             if (node.services != null) {
-              node.services.forEach((service) => {
+              for (let j = 0; j < node.services.length; j++) {
+                const service = node.services[j];
                 service.url = new URL(service.url);
                 service.url.hostname = service.url.hostname + '.local.mesh';
-              });
+                node.services[j] = service;
+              }
             }
             if (node.children != null) {
-              node.children.forEach((child) => {
+              for (let j = 0; j < node.children.length; j++) {
+                const child = node.children[j];
                 if (child.services != null) {
-                  child.services.forEach((service) => {
+                  for (let k = 0; k < child.services.length; k++) {
+                    const service = child.services[k];
                     service.url = new URL(service.url);
                     service.url.hostname = service.url.hostname + '.local.mesh';
-                  });
+                    child.services[k] = service;
+                  }
                 }
-              });
+                node.children[j] = child;
+              }
             }
-          });
+            res.data.nodes[i] = node;
+          }
 
           this.hosts = res.data.nodes;
-          this.totalRecords = res.data.nodes.length;
+          this.totalRecords = res.data.total;
           this.loading = false;
         })
         .catch((err) => {
