@@ -86,6 +86,7 @@ export default {
       loading: false,
       totalRecords: 0,
       filters: null,
+      page: 1,
     };
   },
   created() {
@@ -99,6 +100,7 @@ export default {
   methods: {
     onPage(event) {
       this.loading = true;
+      this.page = event.page + 1;
       if (this.filters.global.value != null) {
         this.fetchDataFiltered(this.filters.global.value, event.page + 1, event.rows);
       } else {
@@ -112,7 +114,7 @@ export default {
     },
     onFilter() {
       this.loading = true;
-      this.fetchDataFiltered(this.filters.global.value);
+      this.fetchDataFiltered(this.filters.global.value, this.page);
     },
     fetchData(page = 1, limit = 50) {
       this.loading = true;
@@ -207,7 +209,7 @@ export default {
     clearFilter() {
       this.initFilters();
       this.loading = true;
-      this.fetchData();
+      this.fetchData(this.page);
     },
   },
   computed: {

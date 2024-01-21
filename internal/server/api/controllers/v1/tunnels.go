@@ -14,8 +14,10 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
+	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"gorm.io/gorm"
 )
 
@@ -32,17 +34,44 @@ func GETTunnels(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
-	tunnels, err := models.ListTunnels(db)
-	if err != nil {
-		fmt.Printf("GETTunnels: Error getting tunnels: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnels"})
-		return
+
+	typeStr, exists := c.GetQuery("type")
+	if !exists {
+		typeStr = "vtun"
 	}
 
-	total, err := models.CountTunnels(cDb)
-	if err != nil {
-		fmt.Printf("GETTunnels: Error getting tunnel count: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+	tunnels := []models.Tunnel{}
+	total := 0
+	if typeStr == "vtun" {
+		var err error
+		tunnels, err = models.ListVtunTunnels(db)
+		if err != nil {
+			fmt.Printf("GETTunnels: Error getting tunnels: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnels"})
+			return
+		}
+		total, err = models.CountVtunTunnels(cDb)
+		if err != nil {
+			fmt.Printf("GETTunnels: Error getting tunnel count: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+			return
+		}
+	} else if typeStr == "wireguard" {
+		var err error
+		tunnels, err = models.ListWireguardTunnels(db)
+		if err != nil {
+			fmt.Printf("GETTunnels: Error getting tunnels: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnels"})
+			return
+		}
+		total, err = models.CountWireguardTunnels(cDb)
+		if err != nil {
+			fmt.Printf("GETTunnels: Error getting tunnel count: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+			return
+		}
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
 		return
 	}
 
@@ -71,6 +100,7 @@ func GETTunnels(c *gin.Context) {
 
 		for _, tunnel := range tunnels {
 			tunnelsWithPass = append(tunnelsWithPass, apimodels.TunnelWithPass{
+				Wireguard:      tunnel.Wireguard,
 				ID:             tunnel.ID,
 				Hostname:       tunnel.Hostname,
 				IP:             tunnel.IP,
@@ -87,7 +117,7 @@ func GETTunnels(c *gin.Context) {
 	}
 }
 
-func GETTunnelsCount(c *gin.Context) {
+func GETVTunTunnelsCount(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
 		fmt.Printf("DB cast failed")
@@ -95,9 +125,9 @@ func GETTunnelsCount(c *gin.Context) {
 		return
 	}
 
-	count, err := models.CountTunnels(db)
+	count, err := models.CountVtunTunnels(db)
 	if err != nil {
-		fmt.Printf("GETTunnelsCount: Error getting tunnel count: %v\n", err)
+		fmt.Printf("GETVTunTunnelsCount: Error getting tunnel count: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 		return
 	}
@@ -105,7 +135,7 @@ func GETTunnelsCount(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"count": count})
 }
 
-func GETTunnelsCountConnected(c *gin.Context) {
+func GETVTunTunnelsCountConnected(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
 		fmt.Printf("DB cast failed")
@@ -113,7 +143,43 @@ func GETTunnelsCountConnected(c *gin.Context) {
 		return
 	}
 
-	count, err := models.CountActiveTunnels(db)
+	count, err := models.CountVTunActiveTunnels(db)
+	if err != nil {
+		fmt.Printf("GETTunnelsCountConnected: Error getting tunnel count: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
+func GETWireguardTunnelsCount(c *gin.Context) {
+	db, ok := c.MustGet("DB").(*gorm.DB)
+	if !ok {
+		fmt.Printf("DB cast failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	count, err := models.CountWireguardTunnels(db)
+	if err != nil {
+		fmt.Printf("GETWireguardTunnelsCount: Error getting tunnel count: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
+func GETWireguardTunnelsCountConnected(c *gin.Context) {
+	db, ok := c.MustGet("DB").(*gorm.DB)
+	if !ok {
+		fmt.Printf("DB cast failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	count, err := models.CountWireguardActiveTunnels(db)
 	if err != nil {
 		fmt.Printf("GETTunnelsCountConnected: Error getting tunnel count: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
@@ -141,6 +207,13 @@ func POSTTunnel(c *gin.Context) {
 	vtunClientWatcher, ok := c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
 	if !ok {
 		fmt.Println("DELETETunnel: Unable to get VTunClientWatcher from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	wireguardManager, ok := c.MustGet("WireguardManager").(*wireguard.Manager)
+	if !ok {
+		fmt.Println("POSTTunnel: Unable to get WireguardManager from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -177,15 +250,39 @@ func POSTTunnel(c *gin.Context) {
 			}
 
 			tunnel = models.Tunnel{
-				Hostname: json.Hostname,
-				Password: json.Password,
-				Client:   json.Client,
+				Hostname:  json.Hostname,
+				Password:  json.Password,
+				Client:    json.Client,
+				Wireguard: json.Wireguard,
 			}
-			tunnel.IP, err = models.GetNextIP(db, config)
-			if err != nil {
-				fmt.Printf("POSTTunnel: Error getting next IP: %v\n", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next IP"})
-				return
+			if !tunnel.Wireguard {
+				tunnel.IP, err = models.GetNextVTunIP(db, config)
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error getting next IP: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next IP"})
+					return
+				}
+			} else {
+				tunnel.IP, err = models.GetNextWireguardIP(db, config)
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error getting next IP: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next IP"})
+					return
+				}
+
+				tunnel.WireguardPort, err = models.GetNextWireguardPort(db)
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error getting next port: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next port"})
+					return
+				}
+
+				// Check if the password (wireguard private key) is valid
+				_, err = wgtypes.ParseKey(json.Password)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid wireguard private key"})
+					return
+				}
 			}
 
 			err = db.Create(&tunnel).Error
@@ -195,20 +292,28 @@ func POSTTunnel(c *gin.Context) {
 				return
 			}
 
-			err = vtun.GenerateAndSave(config, db)
-			if err != nil {
-				fmt.Printf("POSTTunnel: Error generating vtun config: %v\n", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
-				return
-			}
+			if !tunnel.Wireguard {
+				err = vtun.GenerateAndSave(config, db)
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error generating vtun config: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
+					return
+				}
 
-			err = vtun.Reload()
-			if err != nil {
-				fmt.Printf("POSTTunnel: Error reloading vtun: %v\n", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun"})
-				return
+				err = vtun.Reload()
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error reloading vtun: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun"})
+					return
+				}
+			} else {
+				err = wireguardManager.AddPeer(tunnel)
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error adding wireguard peer: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding wireguard peer"})
+					return
+				}
 			}
-
 		} else {
 			if json.IP == "" {
 				c.JSON(http.StatusBadRequest, gin.H{"error": "IP cannot be empty"})
@@ -290,10 +395,20 @@ func POSTTunnel(c *gin.Context) {
 			}
 
 			tunnel = models.Tunnel{
-				Hostname: json.Hostname,
-				Password: json.Password,
-				IP:       json.IP,
-				Client:   json.Client,
+				Hostname:  json.Hostname,
+				Password:  json.Password,
+				IP:        json.IP,
+				Client:    json.Client,
+				Wireguard: json.Wireguard,
+			}
+
+			if tunnel.Wireguard {
+				// Check if the password (wireguard public key) is valid
+				_, err = wgtypes.ParseKey(json.Password)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid wireguard public key"})
+					return
+				}
 			}
 
 			err = db.Create(&tunnel).Error
@@ -303,18 +418,27 @@ func POSTTunnel(c *gin.Context) {
 				return
 			}
 
-			err = vtun.GenerateAndSaveClient(config, db)
-			if err != nil {
-				fmt.Printf("POSTTunnel: Error generating vtun client config: %v\n", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
-				return
-			}
+			if !tunnel.Wireguard {
+				err = vtun.GenerateAndSaveClient(config, db)
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error generating vtun client config: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
+					return
+				}
 
-			err = vtun.ReloadAllClients(db, vtunClientWatcher)
-			if err != nil {
-				fmt.Printf("POSTTunnel: Error reloading vtun client: %v\n", err)
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
-				return
+				err = vtun.ReloadAllClients(db, vtunClientWatcher)
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error reloading vtun client: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
+					return
+				}
+			} else {
+				err = wireguardManager.AddPeer(tunnel)
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error adding wireguard peer: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding wireguard peer"})
+					return
+				}
 			}
 		}
 
@@ -361,6 +485,13 @@ func PATCHTunnel(c *gin.Context) {
 	vtunClientWatcher, ok := c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
 	if !ok {
 		fmt.Println("PATCHTunnel: Unable to get VTunClientWatcher from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	wireguardManager, ok := c.MustGet("WireguardManager").(*wireguard.Manager)
+	if !ok {
+		fmt.Println("POSTTunnel: Unable to get WireguardManager from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -466,6 +597,12 @@ func PATCHTunnel(c *gin.Context) {
 		tunnel.Password = json.Password
 		tunnel.IP = json.IP
 
+		didChange := false
+		if tunnel.Wireguard != json.Wireguard {
+			didChange = true
+		}
+		tunnel.Wireguard = json.Wireguard
+
 		err = db.Save(&tunnel).Error
 		if err != nil {
 			fmt.Printf("PATCHTunnel: Error saving tunnel: %v\n", err)
@@ -473,25 +610,74 @@ func PATCHTunnel(c *gin.Context) {
 			return
 		}
 
-		err = vtun.GenerateAndSave(config, db)
-		if err != nil {
-			fmt.Printf("PATCHTunnel: Error generating vtun config: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
-			return
-		}
+		if !tunnel.Wireguard {
+			if didChange {
+				err = wireguardManager.RemovePeer(tunnel)
+				if err != nil {
+					fmt.Printf("PATCHTunnel: Error removing wireguard peer: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error removing wireguard peer"})
+					return
+				}
+			}
+			err = vtun.GenerateAndSave(config, db)
+			if err != nil {
+				fmt.Printf("PATCHTunnel: Error generating vtun config: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
+				return
+			}
 
-		err = vtun.GenerateAndSaveClient(config, db)
-		if err != nil {
-			fmt.Printf("PATCHTunnel: Error generating vtun client config: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
-			return
-		}
+			err = vtun.GenerateAndSaveClient(config, db)
+			if err != nil {
+				fmt.Printf("PATCHTunnel: Error generating vtun client config: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
+				return
+			}
 
-		err = vtun.ReloadAllClients(db, vtunClientWatcher)
-		if err != nil {
-			fmt.Printf("PATCHTunnel: Error reloading vtun client: %v\n", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
-			return
+			err = vtun.ReloadAllClients(db, vtunClientWatcher)
+			if err != nil {
+				fmt.Printf("PATCHTunnel: Error reloading vtun client: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
+				return
+			}
+		} else {
+			if didChange {
+				if tunnel.WireguardPort == 0 {
+					tunnel.WireguardPort, err = models.GetNextWireguardPort(db)
+					if err != nil {
+						fmt.Printf("PATCHTunnel: Error getting next port: %v\n", err)
+						c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next port"})
+						return
+					}
+				}
+
+				err = vtun.GenerateAndSave(config, db)
+				if err != nil {
+					fmt.Printf("PATCHTunnel: Error generating vtun config: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
+					return
+				}
+
+				err = vtun.GenerateAndSaveClient(config, db)
+				if err != nil {
+					fmt.Printf("PATCHTunnel: Error generating vtun client config: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
+					return
+				}
+
+				err = vtun.ReloadAllClients(db, vtunClientWatcher)
+				if err != nil {
+					fmt.Printf("PATCHTunnel: Error reloading vtun client: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
+					return
+				}
+			}
+
+			err = wireguardManager.AddPeer(tunnel)
+			if err != nil {
+				fmt.Printf("PATCHTunnel: Error adding wireguard peer: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding wireguard peer"})
+				return
+			}
 		}
 
 		err = olsrd.GenerateAndSave(config, db)
@@ -540,6 +726,13 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
+	wireguardManager, ok := c.MustGet("WireguardManager").(*wireguard.Manager)
+	if !ok {
+		fmt.Println("DELETETunnel: Unable to get WireguardManager from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
 	idUint64, err := strconv.ParseUint(c.Param("id"), 10, 32)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid tunnel ID"})
@@ -557,6 +750,13 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
+	tunnel, err := models.FindTunnelByID(db, uint(idUint64))
+	if err != nil {
+		fmt.Printf("Error getting tunnel: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
+		return
+	}
+
 	err = models.DeleteTunnel(db, uint(idUint64))
 	if err != nil {
 		fmt.Printf("Error deleting tunnel: %v\n", err)
@@ -564,18 +764,27 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
-	err = vtun.GenerateAndSave(config, db)
-	if err != nil {
-		fmt.Printf("Error generating vtun config: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
-		return
-	}
+	if !tunnel.Wireguard {
+		err = vtun.GenerateAndSave(config, db)
+		if err != nil {
+			fmt.Printf("Error generating vtun config: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
+			return
+		}
 
-	err = vtun.GenerateAndSaveClient(config, db)
-	if err != nil {
-		fmt.Printf("DELETETunnel: Error generating vtun client config: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
-		return
+		err = vtun.GenerateAndSaveClient(config, db)
+		if err != nil {
+			fmt.Printf("DELETETunnel: Error generating vtun client config: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
+			return
+		}
+	} else {
+		err = wireguardManager.RemovePeer(tunnel)
+		if err != nil {
+			fmt.Printf("DELETETunnel: Error removing wireguard peer: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error removing wireguard peer"})
+			return
+		}
 	}
 
 	err = olsrd.GenerateAndSave(config, db)

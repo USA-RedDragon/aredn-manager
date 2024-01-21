@@ -173,7 +173,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 		ret += snippetOlsrdConfSupernode
 	}
 
-	tunnels, err := models.ListTunnels(db)
+	tunnels, err := models.ListVtunTunnels(db)
 	if err != nil {
 		panic(err)
 	}

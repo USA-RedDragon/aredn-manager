@@ -85,7 +85,7 @@ func GETSysinfo(c *gin.Context) {
 		return
 	}
 
-	activeTunnels, err := models.CountActiveTunnels(db)
+	activeTunnels, err := models.CountAllActiveTunnels(db)
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to get active tunnels: %v", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})

@@ -15,6 +15,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
+	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-contrib/sessions"
@@ -37,9 +38,10 @@ type Server struct {
 	stats             *bandwidth.StatCounterManager
 	eventsChannel     chan events.Event
 	vtunClientWatcher *vtun.VTunClientWatcher
+	wireguardManager  *wireguard.Manager
 }
 
-func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager, eventsChannel chan events.Event, vtunClientWatcher *vtun.VTunClientWatcher) *Server {
+func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager, eventsChannel chan events.Event, vtunClientWatcher *vtun.VTunClientWatcher, wireguardManager *wireguard.Manager) *Server {
 	return &Server{
 		config:            config,
 		db:                db,
@@ -47,6 +49,7 @@ func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterM
 		stats:             stats,
 		eventsChannel:     eventsChannel,
 		vtunClientWatcher: vtunClientWatcher,
+		wireguardManager:  wireguardManager,
 	}
 }
 
@@ -134,6 +137,7 @@ func (s *Server) addMiddleware(r *gin.Engine) {
 	r.Use(middleware.OLSRDProvider(olsrd.NewHostsParser()))
 	r.Use(middleware.OLSRDServicesProvider(olsrd.NewServicesParser()))
 	r.Use(middleware.VTunClientWatcherProvider(s.vtunClientWatcher))
+	r.Use(middleware.WireguardManagerProvider(s.wireguardManager))
 	r.Use(middleware.NetworkStats(s.stats))
 	r.Use(middleware.PaginatedDatabaseProvider(s.db, middleware.PaginationConfig{}))
 

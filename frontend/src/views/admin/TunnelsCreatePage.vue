@@ -5,6 +5,17 @@
       <Card>
         <template #title>Create Tunnel</template>
         <template #content>
+          <h3 class="card-section-header">Tunnel Type</h3>
+          <br/>
+          <div class="flex align-items-center card-section">
+            <RadioButton v-model="wireguard" inputId="wireguard1" name="wireguard" :value="false" />
+              <label for="wireguard1" class="ml-2">VTun</label>
+          </div>
+          <div class="flex align-items-center card-section">
+            <RadioButton v-model="wireguard" inputId="wireguard2" name="wireguard" :value="true" />
+            <label for="wireguard2" class="ml-2">Wireguard</label>
+          </div>
+          <br/>
           <h3 class="card-section-header">Connection Type</h3>
           <br/>
           <div class="flex align-items-center card-section">
@@ -53,7 +64,7 @@
             </span>
             <br />
           </div>
-          <div class="card-section" v-if="tunnelType == 'server'">
+          <div class="card-section" v-if="tunnelType == 'server' && !wireguard">
             <PVCheckbox
               id="generatepassword"
               :binary="true"
@@ -64,7 +75,7 @@
             <br v-if="!generatePassword" />
             <br v-if="!generatePassword" />
           </div>
-          <div class="card-section" v-else>
+          <div class="card-section" v-if="tunnelType == 'client'">
             <span class="p-float-label">
               <InputText
                 id="server"
@@ -133,7 +144,7 @@
             <br />
           </div>
           <div class="card-section">
-            <span class="p-float-label" v-if="!generatePassword || tunnelType=='client'">
+            <span class="p-float-label" v-if="(!wireguard && !generatePassword) || tunnelType=='client'">
               <InputText
                 id="password"
                 type="password"
@@ -143,9 +154,16 @@
                 }"
               />
               <label
+                v-if="!wireguard"
                 for="password"
                 :class="{ 'p-error': v$.password.$invalid && submitted }"
                 >Password</label
+              >
+              <label
+                v-else
+                for="password"
+                :class="{ 'p-error': v$.password.$invalid && submitted }"
+                >Key</label
               >
             </span>
             <span v-if="v$.password.$error && submitted">
@@ -168,7 +186,7 @@
             <br />
             </span>
           </div>
-          <div class="card-section" v-if="tunnelType == 'server'">
+          <div class="card-section" v-if="tunnelType == 'server' && !wireguard">
             <span class="p-float-label" v-if="!generatePassword">
               <InputText
                 id="confirmPassword"
@@ -248,6 +266,7 @@ export default {
   mounted() {},
   data: function() {
     return {
+      wireguard: false,
       hostname: '',
       server: '',
       network: '',
@@ -302,6 +321,9 @@ export default {
         password += characters.charAt(Math.floor(Math.random() * characters.length));
       }
       return password;
+    },
+    generatePrivateKey() {
+
     },
     handleSubmit(isFormValid) {
       this.submitted = true;

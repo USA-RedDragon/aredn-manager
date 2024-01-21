@@ -33,6 +33,20 @@
         <span v-else>{{slotProps.data.connection_time.fromNow()}}</span>
       </template>
     </Column>
+    <Column field="wireguard" header="Wireguard">
+      <template #body="slotProps">
+        <span v-if="slotProps.data.editing">
+          <PVCheckbox
+              :binary="true"
+              v-model="slotProps.data.wireguard"
+            />
+        </span>
+        <span v-else>
+          <PVBadge v-if="slotProps.data.wireguard" value="✔️"></PVBadge>
+          <PVBadge v-else value="✖️"></PVBadge>
+        </span>
+      </template>
+    </Column>
     <Column field="hostname" header="Name">
       <template #body="slotProps">
         <span v-if="slotProps.data.editing">
@@ -57,6 +71,14 @@
           </span>
         </span>
         <span v-else>{{slotProps.data.ip}}</span>
+      </template>
+    </Column>
+    <Column field="wireguard_port" header="Wireguard Port">
+      <template #body="slotProps">
+        <span v-if="slotProps.data.wireguard">
+          {{slotProps.data.wireguard_port}}
+        </span>
+        <span v-else>-</span>
       </template>
     </Column>
     <Column field="password" header="Password" v-if="$props.admin">
@@ -124,6 +146,7 @@
 <script>
 import Button from 'primevue/button';
 import Badge from 'primevue/badge';
+import Checkbox from 'primevue/checkbox';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import InputText from 'primevue/inputtext';
@@ -142,9 +165,18 @@ export default {
       type: Boolean,
       default: false,
     },
+    wireguard: {
+      type: Boolean,
+      default: false,
+    },
+    vtun: {
+      type: Boolean,
+      default: false,
+    },
   },
   components: {
     PVButton: Button,
+    PVCheckbox: Checkbox,
     DataTable,
     Column,
     PVBadge: Badge,
@@ -204,7 +236,8 @@ export default {
     },
     fetchData(page = 1, limit = 10) {
       this.loading = true;
-      API.get(`/tunnels?page=${page}&limit=${limit}&admin=${this.$props.admin}`)
+      API.get(`/tunnels?page=${page}&limit=${limit}&admin=${this.$props.admin}` +
+              `&type=${this.$props.wireguard ? 'wireguard' : 'vtun'}`)
         .then((res) => {
           if (!res.data.tunnels) {
             res.data.tunnels = [];
