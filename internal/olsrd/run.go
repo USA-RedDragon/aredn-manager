@@ -45,7 +45,7 @@ func Run(ctx context.Context) error {
 }
 
 func IsRunning() bool {
-	return olsrCmd != nil && olsrCmd.Process != nil && olsrCmd.ProcessState != nil && !olsrCmd.ProcessState.Exited()
+	return olsrCmd != nil && olsrCmd.Process != nil
 }
 
 func Reload() error {

@@ -45,7 +45,7 @@ func Run(ctx context.Context) error {
 }
 
 func IsRunning() bool {
-	return vtunCmd != nil && vtunCmd.Process != nil && vtunCmd.ProcessState != nil && !vtunCmd.ProcessState.Exited()
+	return vtunCmd != nil && vtunCmd.Process != nil
 }
 
 func Reload() error {
