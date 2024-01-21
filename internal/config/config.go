@@ -35,6 +35,7 @@ type Config struct {
 	strSessionSecret         string
 	SessionSecret            []byte
 	VTUNStartingAddress      string
+	WireguardStartingAddress string
 	PostgresDSN              string
 	postgresUser             string
 	postgresPassword         string

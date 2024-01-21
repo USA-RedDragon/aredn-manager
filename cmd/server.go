@@ -19,6 +19,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server"
 	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
+	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
 )
@@ -137,7 +138,10 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	vtunClientWatcher := vtun.NewVTunClientWatcher(db, config)
 	vtunClientWatcher.Run()
 
-	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher)
+	wireguardManager := wireguard.NewManager(ctx, db)
+	wireguardManager.Run()
+
+	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher, wireguardManager)
 	err = srv.Run()
 	if err != nil {
 		return err

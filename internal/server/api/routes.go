@@ -55,6 +55,10 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1VTun := group.Group("/vtun")
 	v1VTun.GET("/running", v1Controllers.GETVtunRunning)
 
+	v1Wireguard := group.Group("/wireguard")
+	v1Wireguard.GET("/genkey", v1Controllers.GETWireguardGenkey)
+	v1Wireguard.POST("/pubkey", v1Controllers.POSTWireguardPubkey)
+
 	v1DNS := group.Group("/dns")
 	v1DNS.GET("/running", v1Controllers.GETDNSRunning)
 
@@ -62,8 +66,10 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	// Paginated
 	v1Tunnels.GET("", v1Controllers.GETTunnels)
 	v1Tunnels.POST("", middleware.RequireLogin(config), v1Controllers.POSTTunnel)
-	v1Tunnels.GET("/count", v1Controllers.GETTunnelsCount)
-	v1Tunnels.GET("/count/connected", v1Controllers.GETTunnelsCountConnected)
+	v1Tunnels.GET("/vtun/count", v1Controllers.GETVTunTunnelsCount)
+	v1Tunnels.GET("/vtun/count/connected", v1Controllers.GETVTunTunnelsCountConnected)
+	v1Tunnels.GET("/wireguard/count", v1Controllers.GETWireguardTunnelsCount)
+	v1Tunnels.GET("/wireguard/count/connected", v1Controllers.GETWireguardTunnelsCountConnected)
 	// v1Tunnels.GET("/:id", v1Controllers.GETTunnel)
 	v1Tunnels.PATCH("", middleware.RequireLogin(config), v1Controllers.PATCHTunnel)
 	v1Tunnels.DELETE("/:id", middleware.RequireLogin(config), v1Controllers.DELETETunnel)

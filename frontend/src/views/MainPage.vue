@@ -30,7 +30,11 @@
         <template #title>Network Statistics</template>
         <template #content>
           <h3 style="font-weight: bold;">Tunnels Connected</h3>
-          <p>{{ tunnelsConnected }}/{{ totalTunnels }}</p>
+          <p><span style="font-weight: bold;">VTun:</span> {{ vtunTunnelsConnected }}/{{ totalVtunTunnels }}</p>
+          <p>
+            <span style="font-weight: bold;">Wireguard:</span>
+            {{ wireguardTunnelsConnected }}/{{ totalWireguardTunnels }}
+          </p>
           <br />
           <h3 style="font-weight: bold;">Current Bandwidth</h3>
           <p><span style="font-weight: bold;">RX:</span> {{ prettyBytes(stats.total_rx_bytes_per_sec) }}/s</p>
@@ -78,17 +82,19 @@ export default {
       vtundRunning: true,
       olsrdRunning: true,
       dnsRunning: true,
-      tunnelsConnected: 0,
-      totalTunnels: 0,
+      vtunTunnelsConnected: 0,
+      totalVtunTunnels: 0,
+      wireguardTunnelsConnected: 0,
+      totalWireguardTunnels: 0,
       stats: {},
     };
   },
   methods: {
     tunnelDisconnected(_) {
-      this.tunnelsConnected--;
+      this.vtunTunnelsConnected--;
     },
     tunnelConnected(_) {
-      this.tunnelsConnected++;
+      this.vtunTunnelsConnected++;
     },
     totalBandwidth(event) {
       if ('TX' in event) {
@@ -125,11 +131,17 @@ export default {
       API.get('/dns/running').then((res) => {
         this.dnsRunning = res.data.running;
       });
-      API.get('/tunnels/count/connected').then((res) => {
-        this.tunnelsConnected = res.data.count;
+      API.get('/tunnels/count/vtun/connected').then((res) => {
+        this.vtunTunnelsConnected = res.data.count;
       });
-      API.get('/tunnels/count').then((res) => {
-        this.totalTunnels = res.data.count;
+      API.get('/tunnels/count/vtun').then((res) => {
+        this.totalVtunTunnels = res.data.count;
+      });
+      API.get('/tunnels/count/wireguard/connected').then((res) => {
+        this.wireguardTunnelsConnected = res.data.count;
+      });
+      API.get('/tunnels/count/wireguard').then((res) => {
+        this.totalWireguardTunnels = res.data.count;
       });
       API.get('/stats').then((res) => {
         if (typeof res.data == 'string') {

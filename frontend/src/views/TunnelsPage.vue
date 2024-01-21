@@ -1,9 +1,16 @@
 <template>
   <div>
     <Card>
-      <template #title>Tunnels</template>
+      <template #title>VTun Tunnels</template>
       <template #content>
-        <TunnelsTable />
+        <TunnelsTable vtun />
+      </template>
+    </Card>
+    <br />
+    <Card>
+      <template #title>Wireguard Tunnels</template>
+      <template #content>
+        <TunnelsTable wireguard />
       </template>
     </Card>
   </div>

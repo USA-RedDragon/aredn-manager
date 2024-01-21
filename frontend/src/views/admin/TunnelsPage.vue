@@ -3,9 +3,16 @@
     <PVToast />
     <ConfirmDialog></ConfirmDialog>
     <Card>
-      <template #title>Manage Tunnels</template>
+      <template #title>VTun</template>
       <template #content>
-        <TunnelsTable admin />
+        <TunnelsTable admin vtun />
+      </template>
+    </Card>
+    <br />
+    <Card>
+      <template #title>Wireguard</template>
+      <template #content>
+        <TunnelsTable admin wireguard />
       </template>
     </Card>
   </div>

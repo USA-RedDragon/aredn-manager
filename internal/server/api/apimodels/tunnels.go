@@ -9,10 +9,11 @@ const minHostnameLength = 3
 const maxHostnameLength = 63
 
 type CreateTunnel struct {
-	Hostname string `json:"hostname" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	IP       string `json:"ip"`
-	Client   bool   `json:"client"`
+	Wireguard bool   `json:"wireguard" binding:"required"`
+	Hostname  string `json:"hostname" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	IP        string `json:"ip"`
+	Client    bool   `json:"client"`
 }
 
 func (r *CreateTunnel) IsValidHostname() (bool, string) {
@@ -30,6 +31,7 @@ func (r *CreateTunnel) IsValidHostname() (bool, string) {
 
 type TunnelWithPass struct {
 	ID             uint      `json:"id"`
+	Wireguard      bool      `json:"wireguard"`
 	Client         bool      `json:"client"`
 	Hostname       string    `json:"hostname"`
 	IP             string    `json:"ip"`
@@ -40,8 +42,9 @@ type TunnelWithPass struct {
 }
 
 type EditTunnel struct {
-	ID       uint   `json:"id" binding:"required"`
-	Hostname string `json:"hostname" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	IP       string `json:"ip" binding:"required"`
+	ID        uint   `json:"id" binding:"required"`
+	Wireguard bool   `json:"wireguard" binding:"required"`
+	Hostname  string `json:"hostname" binding:"required"`
+	Password  string `json:"password" binding:"required"`
+	IP        string `json:"ip" binding:"required"`
 }
