@@ -61,7 +61,7 @@
 </template>
 
 <script>
-import { FilterMatchMode, FilterOperator } from 'primevue/api';
+import { FilterMatchMode } from 'primevue/api';
 import Button from 'primevue/button';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
@@ -206,6 +206,8 @@ export default {
     },
     clearFilter() {
       this.initFilters();
+      this.loading = true;
+      this.fetchData();
     },
   },
   computed: {
