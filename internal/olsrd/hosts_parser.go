@@ -26,13 +26,24 @@ func (p *HostsParser) GetHostsCount() int {
 	return len(p.currentHosts)
 }
 
-func (p *HostsParser) GetHostsPaginated(page int, limit int) []*AREDNHost {
+func (p *HostsParser) GetHostsPaginated(page int, limit int, filter string) []*AREDNHost {
+	ret := []*AREDNHost{}
+	for _, host := range p.currentHosts {
+		filter = strings.ToLower(filter)
+		hostNameLower := strings.ToLower(host.Hostname)
+		if strings.Contains(hostNameLower, filter) {
+			ret = append(ret, host)
+		}
+	}
 	start := (page - 1) * limit
 	end := start + limit
-	if end > len(p.currentHosts) {
-		end = len(p.currentHosts)
+	if start > len(ret) {
+		return []*AREDNHost{}
 	}
-	return p.currentHosts[start:end]
+	if end > len(ret) {
+		end = len(ret)
+	}
+	return ret[start:end]
 }
 
 func (p *HostsParser) Parse() (err error) {

@@ -41,9 +41,14 @@ func GETOLSRHosts(c *gin.Context) {
 	}
 	limit := int(limitInt)
 
+	filter, exists := c.GetQuery("filter")
+	if !exists {
+		filter = ""
+	}
+
 	total := olsrdParser.GetHostsCount()
 
-	nodes := olsrdParser.GetHostsPaginated(page, limit)
+	nodes := olsrdParser.GetHostsPaginated(page, limit, filter)
 	c.JSON(http.StatusOK, gin.H{"nodes": nodes, "total": total})
 }
 

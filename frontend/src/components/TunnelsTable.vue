@@ -22,6 +22,8 @@
         </RouterLink>
       </div>
     </template>
+    <template #empty> No tunnels found. </template>
+    <template #loading> Loading tunnels, please wait. </template>
     <Column :expander="true" v-if="$props.admin" />
     <Column field="active" header="Connected">
       <template #body="slotProps">
