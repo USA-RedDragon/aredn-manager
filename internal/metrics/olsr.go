@@ -92,6 +92,7 @@ func OLSRWatcher(db *gorm.DB) {
 			time.Sleep(1 * time.Second)
 			continue
 		}
+		defer resp.Body.Close()
 		var links apimodels.OlsrdLinks
 		err = json.NewDecoder(resp.Body).Decode(&links)
 		if err != nil {
@@ -137,21 +138,21 @@ func OLSRWatcher(db *gorm.DB) {
 
 		go func() {
 			for _, iface := range foundInterfaces {
-				tunnel, err := models.FindTunnelByInterface(db, iface)
-				if err != nil {
-					fmt.Printf("OLSRWatcher: Unable to find tunnel by interface: %v\n", err)
-					continue
-				}
-				tunnel.Active = true
-				err = db.Save(&tunnel).Error
-				if err != nil {
-					fmt.Printf("OLSRWatcher: Unable to save tunnel: %v\n", err)
-					continue
+				if iface != "br0" {
+					tunnel, err := models.FindTunnelByInterface(db, iface)
+					if err != nil {
+						fmt.Printf("OLSRWatcher: Unable to find tunnel by interface: %v\n", err)
+						continue
+					}
+					tunnel.Active = true
+					err = db.Save(&tunnel).Error
+					if err != nil {
+						fmt.Printf("OLSRWatcher: Unable to save tunnel: %v\n", err)
+					}
 				}
 			}
 		}()
 
-		resp.Body.Close()
 		time.Sleep(1 * time.Second)
 	}
 }

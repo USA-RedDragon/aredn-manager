@@ -179,6 +179,7 @@ func (w *Watcher) reconcileDB() {
 		if iface.AssociatedTunnel != nil {
 			if !iface.AssociatedTunnel.Active {
 				fmt.Printf("Marking tunnel %s as active\n", iface.AssociatedTunnel.Hostname)
+				iface.AssociatedTunnel.Active = true
 				iface.AssociatedTunnel.TunnelInterface = iface.Name
 				iface.AssociatedTunnel.ConnectionTime = time.Now()
 				w.eventChannel <- events.Event{
