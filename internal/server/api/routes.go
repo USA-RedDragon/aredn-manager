@@ -62,6 +62,8 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	// Paginated
 	v1Tunnels.GET("", v1Controllers.GETTunnels)
 	v1Tunnels.POST("", middleware.RequireLogin(config), v1Controllers.POSTTunnel)
+	v1Tunnels.GET("/count", v1Controllers.GETTunnelsCount)
+	v1Tunnels.GET("/count/connected", v1Controllers.GETTunnelsCountConnected)
 	// v1Tunnels.GET("/:id", v1Controllers.GETTunnel)
 	v1Tunnels.PATCH("", middleware.RequireLogin(config), v1Controllers.PATCHTunnel)
 	v1Tunnels.DELETE("/:id", middleware.RequireLogin(config), v1Controllers.DELETETunnel)

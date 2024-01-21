@@ -125,20 +125,11 @@ export default {
       API.get('/dns/running').then((res) => {
         this.dnsRunning = res.data.running;
       });
-      API.get('/tunnels').then((res) => {
-        this.tunnelsConnected = 0;
-        if (typeof res.data == 'string') {
-          return;
-        }
-        if ('tunnels' in res.data == false || res.data.tunnels == undefined || res.data.tunnels == null) {
-          return;
-        }
-        for (const tunnel of res.data.tunnels) {
-          if (tunnel.active) {
-            this.tunnelsConnected++;
-          }
-        }
-        this.totalTunnels = res.data.total;
+      API.get('/tunnels/count/connected').then((res) => {
+        this.tunnelsConnected = res.data.count;
+      });
+      API.get('/tunnels/count').then((res) => {
+        this.totalTunnels = res.data.count;
       });
       API.get('/stats').then((res) => {
         if (typeof res.data == 'string') {

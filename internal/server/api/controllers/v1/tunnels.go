@@ -87,6 +87,42 @@ func GETTunnels(c *gin.Context) {
 	}
 }
 
+func GETTunnelsCount(c *gin.Context) {
+	db, ok := c.MustGet("DB").(*gorm.DB)
+	if !ok {
+		fmt.Printf("DB cast failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	count, err := models.CountTunnels(db)
+	if err != nil {
+		fmt.Printf("GETTunnelsCount: Error getting tunnel count: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
+func GETTunnelsCountConnected(c *gin.Context) {
+	db, ok := c.MustGet("DB").(*gorm.DB)
+	if !ok {
+		fmt.Printf("DB cast failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	count, err := models.CountActiveTunnels(db)
+	if err != nil {
+		fmt.Printf("GETTunnelsCountConnected: Error getting tunnel count: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
 func POSTTunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
