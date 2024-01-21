@@ -473,6 +473,13 @@ func PATCHTunnel(c *gin.Context) {
 			return
 		}
 
+		err = vtun.GenerateAndSave(config, db)
+		if err != nil {
+			fmt.Printf("PATCHTunnel: Error generating vtun config: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
+			return
+		}
+
 		err = vtun.GenerateAndSaveClient(config, db)
 		if err != nil {
 			fmt.Printf("PATCHTunnel: Error generating vtun client config: %v\n", err)
