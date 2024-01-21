@@ -123,6 +123,8 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	go metrics.OLSRWatcher(db)
+
 	eventBus := events.NewEventBus()
 	defer eventBus.Close()
 

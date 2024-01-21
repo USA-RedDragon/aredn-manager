@@ -46,7 +46,6 @@ func CreateMetricsServer(config *config.Config) {
 		config.ServerName,
 		"",
 	).Set(1)
-	go OLSRWatcher()
 	port := config.MetricsPort
 	if port != 0 {
 		http.Handle("/metrics", promhttp.Handler())

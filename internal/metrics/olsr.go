@@ -6,9 +6,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
+	"gorm.io/gorm"
 )
 
 var (
@@ -82,7 +84,7 @@ var (
 	}, []string{"device", "local_ip", "remote_ip"})
 )
 
-func OLSRWatcher() {
+func OLSRWatcher(db *gorm.DB) {
 	for {
 		resp, err := http.DefaultClient.Get("http://localhost:9090/links")
 		if err != nil {
@@ -99,7 +101,11 @@ func OLSRWatcher() {
 			continue
 		}
 
+		foundInterfaces := []string{}
+
 		for _, link := range links.Links {
+			foundInterfaces = append(foundInterfaces, link.OLSRInterface)
+
 			pending := 0
 			if link.Pending {
 				pending = 1
@@ -128,6 +134,22 @@ func OLSRWatcher() {
 			OLSRLinkValidityTime.WithLabelValues(link.OLSRInterface, link.LocalIP, link.RemoteIP).Set(float64(link.ValidityTime))
 			OLSRLinkVTime.WithLabelValues(link.OLSRInterface, link.LocalIP, link.RemoteIP).Set(float64(link.VTime))
 		}
+
+		go func() {
+			for _, iface := range foundInterfaces {
+				tunnel, err := models.FindTunnelByInterface(db, iface)
+				if err != nil {
+					fmt.Printf("OLSRWatcher: Unable to find tunnel by interface: %v\n", err)
+					continue
+				}
+				tunnel.Active = true
+				err = db.Save(&tunnel).Error
+				if err != nil {
+					fmt.Printf("OLSRWatcher: Unable to save tunnel: %v\n", err)
+					continue
+				}
+			}
+		}()
 
 		resp.Body.Close()
 		time.Sleep(1 * time.Second)
