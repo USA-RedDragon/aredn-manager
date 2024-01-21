@@ -156,6 +156,7 @@ func (w *Watcher) reconcileDB() {
 	for _, iface := range w.interfacesToMarkInactive {
 		if iface.AssociatedTunnel != nil {
 			fmt.Printf("Marking tunnel %s as inactive\n", iface.AssociatedTunnel.Hostname)
+			iface.AssociatedTunnel.Active = false
 			iface.AssociatedTunnel.TunnelInterface = ""
 			iface.AssociatedTunnel.RXBytesPerSec = 0
 			iface.AssociatedTunnel.TXBytesPerSec = 0
