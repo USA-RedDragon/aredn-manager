@@ -41,14 +41,15 @@ func (v *VTunClientWatcher) Run() {
 	go v.watch()
 }
 
-func (v *VTunClientWatcher) Stop() {
+func (v *VTunClientWatcher) Stop() error {
 	if !v.started {
-		return
+		return fmt.Errorf("vtun client watcher not started")
 	}
 	v.started = false
 	for _, cancel := range v.cancels {
 		cancel.cancel()
 	}
+	return nil
 }
 
 func (v *VTunClientWatcher) ReloadTunnel(id uint) {

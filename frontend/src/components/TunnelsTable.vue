@@ -33,20 +33,6 @@
         <span v-else>{{slotProps.data.connection_time.fromNow()}}</span>
       </template>
     </Column>
-    <Column field="wireguard" header="Wireguard">
-      <template #body="slotProps">
-        <span v-if="slotProps.data.editing">
-          <PVCheckbox
-              :binary="true"
-              v-model="slotProps.data.wireguard"
-            />
-        </span>
-        <span v-else>
-          <PVBadge v-if="slotProps.data.wireguard" value="✔️"></PVBadge>
-          <PVBadge v-else value="✖️"></PVBadge>
-        </span>
-      </template>
-    </Column>
     <Column field="hostname" header="Name">
       <template #body="slotProps">
         <span v-if="slotProps.data.editing">
@@ -73,7 +59,7 @@
         <span v-else>{{slotProps.data.ip}}</span>
       </template>
     </Column>
-    <Column field="wireguard_port" header="Wireguard Port">
+    <Column field="wireguard_port" header="Wireguard Port" v-if="$props.wireguard">
       <template #body="slotProps">
         <span v-if="slotProps.data.wireguard">
           {{slotProps.data.wireguard_port}}

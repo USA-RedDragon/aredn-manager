@@ -94,6 +94,9 @@ func Generate(config *config.Config, db *gorm.DB) string {
 
 	tun := 50
 	for _, tunnel := range tunnels {
+		if tunnel.Wireguard {
+			continue
+		}
 		ret += "\n\n"
 		// We need to replace shell variables in the template with the actual values
 		cpSnippetVtunConfTunnel := snippetVtunConfStandardTunnel

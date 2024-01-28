@@ -207,5 +207,39 @@ func Generate(config *config.Config, db *gorm.DB) string {
 		ret += cpSnippetOlsrdConfTunnel
 	}
 
+	tunnels, err = models.ListWireguardTunnels(db)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(tunnels) > 0 {
+		server_tun := 0
+		client_tun := 0
+		tunnelString := ""
+		for tunnelNumber := 0; tunnelNumber < len(tunnels); tunnelNumber++ {
+			tunnel := tunnels[tunnelNumber]
+			if tunnel.Client {
+				tunnelString += "\"wgc" + fmt.Sprintf("%d", client_tun) + "\""
+				client_tun++
+			} else {
+				tunnelString += "\"wgs" + fmt.Sprintf("%d", server_tun) + "\""
+				server_tun++
+			}
+			if tunnelNumber != len(tunnels)-1 {
+				tunnelString += " "
+			}
+		}
+
+		ret += "\n\n"
+		cpSnippetOlsrdConfTunnel := snippetOlsrdConfTunnel
+		utils.ShellReplace(
+			&cpSnippetOlsrdConfTunnel,
+			map[string]string{
+				"IFACES": tunnelString,
+			},
+		)
+		ret += cpSnippetOlsrdConfTunnel
+	}
+
 	return ret
 }

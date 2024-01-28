@@ -2,6 +2,7 @@ package wireguard
 
 import (
 	"context"
+	"log"
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
@@ -28,8 +29,17 @@ func NewManager(ctx context.Context, db *gorm.DB) *Manager {
 	}
 }
 
-func (m *Manager) Run() {
+func (m *Manager) Run() error {
 	go m.run()
+	return m.initializeTunnels()
+}
+
+func (m *Manager) initializeTunnels() error {
+	tunnels, err := models.ListWireguardTunnels(m.db)
+	for _, tunnel := range tunnels {
+		m.peerAddChan <- tunnel
+	}
+	return err
 }
 
 func (m *Manager) run() {
@@ -51,11 +61,13 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	// Create a new wireguard interface listening on the port from the peer tunnel
 	// If the peer is a client, then the password is the public key of the client
 	// If the peer is a server, then the password is the private key of the server
-	// TODO: remove peer
+	// TODO: add peer
+	log.Println("adding peer", peer)
 }
 
 func (m *Manager) removePeer(peer models.Tunnel) {
 	// TODO: remove peer
+	log.Println("removing peer", peer)
 }
 
 func (m *Manager) peerExists(peer models.Tunnel) bool {

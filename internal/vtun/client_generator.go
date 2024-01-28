@@ -75,6 +75,9 @@ func GenerateAndSaveClient(config *config.Config, db *gorm.DB) error {
 
 	tun := 100
 	for _, tunnel := range tunnels {
+		if tunnel.Wireguard {
+			continue
+		}
 		dashedNet := strings.ReplaceAll(tunnel.IP, ".", "-")
 		hn := strings.ReplaceAll(tunnel.Hostname, ":", "-") + "-" + dashedNet
 		if tunnelMapping[hn] == (tunnelInfo{}) {
