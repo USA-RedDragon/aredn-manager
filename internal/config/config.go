@@ -16,9 +16,7 @@ import (
 // Config stores the application configuration.
 type Config struct {
 	Debug                    bool
-	PIDFile                  string
 	Port                     int
-	Daemonize                bool
 	PasswordSalt             string
 	OTLPEndpoint             string
 	InitialAdminUserPassword string
@@ -70,9 +68,7 @@ func loadConfig() Config {
 
 	tmpConfig := Config{
 		Debug:                    os.Getenv("DEBUG") != "",
-		PIDFile:                  os.Getenv("PID_FILE"),
 		Port:                     int(httpPort),
-		Daemonize:                os.Getenv("NO_DAEMON") == "",
 		PasswordSalt:             os.Getenv("PASSWORD_SALT"),
 		OTLPEndpoint:             os.Getenv("OTLP_ENDPOINT"),
 		InitialAdminUserPassword: os.Getenv("INIT_ADMIN_USER_PASSWORD"),
@@ -103,10 +99,6 @@ func loadConfig() Config {
 
 	if net.ParseIP(tmpConfig.VTUNStartingAddress) == nil {
 		panic("VTUN starting address is not a valid IP address")
-	}
-
-	if tmpConfig.PIDFile == "" {
-		tmpConfig.PIDFile = "/var/run/aredn-manager.pid"
 	}
 
 	if tmpConfig.Supernode && tmpConfig.SupernodeZone == "" {
@@ -199,19 +191,9 @@ func GetConfig(cmd *cobra.Command) *Config {
 			currentConfig.Debug = debug
 		}
 
-		pidFile, err := cmd.Flags().GetString("pid-file")
-		if err == nil && pidFile != "" {
-			currentConfig.PIDFile = pidFile
-		}
-
 		port, err := cmd.Flags().GetInt("port")
 		if err == nil && port > 0 && port < 65535 {
 			currentConfig.Port = port
-		}
-
-		daemonize, err := cmd.Flags().GetBool("no-daemon")
-		if err == nil && daemonize {
-			currentConfig.Daemonize = false
 		}
 	}
 
@@ -225,9 +207,7 @@ func GetConfig(cmd *cobra.Command) *Config {
 // ToString returns a string representation of the configuration
 func (config *Config) ToString() string {
 	return "Debug: " + strconv.FormatBool(config.Debug) + "\n" +
-		"PIDFile: " + config.PIDFile + "\n" +
 		"Port: " + strconv.Itoa(config.Port) + "\n" +
-		"Daemonize: " + strconv.FormatBool(config.Daemonize) + "\n" +
 		"PasswordSalt: " + config.PasswordSalt + "\n" +
 		"OTLPEndpoint: " + config.OTLPEndpoint + "\n" +
 		"InitialAdminUserPassword: " + config.InitialAdminUserPassword + "\n" +
