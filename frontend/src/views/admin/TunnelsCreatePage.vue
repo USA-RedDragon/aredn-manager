@@ -249,7 +249,7 @@ import RadioButton from 'primevue/radiobutton';
 import API from '@/services/API';
 
 import { useVuelidate } from '@vuelidate/core';
-import { required, sameAs, requiredIf, minLength, maxLength, ipAddress } from '@vuelidate/validators';
+import { sameAs, requiredIf, minLength, maxLength, ipAddress } from '@vuelidate/validators';
 
 export default {
   components: {

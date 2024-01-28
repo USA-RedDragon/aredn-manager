@@ -132,7 +132,6 @@
 <script>
 import Button from 'primevue/button';
 import Badge from 'primevue/badge';
-import Checkbox from 'primevue/checkbox';
 import Column from 'primevue/column';
 import DataTable from 'primevue/datatable';
 import InputText from 'primevue/inputtext';
@@ -162,7 +161,6 @@ export default {
   },
   components: {
     PVButton: Button,
-    PVCheckbox: Checkbox,
     DataTable,
     Column,
     PVBadge: Badge,

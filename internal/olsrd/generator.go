@@ -179,17 +179,17 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	}
 
 	if len(tunnels) > 0 {
-		server_tun := 50
-		client_tun := 100
+		serverTun := 50
+		clientTun := 100
 		tunnelString := ""
 		for tunnelNumber := 0; tunnelNumber < len(tunnels); tunnelNumber++ {
 			tunnel := tunnels[tunnelNumber]
 			if tunnel.Client {
-				tunnelString += "\"tun" + fmt.Sprintf("%d", client_tun) + "\""
-				client_tun++
+				tunnelString += "\"tun" + fmt.Sprintf("%d", clientTun) + "\""
+				clientTun++
 			} else {
-				tunnelString += "\"tun" + fmt.Sprintf("%d", server_tun) + "\""
-				server_tun++
+				tunnelString += "\"tun" + fmt.Sprintf("%d", serverTun) + "\""
+				serverTun++
 			}
 			if tunnelNumber != len(tunnels)-1 {
 				tunnelString += " "
@@ -213,17 +213,17 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	}
 
 	if len(tunnels) > 0 {
-		server_tun := 0
-		client_tun := 0
+		serverTun := 0
+		clientTun := 0
 		tunnelString := ""
 		for tunnelNumber := 0; tunnelNumber < len(tunnels); tunnelNumber++ {
 			tunnel := tunnels[tunnelNumber]
 			if tunnel.Client {
-				tunnelString += "\"wgc" + fmt.Sprintf("%d", client_tun) + "\""
-				client_tun++
+				tunnelString += "\"wgc" + fmt.Sprintf("%d", clientTun) + "\""
+				clientTun++
 			} else {
-				tunnelString += "\"wgs" + fmt.Sprintf("%d", server_tun) + "\""
-				server_tun++
+				tunnelString += "\"wgs" + fmt.Sprintf("%d", serverTun) + "\""
+				serverTun++
 			}
 			if tunnelNumber != len(tunnels)-1 {
 				tunnelString += " "
