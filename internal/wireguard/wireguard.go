@@ -9,6 +9,7 @@ import (
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"golang.org/x/sync/errgroup"
+	"golang.zx2c4.com/wireguard/wgctrl"
 	"gorm.io/gorm"
 )
 
@@ -23,9 +24,14 @@ type Manager struct {
 	shutdownChan          chan struct{}
 	shutdownConfirmChan   chan struct{}
 	activePeers           sync.Map
+	wgClient              *wgctrl.Client
 }
 
-func NewManager(db *gorm.DB) *Manager {
+func NewManager(db *gorm.DB) (*Manager, error) {
+	wgClient, err := wgctrl.New()
+	if err != nil {
+		return nil, err
+	}
 	return &Manager{
 		db:                    db,
 		peerAddChan:           make(chan models.Tunnel),
@@ -35,7 +41,8 @@ func NewManager(db *gorm.DB) *Manager {
 		shutdownChan:          make(chan struct{}),
 		shutdownConfirmChan:   make(chan struct{}),
 		activePeers:           sync.Map{},
-	}
+		wgClient:              wgClient,
+	}, nil
 }
 
 func (m *Manager) Run() error {
@@ -72,10 +79,18 @@ func (m *Manager) Stop() error {
 
 func (m *Manager) initializeTunnels() error {
 	tunnels, err := models.ListWireguardTunnels(m.db)
-	for _, tunnel := range tunnels {
-		m.peerAddChan <- tunnel
+	if err != nil {
+		return err
 	}
-	return err
+	errGroup := &errgroup.Group{}
+	for _, tunnel := range tunnels {
+		tunnel := tunnel
+		errGroup.Go(func() error {
+			return m.AddPeer(tunnel)
+		})
+	}
+
+	return errGroup.Wait()
 }
 
 func (m *Manager) run() {
@@ -102,6 +117,12 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	// If the peer is a server, then the password is the private key of the server
 	// TODO: add peer
 	log.Println("adding peer", peer)
+
+	// if peer.WireguardServerKey != "" {
+	// 	m.wgClient.ConfigureDevice(fmt.Sprintf("wgs%d", serverNum), wgtypes.Config{})
+	// } else {
+	// 	m.wgClient.ConfigureDevice(fmt.Sprintf("wgc%d", clientNum), wgtypes.Config{})
+	// }
 
 	m.activePeers.Store(peer.ID, peer)
 
