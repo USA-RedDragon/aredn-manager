@@ -95,7 +95,10 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	vtunClientWatcher.Run()
 
 	// Start the wireguard manager
-	wireguardManager := wireguard.NewManager(db)
+	wireguardManager, err := wireguard.NewManager(db)
+	if err != nil {
+		return err
+	}
 	err = wireguardManager.Run()
 	if err != nil {
 		return err
