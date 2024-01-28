@@ -10,25 +10,26 @@ import (
 )
 
 type Tunnel struct {
-	ID              uint           `json:"id" gorm:"primaryKey"`
-	Hostname        string         `json:"hostname" binding:"required"`
-	IP              string         `json:"ip" binding:"required"`
-	Password        string         `json:"-" binding:"required"`
-	Active          bool           `json:"active"`
-	Client          bool           `json:"client"`
-	TunnelInterface string         `json:"-"`
-	RXBytes         uint64         `json:"rx_bytes"`
-	TXBytes         uint64         `json:"tx_bytes"`
-	TotalRXMB       float64        `json:"total_rx_mb"`
-	TotalTXMB       float64        `json:"total_tx_mb"`
-	RXBytesPerSec   uint64         `json:"rx_bytes_per_sec"`
-	TXBytesPerSec   uint64         `json:"tx_bytes_per_sec"`
-	Wireguard       bool           `json:"wireguard" gorm:"default:false"`
-	WireguardPort   uint16         `json:"wireguard_port"`
-	ConnectionTime  time.Time      `json:"connection_time"`
-	CreatedAt       time.Time      `json:"created_at"`
-	UpdatedAt       time.Time      `json:"-"`
-	DeletedAt       gorm.DeletedAt `json:"-" gorm:"index"`
+	ID                 uint           `json:"id" gorm:"primaryKey"`
+	Hostname           string         `json:"hostname" binding:"required"`
+	IP                 string         `json:"ip" binding:"required"`
+	Password           string         `json:"-" binding:"required"`
+	Active             bool           `json:"active"`
+	Client             bool           `json:"client"`
+	TunnelInterface    string         `json:"-"`
+	RXBytes            uint64         `json:"rx_bytes"`
+	TXBytes            uint64         `json:"tx_bytes"`
+	TotalRXMB          float64        `json:"total_rx_mb"`
+	TotalTXMB          float64        `json:"total_tx_mb"`
+	RXBytesPerSec      uint64         `json:"rx_bytes_per_sec"`
+	TXBytesPerSec      uint64         `json:"tx_bytes_per_sec"`
+	Wireguard          bool           `json:"wireguard" gorm:"default:false"`
+	WireguardServerKey string         `json:"wireguard_server_key"`
+	WireguardPort      uint16         `json:"wireguard_port"`
+	ConnectionTime     time.Time      `json:"connection_time"`
+	CreatedAt          time.Time      `json:"created_at"`
+	UpdatedAt          time.Time      `json:"-"`
+	DeletedAt          gorm.DeletedAt `json:"-" gorm:"index"`
 }
 
 func TunnelIDExists(db *gorm.DB, id uint) (bool, error) {
@@ -58,6 +59,12 @@ func FindTunnelByIP(db *gorm.DB, ip net.IP) (Tunnel, error) {
 func ListVtunTunnels(db *gorm.DB) ([]Tunnel, error) {
 	var tunnels []Tunnel
 	err := db.Not("wireguard = ?", true).Order("id asc").Find(&tunnels).Error
+	return tunnels, err
+}
+
+func ListAllTunnels(db *gorm.DB) ([]Tunnel, error) {
+	var tunnels []Tunnel
+	err := db.Order("id asc").Find(&tunnels).Error
 	return tunnels, err
 }
 

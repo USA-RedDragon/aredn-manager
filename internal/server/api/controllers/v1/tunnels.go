@@ -224,7 +224,7 @@ func POSTTunnel(c *gin.Context) {
 		fmt.Printf("POSTTunnel: JSON data is invalid: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON data is invalid"})
 	} else {
-		if json.Password == "" {
+		if (!json.Wireguard || json.Client) && json.Password == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Password cannot be empty"})
 			return
 		}
@@ -239,7 +239,7 @@ func POSTTunnel(c *gin.Context) {
 
 			// Check if the hostname is already taken
 			var tunnel models.Tunnel
-			err := db.Find(&tunnel, "hostname = ?", json.Hostname).Error
+			err := db.Find(&tunnel, "hostname = ? AND wireguard = ?", json.Hostname, json.Wireguard).Error
 			if err != nil {
 				fmt.Printf("POSTTunnel: Error getting tunnel: %v\n", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
@@ -277,12 +277,22 @@ func POSTTunnel(c *gin.Context) {
 					return
 				}
 
-				// Check if the password (wireguard private key) is valid
-				_, err = wgtypes.ParseKey(json.Password)
+				// Generate a server and client key pair
+				serverKey, err := wgtypes.GeneratePrivateKey()
 				if err != nil {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid wireguard private key"})
+					fmt.Printf("POSTTunnel: Error generating server key: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating server key"})
 					return
 				}
+				clientKey, err := wgtypes.GeneratePrivateKey()
+				if err != nil {
+					fmt.Printf("POSTTunnel: Error generating client key: %v\n", err)
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating client key"})
+					return
+				}
+
+				tunnel.Password = serverKey.PublicKey().String() + clientKey.String() + clientKey.PublicKey().String()
+				tunnel.WireguardServerKey = serverKey.String()
 			}
 
 			err = db.Create(&tunnel).Error
@@ -320,14 +330,29 @@ func POSTTunnel(c *gin.Context) {
 				return
 			}
 
-			// Check to ensure the IP is valid
-			if net.ParseIP(json.IP) == nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "IP is not a valid IP address"})
-				return
+			if json.Wireguard {
+				// json.Hostname must not contain a port
+				if strings.Contains(json.Hostname, ":") {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is invalid"})
+					return
+				}
+
+				// json.IP must contain a port that needs to be appended to the hostname instead
+				ipParts := strings.Split(json.IP, ":")
+				if len(ipParts) != 2 {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Net is invalid"})
+					return
+				}
+				json.Hostname = json.Hostname + ":" + ipParts[1]
+				json.IP = ipParts[0]
 			}
 
 			// Check to ensure the IP is in the correct range: 172.16.0.0/12
 			ip := net.ParseIP(json.IP)
+			if ip == nil {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "IP is not a valid IP address"})
+				return
+			}
 			_, cidr, err := net.ParseCIDR("172.16.0.0/12")
 			if err != nil {
 				fmt.Printf("POSTTunnel: Error parsing CIDR: %v\n", err)
@@ -403,10 +428,28 @@ func POSTTunnel(c *gin.Context) {
 			}
 
 			if tunnel.Wireguard {
-				// Check if the password (wireguard public key) is valid
-				_, err = wgtypes.ParseKey(json.Password)
+				// The password will be 3 wireguard keys concatenated together
+				// <server_pubkey><client_privkey><client_pubkey>
+				if len(json.Password) != 132 {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Key is invalid"})
+					return
+				}
+				serverPubkey := json.Password[:44]
+				_, err := wgtypes.ParseKey(serverPubkey)
 				if err != nil {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid wireguard public key"})
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Key is invalid"})
+					return
+				}
+				clientPrivkey := json.Password[44:88]
+				_, err = wgtypes.ParseKey(clientPrivkey)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Key is invalid"})
+					return
+				}
+				clientPubkey := json.Password[88:]
+				_, err = wgtypes.ParseKey(clientPubkey)
+				if err != nil {
+					c.JSON(http.StatusBadRequest, gin.H{"error": "Key is invalid"})
 					return
 				}
 			}
@@ -593,15 +636,16 @@ func PATCHTunnel(c *gin.Context) {
 			return
 		}
 
+		origTunnel := tunnel
+
 		tunnel.Hostname = json.Hostname
 		tunnel.Password = json.Password
 		tunnel.IP = json.IP
 
-		didChange := false
 		if tunnel.Wireguard != json.Wireguard {
-			didChange = true
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Changing tunnel type not allowed"})
+			return
 		}
-		tunnel.Wireguard = json.Wireguard
 
 		err = db.Save(&tunnel).Error
 		if err != nil {
@@ -611,14 +655,6 @@ func PATCHTunnel(c *gin.Context) {
 		}
 
 		if !tunnel.Wireguard {
-			if didChange {
-				err = wireguardManager.RemovePeer(tunnel)
-				if err != nil {
-					fmt.Printf("PATCHTunnel: Error removing wireguard peer: %v\n", err)
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error removing wireguard peer"})
-					return
-				}
-			}
 			err = vtun.GenerateAndSave(config, db)
 			if err != nil {
 				fmt.Printf("PATCHTunnel: Error generating vtun config: %v\n", err)
@@ -640,36 +676,11 @@ func PATCHTunnel(c *gin.Context) {
 				return
 			}
 		} else {
-			if didChange {
-				if tunnel.WireguardPort == 0 {
-					tunnel.WireguardPort, err = models.GetNextWireguardPort(db)
-					if err != nil {
-						fmt.Printf("PATCHTunnel: Error getting next port: %v\n", err)
-						c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next port"})
-						return
-					}
-				}
-
-				err = vtun.GenerateAndSave(config, db)
-				if err != nil {
-					fmt.Printf("PATCHTunnel: Error generating vtun config: %v\n", err)
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun config"})
-					return
-				}
-
-				err = vtun.GenerateAndSaveClient(config, db)
-				if err != nil {
-					fmt.Printf("PATCHTunnel: Error generating vtun client config: %v\n", err)
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating vtun client config"})
-					return
-				}
-
-				err = vtun.ReloadAllClients(db, vtunClientWatcher)
-				if err != nil {
-					fmt.Printf("PATCHTunnel: Error reloading vtun client: %v\n", err)
-					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
-					return
-				}
+			err = wireguardManager.RemovePeer(origTunnel)
+			if err != nil {
+				fmt.Printf("PATCHTunnel: Error adding wireguard peer: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding wireguard peer"})
+				return
 			}
 
 			err = wireguardManager.AddPeer(tunnel)

@@ -285,11 +285,11 @@ export default {
         maxLength: maxLength(63),
       },
       password: {
-        required,
+        required: requiredIf(!this.wireguard || this.tunnelType == 'client'),
         minLength: minLength(3),
       },
       confirmPassword: {
-        required: requiredIf(this.tunnelType == 'server'),
+        required: requiredIf(!this.wireguard && this.tunnelType == 'server'),
         sameAs: sameAs(this.password),
       },
       server: {
@@ -322,14 +322,6 @@ export default {
       }
       return password;
     },
-    async generatePrivateKey() {
-      try {
-        const res = await API.get('/wireguard/genkey');
-        return res.data.key;
-      } catch (err) {
-        console.error(err);
-      }
-    },
     handleSubmit(isFormValid) {
       this.submitted = true;
       if (!isFormValid && this.v$.$errors.length > 0) {
@@ -337,47 +329,93 @@ export default {
       }
 
       if (this.tunnelType == 'client') {
-        // parse server address as a hostname and optional port
-        const serverParts = this.server.split(':');
-        if (serverParts.length > 2) {
-          this.$toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Server Address must be in the format hostname:port',
-            life: 3000,
-          });
-          return;
-        }
-
-        if (serverParts[0].length > 253) {
-          this.$toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Server Address must be less than 254 characters',
-            life: 3000,
-          });
-          return;
-        }
-
-        if (!/^[A-Za-z0-9-\\.]+$/.test(serverParts[0])) {
-          this.$toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Server Address hostname must be alphanumeric, \'.\', or \'-\'',
-            life: 3000,
-          });
-          return;
-        }
-
-        if (serverParts.length == 2) {
-          if (serverParts[1] < 1 || serverParts[1] > 65535) {
+        if (this.wireguard) {
+          // parse server address as a hostname and optional port
+          const networkParts = this.network.split(':');
+          if (networkParts.length > 2) {
             this.$toast.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Server Address port must be between 1 and 65535',
+              detail: 'Network must be in the format hostname:port',
               life: 3000,
             });
             return;
+          }
+
+          if (networkParts[0].length > 253) {
+            this.$toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Network must be less than 254 characters',
+              life: 3000,
+            });
+            return;
+          }
+
+          if (!/^[A-Za-z0-9-\\.]+$/.test(networkParts[0])) {
+            this.$toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Network hostname must be alphanumeric, \'.\', or \'-\'',
+              life: 3000,
+            });
+            return;
+          }
+
+          if (networkParts.length == 2) {
+            if (networkParts[1] < 1 || networkParts[1] > 65535) {
+              this.$toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Network port must be between 1 and 65535',
+                life: 3000,
+              });
+              return;
+            }
+          }
+        } else {
+          // parse server address as a hostname and optional port
+          const serverParts = this.server.split(':');
+          if (serverParts.length > 2) {
+            this.$toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Server Address must be in the format hostname:port',
+              life: 3000,
+            });
+            return;
+          }
+
+          if (serverParts[0].length > 253) {
+            this.$toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Server Address must be less than 254 characters',
+              life: 3000,
+            });
+            return;
+          }
+
+          if (!/^[A-Za-z0-9-\\.]+$/.test(serverParts[0])) {
+            this.$toast.add({
+              severity: 'error',
+              summary: 'Error',
+              detail: 'Server Address hostname must be alphanumeric, \'.\', or \'-\'',
+              life: 3000,
+            });
+            return;
+          }
+
+          if (serverParts.length == 2) {
+            if (serverParts[1] < 1 || serverParts[1] > 65535) {
+              this.$toast.add({
+                severity: 'error',
+                summary: 'Error',
+                detail: 'Server Address port must be between 1 and 65535',
+                life: 3000,
+              });
+              return;
+            }
           }
         }
 
@@ -386,6 +424,7 @@ export default {
           password: this.password.trim(),
           ip: this.network.trim(),
           client: true,
+          wireguard: this.wireguard,
         })
           .then((res) => {
             this.$toast.add({
@@ -415,7 +454,7 @@ export default {
             }
           });
       } else if (this.tunnelType == 'server') {
-        if (this.confirmPassword != this.password) {
+        if (!this.wireguard && this.confirmPassword != this.password) {
           this.$toast.add({
             severity: 'error',
             summary: 'Error',
@@ -425,15 +464,6 @@ export default {
           return;
         }
 
-        if (this.hostname.length < 3) {
-          this.$toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: 'Hostname must be at least 3 characters',
-            life: 3000,
-          });
-          return;
-        }
 
         if (this.hostname.length > 63) {
           this.$toast.add({
@@ -455,38 +485,84 @@ export default {
           return;
         }
 
-        API.post('/tunnels', {
-          hostname: this.hostname.trim(),
-          password: this.password.trim(),
-          client: false,
-        })
-          .then((res) => {
-            this.$toast.add({
-              severity: 'success',
-              summary: 'Success',
-              detail: res.data.message,
-              life: 3000,
-            });
-            this.$router.push('/admin/tunnels');
-          })
-          .catch((err) => {
-            console.error(err);
-            if (err.response && err.response.data && err.response.data.error) {
-              this.$toast.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: err.response.data.error,
-                life: 3000,
-              });
-            } else {
-              this.$toast.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'An unknown error occurred',
-                life: 3000,
-              });
-            }
+        if (this.hostname.length < 3) {
+          this.$toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Hostname must be at least 3 characters',
+            life: 3000,
           });
+          return;
+        }
+
+        if (this.wireguard) {
+          API.post('/tunnels', {
+            hostname: this.hostname.trim(),
+            client: false,
+            wireguard: true,
+          })
+            .then((res) => {
+              this.$toast.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: res.data.message,
+                life: 3000,
+              });
+              this.$router.push('/admin/tunnels');
+            })
+            .catch((err) => {
+              console.error(err);
+              if (err.response && err.response.data && err.response.data.error) {
+                this.$toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: err.response.data.error,
+                  life: 3000,
+                });
+              } else {
+                this.$toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: 'An unknown error occurred',
+                  life: 3000,
+                });
+              }
+            });
+        } else {
+          API.post('/tunnels', {
+            hostname: this.hostname.trim(),
+            password: this.password.trim(),
+            wireguard: false,
+            client: false,
+          })
+            .then((res) => {
+              this.$toast.add({
+                severity: 'success',
+                summary: 'Success',
+                detail: res.data.message,
+                life: 3000,
+              });
+              this.$router.push('/admin/tunnels');
+            })
+            .catch((err) => {
+              console.error(err);
+              if (err.response && err.response.data && err.response.data.error) {
+                this.$toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: err.response.data.error,
+                  life: 3000,
+                });
+              } else {
+                this.$toast.add({
+                  severity: 'error',
+                  summary: 'Error',
+                  detail: 'An unknown error occurred',
+                  life: 3000,
+                });
+              }
+            });
+        }
       }
     },
   },
