@@ -40,9 +40,10 @@ func GETTunnels(c *gin.Context) {
 		typeStr = "vtun"
 	}
 
-	tunnels := []models.Tunnel{}
-	total := 0
-	if typeStr == "vtun" {
+	var tunnels []models.Tunnel
+	var total int
+	switch typeStr {
+	case "vtun":
 		var err error
 		tunnels, err = models.ListVtunTunnels(db)
 		if err != nil {
@@ -56,7 +57,7 @@ func GETTunnels(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 			return
 		}
-	} else if typeStr == "wireguard" {
+	case "wireguard":
 		var err error
 		tunnels, err = models.ListWireguardTunnels(db)
 		if err != nil {
@@ -70,7 +71,7 @@ func GETTunnels(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 			return
 		}
-	} else {
+	default:
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid type"})
 		return
 	}
