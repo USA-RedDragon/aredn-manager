@@ -46,7 +46,10 @@ func (m *Manager) Run() error {
 func (m *Manager) removeAllPeers() error {
 	errGroup := &errgroup.Group{}
 	m.activePeers.Range(func(key, value interface{}) bool {
-		peer := value.(models.Tunnel)
+		peer, ok := value.(models.Tunnel)
+		if !ok {
+			return true
+		}
 		errGroup.Go(func() error {
 			return m.RemovePeer(peer)
 		})
