@@ -109,14 +109,15 @@ func (s *Server) run() {
 	}()
 }
 
-func (s *Server) Stop() {
+func (s *Server) Stop() error {
 	const timeout = 5 * time.Second
 	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	if err := s.server.Shutdown(ctx); err != nil {
-		fmt.Printf("Failed to shutdown HTTP server: %s", err)
+		return fmt.Errorf("failed to shutdown HTTP server: %w", err)
 	}
 	<-s.shutdownChannel
+	return nil
 }
 
 func (s *Server) addMiddleware(r *gin.Engine) {

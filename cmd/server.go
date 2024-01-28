@@ -5,10 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
-	"sync"
 	"syscall"
-	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db"
@@ -22,6 +19,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
+	"golang.org/x/sync/errgroup"
 )
 
 //nolint:golint,gochecknoglobals
@@ -46,62 +44,13 @@ func init() {
 func runServer(cmd *cobra.Command, _ []string) error {
 	config := config.GetConfig(cmd)
 
-	// Check if the PID file exists
-	if _, err := os.Stat(config.PIDFile); err == nil {
-		// Read the PID file
-		pidBytes, err := os.ReadFile(config.PIDFile)
-		if err != nil {
-			return err
-		}
-		pidStr := string(pidBytes)
-		pid, err := strconv.ParseInt(pidStr, 10, 64)
-		if err != nil {
-			return err
-		}
-
-		// Check if the PID is running
-		if process, err := os.FindProcess(int(pid)); err == nil {
-			// Workaround since FindProcess doesn't actually check if the process is running
-			err := process.Signal(syscall.Signal(0))
-			if err == nil {
-				return fmt.Errorf("only one instance of the daemon can be running at a time")
-			}
-		}
-	}
-
-	if config.Daemonize {
-		// Fork a child process that runs this same command, but with --no-daemon
-		// The child process will write its PID to the PID file and start the server
-		//nolint:golint,gosec
-		_, err := syscall.ForkExec(os.Args[0], append(os.Args, "--no-daemon"),
-			&syscall.ProcAttr{
-				Env: os.Environ(),
-				Sys: &syscall.SysProcAttr{
-					Setsid: true,
-				},
-				Files: []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()},
-			},
-		)
-		if err != nil {
-			return err
-		}
-		fmt.Println("aredn-manager daemon started")
-		return nil
-	}
-	// Write the current PID to the PID file
-	pidStr := fmt.Sprintf("%d", os.Getpid())
-	//nolint:golint,gosec
-	err := os.WriteFile(config.PIDFile, []byte(pidStr), 0644)
-	if err != nil {
-		return err
-	}
-
 	// Start the server
 	fmt.Println("starting server")
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
+	// Run olsrd and vtun
 	go func() {
 		err := olsrd.Run(ctx)
 		if err != nil {
@@ -116,95 +65,76 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		}
 	}()
 
+	// Start the metrics server
 	go metrics.CreateMetricsServer(config)
 
 	db := db.MakeDB(config)
-	err = models.ClearActiveFromAllTunnels(db)
+
+	// Clear active status from all tunnels in the db
+	err := models.ClearActiveFromAllTunnels(db)
 	if err != nil {
 		return err
 	}
 
+	// Run the OLSR metrics watcher
 	go metrics.OLSRWatcher(db)
 
+	// Initialize the websocket event bus
 	eventBus := events.NewEventBus()
 	defer eventBus.Close()
 
+	// Start the interface watcher
 	ifWatcher := ifacewatcher.NewWatcher(db, eventBus.GetChannel())
 	err = ifWatcher.Watch()
 	if err != nil {
 		return err
 	}
 
+	// Start the vtun client watcher
 	vtunClientWatcher := vtun.NewVTunClientWatcher(db, config)
 	vtunClientWatcher.Run()
 
+	// Start the wireguard manager
 	wireguardManager := wireguard.NewManager(ctx, db)
-	wireguardManager.Run()
+	err = wireguardManager.Run()
+	if err != nil {
+		return err
+	}
 
+	// Start the server
 	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher, wireguardManager)
 	err = srv.Run()
 	if err != nil {
 		return err
 	}
 
+	stopChan := make(chan error)
+	defer close(stopChan)
 	stop := func(sig os.Signal) {
-		wg := new(sync.WaitGroup)
+		errGrp := errgroup.Group{}
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			cancel()
-		}()
+		errGrp.Go(func() error {
+			return srv.Stop()
+		})
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			srv.Stop()
-		}()
+		errGrp.Go(func() error {
+			return vtunClientWatcher.Stop()
+		})
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			vtunClientWatcher.Stop()
-		}()
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		errGrp.Go(func() error {
 			eventBus.Close()
-		}()
+			return nil
+		})
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		errGrp.Go(func() error {
 			ifWatcher.Stop()
-		}()
+			return models.ClearActiveFromAllTunnels(db)
+		})
 
-		_ = models.ClearActiveFromAllTunnels(db)
-
-		const timeout = 10 * time.Second
-		c := make(chan struct{})
-		go func() {
-			defer close(c)
-			wg.Wait()
-		}()
-		clearPID := func() {
-			err := os.Remove(config.PIDFile)
-			if err != nil {
-				log.Fatal("failed to remove PID file")
-			}
-		}
-		select {
-		case <-c:
-			clearPID()
-			os.Exit(0)
-		case <-time.After(timeout):
-			clearPID()
-			os.Exit(1)
-		}
+		stopChan <- errGrp.Wait()
 	}
 	shutdown.AddWithParam(stop)
 	shutdown.Listen(syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGQUIT)
 
-	return nil
+	return <-stopChan
 }
