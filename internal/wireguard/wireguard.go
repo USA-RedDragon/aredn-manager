@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
@@ -21,7 +22,7 @@ type Manager struct {
 	peerRemoveConfirmChan chan models.Tunnel
 	shutdownChan          chan struct{}
 	shutdownConfirmChan   chan struct{}
-	activePeers           []models.Tunnel
+	activePeers           sync.Map
 }
 
 func NewManager(db *gorm.DB) *Manager {
@@ -33,7 +34,7 @@ func NewManager(db *gorm.DB) *Manager {
 		peerRemoveConfirmChan: make(chan models.Tunnel),
 		shutdownChan:          make(chan struct{}),
 		shutdownConfirmChan:   make(chan struct{}),
-		activePeers:           []models.Tunnel{},
+		activePeers:           sync.Map{},
 	}
 }
 
@@ -44,12 +45,14 @@ func (m *Manager) Run() error {
 
 func (m *Manager) removeAllPeers() error {
 	errGroup := &errgroup.Group{}
-	for _, peer := range m.activePeers {
-		peer := peer
+	m.activePeers.Range(func(key, value interface{}) bool {
+		peer := value.(models.Tunnel)
 		errGroup.Go(func() error {
 			return m.RemovePeer(peer)
 		})
-	}
+		return true
+	})
+
 	return errGroup.Wait()
 }
 
@@ -97,12 +100,16 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	// TODO: add peer
 	log.Println("adding peer", peer)
 
+	m.activePeers.Store(peer.ID, peer)
+
 	m.peerAddConfirmChan <- peer
 }
 
 func (m *Manager) removePeer(peer models.Tunnel) {
 	// TODO: remove peer
 	log.Println("removing peer", peer)
+
+	m.activePeers.Delete(peer.ID)
 
 	m.peerRemoveConfirmChan <- peer
 }
