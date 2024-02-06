@@ -17,8 +17,8 @@ require (
 	github.com/uptrace/opentelemetry-go-extra/otelgorm v0.2.3
 	github.com/ztrue/shutdown v0.1.1
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.47.0
-	go.opentelemetry.io/otel v1.22.0
-	go.opentelemetry.io/otel/trace v1.22.0
+	go.opentelemetry.io/otel v1.23.0
+	go.opentelemetry.io/otel/trace v1.23.0
 	golang.org/x/crypto v0.18.0
 	golang.org/x/exp v0.0.0-20240205201215-2c58cdc269a3
 	gorm.io/driver/postgres v1.5.6
@@ -71,7 +71,7 @@ require (
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.2.3 // indirect
 	github.com/wader/gormstore/v2 v2.0.0 // indirect
-	go.opentelemetry.io/otel/metric v1.22.0 // indirect
+	go.opentelemetry.io/otel/metric v1.23.0 // indirect
 	golang.org/x/arch v0.5.0 // indirect
 	golang.org/x/net v0.20.0 // indirect
 	golang.org/x/sys v0.16.0 // indirect
