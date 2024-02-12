@@ -67,31 +67,39 @@ func runServer(cmd *cobra.Command, _ []string) error {
 
 	// Start the metrics server
 	go metrics.CreateMetricsServer(config)
+	log.Printf("Metrics server started")
 
 	db := db.MakeDB(config)
+	log.Printf("DB connection established")
 
 	// Clear active status from all tunnels in the db
 	err := models.ClearActiveFromAllTunnels(db)
 	if err != nil {
 		return err
 	}
+	log.Printf("Cleared active status from all tunnels")
 
 	// Start the wireguard manager
 	wireguardManager, err := wireguard.NewManager(db)
 	if err != nil {
 		return err
 	}
+	log.Printf("Wireguard manager started")
+
 	err = wireguardManager.Run()
 	if err != nil {
 		return err
 	}
+	log.Printf("Wireguard manager running")
 
 	// Run the OLSR metrics watcher
 	go metrics.OLSRWatcher(db)
+	log.Printf("OLSR watcher started")
 
 	// Initialize the websocket event bus
 	eventBus := events.NewEventBus()
 	defer eventBus.Close()
+	log.Printf("Event bus started")
 
 	// Start the interface watcher
 	ifWatcher := ifacewatcher.NewWatcher(db, eventBus.GetChannel())
@@ -99,10 +107,12 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("Interface watcher started")
 
 	// Start the vtun client watcher
 	vtunClientWatcher := vtun.NewVTunClientWatcher(db, config)
 	vtunClientWatcher.Run()
+	log.Printf("VTun client watcher started")
 
 	// Start the server
 	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher, wireguardManager)
@@ -110,6 +120,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("Server started")
 
 	stopChan := make(chan error)
 	defer close(stopChan)
@@ -151,7 +162,9 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		stopChan <- errGrp.Wait()
 	}
 	shutdown.AddWithParam(stop)
+	log.Println("Signal hooks added")
 	shutdown.Listen(syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGQUIT)
+	log.Println("Signal listener returned")
 
 	return <-stopChan
 }
