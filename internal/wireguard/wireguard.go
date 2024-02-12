@@ -144,7 +144,8 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 
 	iface := GenerateWireguardInterfaceName(peer)
 
-	_, err := netlink.LinkByName(iface)
+	// Check if device exists
+	wgdev, err := netlink.LinkByName(iface)
 	if err == nil {
 		log.Println("wireguard interface already exists", iface)
 	} else {
@@ -157,28 +158,38 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 			log.Println("failed to add wireguard device", err)
 			return
 		}
+	}
+
+	// Check if link is up
+	if wgdev.Attrs().Flags&net.FlagUp == 0 {
 		err = netlink.LinkSetUp(wgdev)
 		if err != nil {
 			log.Println("failed to bring up wireguard device", err)
 			return
 		}
-		peerIP := net.ParseIP(peer.IP)
-		if peer.WireguardServerKey == "" {
-			// Add one to the peer IP for the client side
-			peerIP = peerIP.To4()
-			peerIP[3]++
-			if peerIP[3] == 0 {
-				peerIP[2]++
-				peerIP[3] = 1
-				if peerIP[2] == 0 {
-					peerIP[1]++
-					if peerIP[1] == 0 {
-						peerIP[0]++
-					}
+	}
+
+	// Add an IP address to the interface
+	peerIP := net.ParseIP(peer.IP)
+	if peer.WireguardServerKey == "" {
+		// Add one to the peer IP for the client side
+		peerIP = peerIP.To4()
+		peerIP[3]++
+		if peerIP[3] == 0 {
+			peerIP[2]++
+			peerIP[3] = 1
+			if peerIP[2] == 0 {
+				peerIP[1]++
+				if peerIP[1] == 0 {
+					peerIP[0]++
 				}
 			}
 		}
-		netlink.AddrReplace(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: peerIP, Mask: net.CIDRMask(32, 32)}})
+	}
+	err = netlink.AddrReplace(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: peerIP, Mask: net.CIDRMask(32, 32)}})
+	if err != nil {
+		log.Println("failed to add address to wireguard device", err)
+		return
 	}
 
 	var privkey wgtypes.Key
@@ -252,6 +263,21 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 			return
 		}
 		port := int(port64)
+
+		// Check if the hostname is an IP address or a domain name
+		if net.ParseIP(hostnameParts[0]) == nil {
+			// It's a domain name
+			ips, err := net.LookupIP(hostnameParts[0])
+			if err != nil {
+				log.Println("failed to lookup hostname", hostnameParts[0], ":", err)
+				return
+			}
+			if len(ips) == 0 {
+				log.Println("no IPs found for hostname", hostnameParts[0])
+				return
+			}
+			hostnameParts[0] = ips[0].String()
+		}
 
 		peers = []wgtypes.PeerConfig{
 			{
