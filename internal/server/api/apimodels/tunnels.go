@@ -32,6 +32,7 @@ func (r *CreateTunnel) IsValidHostname() (bool, string) {
 type TunnelWithPass struct {
 	ID             uint      `json:"id"`
 	Wireguard      bool      `json:"wireguard"`
+	WireguardPort  uint16    `json:"wireguard_port"`
 	Client         bool      `json:"client"`
 	Hostname       string    `json:"hostname"`
 	IP             string    `json:"ip"`

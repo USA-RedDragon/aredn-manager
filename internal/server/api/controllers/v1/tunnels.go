@@ -102,6 +102,7 @@ func GETTunnels(c *gin.Context) {
 		for _, tunnel := range tunnels {
 			tunnelsWithPass = append(tunnelsWithPass, apimodels.TunnelWithPass{
 				Wireguard:      tunnel.Wireguard,
+				WireguardPort:  tunnel.WireguardPort,
 				ID:             tunnel.ID,
 				Hostname:       tunnel.Hostname,
 				IP:             tunnel.IP,
