@@ -4,16 +4,6 @@
   font-weight: normal;
 }
 
-.p-menu-list,
-.p-menu {
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-.p-menu-list {
-  list-style-type: none;
-}
-
 p, h1, h2, h3, h4, h5, h6 {
   margin: 0;
 }
