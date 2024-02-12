@@ -76,6 +76,16 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
+	// Start the wireguard manager
+	wireguardManager, err := wireguard.NewManager(db)
+	if err != nil {
+		return err
+	}
+	err = wireguardManager.Run()
+	if err != nil {
+		return err
+	}
+
 	// Run the OLSR metrics watcher
 	go metrics.OLSRWatcher(db)
 
@@ -93,16 +103,6 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	// Start the vtun client watcher
 	vtunClientWatcher := vtun.NewVTunClientWatcher(db, config)
 	vtunClientWatcher.Run()
-
-	// Start the wireguard manager
-	wireguardManager, err := wireguard.NewManager(db)
-	if err != nil {
-		return err
-	}
-	err = wireguardManager.Run()
-	if err != nil {
-		return err
-	}
 
 	// Start the server
 	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher, wireguardManager)
