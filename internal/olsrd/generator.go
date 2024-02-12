@@ -7,6 +7,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/utils"
+	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"gorm.io/gorm"
 )
 
@@ -213,19 +214,11 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	}
 
 	if len(tunnels) > 0 {
-		serverTun := 0
-		clientTun := 0
 		tunnelString := ""
-		for tunnelNumber := 0; tunnelNumber < len(tunnels); tunnelNumber++ {
-			tunnel := tunnels[tunnelNumber]
-			if tunnel.Client {
-				tunnelString += "\"wgc" + fmt.Sprintf("%d", clientTun) + "\""
-				clientTun++
-			} else {
-				tunnelString += "\"wgs" + fmt.Sprintf("%d", serverTun) + "\""
-				serverTun++
-			}
-			if tunnelNumber != len(tunnels)-1 {
+		for _, tunnel := range tunnels {
+			iface := wireguard.GenerateWireguardInterfaceName(tunnel)
+			tunnelString += "\"" + iface + "\""
+			if tunnel != tunnels[len(tunnels)-1] {
 				tunnelString += " "
 			}
 		}

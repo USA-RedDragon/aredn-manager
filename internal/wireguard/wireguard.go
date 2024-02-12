@@ -116,7 +116,7 @@ func (m *Manager) run() {
 	}
 }
 
-func generateWireguardInterfaceName(peer models.Tunnel) string {
+func GenerateWireguardInterfaceName(peer models.Tunnel) string {
 	if peer.WireguardServerKey != "" {
 		return fmt.Sprintf("wgs%d", peer.ID)
 	}
@@ -129,7 +129,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	// If the peer is a server, then the password is the private key of the server
 	log.Println("adding peer", peer)
 
-	iface := generateWireguardInterfaceName(peer)
+	iface := GenerateWireguardInterfaceName(peer)
 	var privkey wgtypes.Key
 	portInt := int(peer.WireguardPort)
 	var peers []wgtypes.PeerConfig
@@ -231,7 +231,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 func (m *Manager) removePeer(peer models.Tunnel) {
 	log.Println("removing peer", peer)
 
-	_, ok := m.activePeers.LoadAndDelete(generateWireguardInterfaceName(peer))
+	_, ok := m.activePeers.LoadAndDelete(GenerateWireguardInterfaceName(peer))
 	if !ok {
 		m.peerRemoveConfirmChan <- peer
 		return
