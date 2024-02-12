@@ -671,3 +671,7 @@ Other works in this project under MIT licenses:
   internal/http/sessions/redistore.go is a modified version of
   https://github.com/boj/redistore. See their license:
   https://github.com/boj/redistore/blob/cd5dcc76aeff9ba06b0a924829fe24fd69cdd517/LICENSE
+
+  frontend/public/themes are modified versions of
+  https://github.com/primefaces/primevue. See their license:
+  https://github.com/primefaces/primevue/blob/9a82025215ddc2a79d0c5af378f8e2afda9c22fb/LICENSE.md
