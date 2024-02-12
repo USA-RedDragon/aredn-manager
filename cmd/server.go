@@ -54,14 +54,14 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	go func() {
 		err := olsrd.Run(ctx)
 		if err != nil {
-			log.Fatal(err)
+			log.Println("OLSRD returned error", err)
 		}
 	}()
 
 	go func() {
 		err := vtun.Run(ctx)
 		if err != nil {
-			log.Fatal(err)
+			log.Println("VTUND returned error", err)
 		}
 	}()
 
