@@ -118,10 +118,6 @@ header a,
   text-decoration: none;
 }
 
-.p-menu-list {
-  list-style-type: none;
-}
-
 header a,
 header a:visited,
 header a:link,
