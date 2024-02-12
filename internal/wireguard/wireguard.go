@@ -157,6 +157,28 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 			log.Println("failed to add wireguard device", err)
 			return
 		}
+		err = netlink.LinkSetUp(wgdev)
+		if err != nil {
+			log.Println("failed to bring up wireguard device", err)
+			return
+		}
+		peerIP := net.ParseIP(peer.IP)
+		if peer.WireguardServerKey == "" {
+			// Add one to the peer IP for the client side
+			peerIP = peerIP.To4()
+			peerIP[3]++
+			if peerIP[3] == 0 {
+				peerIP[2]++
+				peerIP[3] = 1
+				if peerIP[2] == 0 {
+					peerIP[1]++
+					if peerIP[1] == 0 {
+						peerIP[0]++
+					}
+				}
+			}
+		}
+		netlink.AddrReplace(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: peerIP, Mask: net.CIDRMask(32, 32)}})
 	}
 
 	var privkey wgtypes.Key
