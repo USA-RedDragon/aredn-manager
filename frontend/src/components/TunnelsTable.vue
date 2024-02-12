@@ -77,7 +77,9 @@
             />
           </span>
         </span>
-        <span v-else>{{slotProps.data.password}}</span>
+        <span v-else>
+          <ClickToCopy :copy="slotProps.data.password" text="Click to copy" />
+        </span>
       </template>
     </Column>
     <Column field="rx_bytes_per_sec" header="Bandwidth Usage" v-if="!$props.admin">
@@ -142,6 +144,7 @@ import prettyBytes from 'pretty-bytes';
 import { mapStores } from 'pinia';
 import { useSettingsStore } from '@/store';
 
+import ClickToCopy from './ClickToCopy.vue';
 import API from '@/services/API';
 
 export default {
@@ -165,6 +168,7 @@ export default {
     Column,
     PVBadge: Badge,
     InputText,
+    ClickToCopy,
   },
   data: function() {
     return {
