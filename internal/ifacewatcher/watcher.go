@@ -104,20 +104,7 @@ func (w *Watcher) watch() {
 
 		// Loop through net.Interfaces() and check if any are missing from w.interfaces
 		for _, iface := range interfaces {
-			if strings.HasPrefix(iface.Name, "tun") && !ifaceContainsNetInterface(w.interfaces, iface) {
-				fmt.Printf("Interface %s is now present\n", iface.Name)
-				tunnel := w.findTunnel(iface)
-				err = w.Stats.Add(iface.Name)
-				if err != nil {
-					fmt.Println(err)
-					continue
-				}
-				w.interfaces = append(w.interfaces, _iface{
-					iface,
-					tunnel,
-				})
-			}
-			if strings.HasPrefix(iface.Name, "wg") && !ifaceContainsNetInterface(w.interfaces, iface) {
+			if (strings.HasPrefix(iface.Name, "wg") || strings.HasPrefix(iface.Name, "tun")) && !ifaceContainsNetInterface(w.interfaces, iface) {
 				fmt.Printf("Interface %s is now present\n", iface.Name)
 				tunnel := w.findTunnel(iface)
 				err = w.Stats.Add(iface.Name)
