@@ -84,6 +84,9 @@ func (v *VTunClientWatcher) watch() {
 			continue
 		}
 		for _, tunnel := range tunnels {
+			if tunnel.Wireguard {
+				continue
+			}
 			if !v.Running(tunnel.ID) {
 				withCancel, cancel := context.WithCancel(context.Background())
 				v.cancels[tunnel.ID] = vtunClient{
