@@ -295,6 +295,7 @@ func POSTTunnel(c *gin.Context) {
 
 				tunnel.Password = serverKey.PublicKey().String() + clientKey.String() + clientKey.PublicKey().String()
 				tunnel.WireguardServerKey = serverKey.String()
+				tunnel.TunnelInterface = wireguard.GenerateWireguardInterfaceName(tunnel)
 			}
 
 			err = db.Create(&tunnel).Error
@@ -430,6 +431,8 @@ func POSTTunnel(c *gin.Context) {
 			}
 
 			if tunnel.Wireguard {
+				tunnel.TunnelInterface = wireguard.GenerateWireguardInterfaceName(tunnel)
+
 				// The password will be 3 wireguard keys concatenated together
 				// <server_pubkey><client_privkey><client_pubkey>
 				if len(json.Password) != 132 {
