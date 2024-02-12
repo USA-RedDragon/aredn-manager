@@ -146,15 +146,13 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 
 	// Check if device exists
 	wgdev, err := netlink.LinkByName(iface)
-	wgdevOk := false
 	if err == nil {
 		log.Println("wireguard interface already exists", iface)
-		wgdevOk = true
 	} else {
 		la := netlink.NewLinkAttrs()
 		la.Name = iface
 		la.MTU = 1420
-		wgdev := &WG{LinkAttrs: la}
+		wgdev = &WG{LinkAttrs: la}
 		err := netlink.LinkAdd(wgdev)
 		if err != nil {
 			log.Println("failed to add wireguard device", err)
@@ -163,7 +161,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	}
 
 	// Check if link is up
-	if wgdevOk && wgdev.Attrs().Flags&net.FlagUp == 0 {
+	if wgdev.Attrs().Flags&net.FlagUp == 0 {
 		err = netlink.LinkSetUp(wgdev)
 		if err != nil {
 			log.Println("failed to bring up wireguard device", err)
@@ -188,12 +186,10 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 			}
 		}
 	}
-	if wgdevOk {
-		err = netlink.AddrReplace(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: peerIP, Mask: net.CIDRMask(32, 32)}})
-		if err != nil {
-			log.Println("failed to add address to wireguard device", err)
-			return
-		}
+	err = netlink.AddrReplace(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: peerIP, Mask: net.CIDRMask(32, 32)}})
+	if err != nil {
+		log.Println("failed to add address to wireguard device", err)
+		return
 	}
 
 	var privkey wgtypes.Key
