@@ -140,8 +140,6 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	// Create a new wireguard interface listening on the port from the peer tunnel
 	// If the peer is a client, then the password is the public key of the client
 	// If the peer is a server, then the password is the private key of the server
-	log.Println("adding peer", peer)
-
 	iface := GenerateWireguardInterfaceName(peer)
 
 	// Check if device exists
@@ -306,15 +304,33 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 }
 
 func (m *Manager) removePeer(peer models.Tunnel) {
-	log.Println("removing peer", peer)
+	iface := GenerateWireguardInterfaceName(peer)
 
-	_, ok := m.activePeers.LoadAndDelete(GenerateWireguardInterfaceName(peer))
+	_, ok := m.activePeers.LoadAndDelete(iface)
 	if !ok {
 		m.peerRemoveConfirmChan <- peer
 		return
 	}
 
-	// TODO: remove peer
+	// Check if device exists
+	wgdev, err := netlink.LinkByName(iface)
+	if err != nil {
+		log.Println("wireguard interface does not exist", iface)
+		m.peerRemoveConfirmChan <- peer
+		return
+	}
+
+	err = netlink.LinkSetDown(wgdev)
+	if err != nil {
+		log.Println("failed to bring down wireguard device", err)
+		return
+	}
+
+	err = netlink.LinkDel(wgdev)
+	if err != nil {
+		log.Println("failed to delete wireguard device", err)
+		return
+	}
 
 	m.peerRemoveConfirmChan <- peer
 }
