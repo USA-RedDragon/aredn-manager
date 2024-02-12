@@ -81,6 +81,7 @@ func loadConfig() Config {
 		SupernodeZone:            os.Getenv("SUPERNODE_ZONE"),
 		strSessionSecret:         os.Getenv("SESSION_SECRET"),
 		VTUNStartingAddress:      os.Getenv("VTUN_STARTING_ADDRESS"),
+		WireguardStartingAddress: os.Getenv("WIREGUARD_STARTING_ADDRESS"),
 		postgresUser:             os.Getenv("PG_USER"),
 		postgresPassword:         os.Getenv("PG_PASSWORD"),
 		postgresHost:             os.Getenv("PG_HOST"),
@@ -95,6 +96,10 @@ func loadConfig() Config {
 
 	if tmpConfig.VTUNStartingAddress == "" {
 		tmpConfig.VTUNStartingAddress = "172.31.180.12"
+	}
+
+	if tmpConfig.WireguardStartingAddress == "" {
+		tmpConfig.WireguardStartingAddress = "172.31.190.12"
 	}
 
 	if net.ParseIP(tmpConfig.VTUNStartingAddress) == nil {
