@@ -118,6 +118,16 @@ header a,
   text-decoration: none;
 }
 
+.p-menu-list,
+.p-menu {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.p-menu-list {
+  list-style-type: none;
+}
+
 header a,
 header a:visited,
 header a:link,
