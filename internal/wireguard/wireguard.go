@@ -271,7 +271,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	})
 
 	if err != nil {
-		log.Println("failed to configure wireguard device", err)
+		log.Println("failed to configure wireguard device", iface, ":", err)
 		return
 	}
 
