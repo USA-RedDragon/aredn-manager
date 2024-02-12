@@ -34,6 +34,7 @@ type Config struct {
 	SessionSecret            []byte
 	VTUNStartingAddress      string
 	WireguardStartingAddress string
+	WireguardStartingPort    uint16
 	PostgresDSN              string
 	postgresUser             string
 	postgresPassword         string
@@ -66,6 +67,12 @@ func loadConfig() Config {
 		metricsPort = 0
 	}
 
+	portStr = os.Getenv("WIREGUARD_STARTING_PORT")
+	wireguardStartingPort, err := strconv.ParseInt(portStr, 10, 0)
+	if err != nil {
+		wireguardStartingPort = 5527
+	}
+
 	tmpConfig := Config{
 		Debug:                    os.Getenv("DEBUG") != "",
 		Port:                     int(httpPort),
@@ -82,6 +89,7 @@ func loadConfig() Config {
 		strSessionSecret:         os.Getenv("SESSION_SECRET"),
 		VTUNStartingAddress:      os.Getenv("VTUN_STARTING_ADDRESS"),
 		WireguardStartingAddress: os.Getenv("WIREGUARD_STARTING_ADDRESS"),
+		WireguardStartingPort:    uint16(wireguardStartingPort),
 		postgresUser:             os.Getenv("PG_USER"),
 		postgresPassword:         os.Getenv("PG_PASSWORD"),
 		postgresHost:             os.Getenv("PG_HOST"),

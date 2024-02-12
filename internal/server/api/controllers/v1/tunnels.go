@@ -272,7 +272,7 @@ func POSTTunnel(c *gin.Context) {
 					return
 				}
 
-				tunnel.WireguardPort, err = models.GetNextWireguardPort(db)
+				tunnel.WireguardPort, err = models.GetNextWireguardPort(db, config)
 				if err != nil {
 					fmt.Printf("POSTTunnel: Error getting next port: %v\n", err)
 					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next port"})
