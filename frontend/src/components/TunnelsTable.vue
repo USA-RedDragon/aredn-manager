@@ -13,7 +13,7 @@
   >
     <template #header v-if="$props.admin">
       <div class="table-header-container">
-        <RouterLink to="/admin/tunnels/create">
+        <RouterLink :to="'/admin/tunnels/create/' + ($props.wireguard ? 'wireguard':'vtun')">
           <PVButton
             class="p-button-raised p-button-rounded p-button-success"
             icon="pi pi-plus"

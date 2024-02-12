@@ -3,19 +3,8 @@
     <PVToast />
     <form @submit.prevent="handleSubmit(!v$.$invalid)">
       <Card>
-        <template #title>Create Tunnel</template>
+        <template #title>Create Wireguard Tunnel</template>
         <template #content>
-          <h3 class="card-section-header">Tunnel Type</h3>
-          <br/>
-          <div class="flex align-items-center card-section">
-            <RadioButton v-model="wireguard" inputId="wireguard1" name="wireguard" :value="false" />
-              <label for="wireguard1" class="ml-2">VTun</label>
-          </div>
-          <div class="flex align-items-center card-section">
-            <RadioButton v-model="wireguard" inputId="wireguard2" name="wireguard" :value="true" />
-            <label for="wireguard2" class="ml-2">Wireguard</label>
-          </div>
-          <br/>
           <h3 class="card-section-header">Connection Type</h3>
           <br/>
           <div class="flex align-items-center card-section">
@@ -63,17 +52,6 @@
               </small>
             </span>
             <br />
-          </div>
-          <div class="card-section" v-if="tunnelType == 'server' && !wireguard">
-            <PVCheckbox
-              id="generatepassword"
-              :binary="true"
-              v-model="this.generatePassword"
-              @change="handleGeneratePassword()"
-            />&nbsp;
-            <label for="generatepassword">Generate Password</label>
-            <br v-if="!generatePassword" />
-            <br v-if="!generatePassword" />
           </div>
           <div class="card-section" v-if="tunnelType == 'client'">
             <span class="p-float-label">
@@ -144,7 +122,7 @@
             <br />
           </div>
           <div class="card-section">
-            <span class="p-float-label" v-if="(!wireguard && !generatePassword) || tunnelType=='client'">
+            <span class="p-float-label" v-if="tunnelType=='client'">
               <InputText
                 id="password"
                 type="password"
@@ -186,44 +164,6 @@
             <br />
             </span>
           </div>
-          <div class="card-section" v-if="tunnelType == 'server' && !wireguard">
-            <span class="p-float-label" v-if="!generatePassword">
-              <InputText
-                id="confirmPassword"
-                type="password"
-                v-model="v$.confirmPassword.$model"
-                :class="{
-                  'p-invalid': v$.confirmPassword.$invalid && submitted,
-                }"
-              />
-              <label
-                for="confirmPassword"
-                :class="{ 'p-error': v$.confirmPassword.$invalid && submitted }"
-                >Confirm Password</label
-              >
-            </span>
-            <span v-if="!generatePassword && v$.confirmPassword.$error && submitted">
-              <span
-                v-for="(error, index) of v$.confirmPassword.$errors"
-                :key="index"
-              >
-                <small class="p-error">{{ error.$message }}</small>
-                <br />
-              </span>
-            </span>
-            <span v-else>
-              <small
-                v-if="
-                  !generatePassword &&
-                  ((v$.confirmPassword.$invalid && submitted) ||
-                  v$.confirmPassword.$pending.$response)
-                "
-                class="p-error"
-                >{{ v$.confirmPassword.required.$message }}
-                <br />
-              </small>
-            </span>
-          </div>
         </template>
         <template #footer>
           <div class="card-footer">
@@ -243,36 +183,30 @@
 <script>
 import InputText from 'primevue/inputtext';
 import Button from 'primevue/button';
-import Checkbox from 'primevue/checkbox';
 import Card from 'primevue/card';
 import RadioButton from 'primevue/radiobutton';
 import API from '@/services/API';
 
 import { useVuelidate } from '@vuelidate/core';
-import { sameAs, requiredIf, minLength, maxLength, ipAddress } from '@vuelidate/validators';
+import { required, requiredIf, minLength, maxLength } from '@vuelidate/validators';
 
 export default {
   components: {
     InputText,
     PVButton: Button,
-    PVCheckbox: Checkbox,
     RadioButton,
     Card,
   },
   setup: () => ({ v$: useVuelidate() }),
   created() {
-    this.handleGeneratePassword();
   },
   mounted() {},
   data: function() {
     return {
-      wireguard: false,
       hostname: '',
       server: '',
       network: '',
       password: '',
-      confirmPassword: '',
-      generatePassword: true,
       tunnelType: 'server',
       submitted: false,
     };
@@ -285,12 +219,8 @@ export default {
         maxLength: maxLength(63),
       },
       password: {
-        required: requiredIf(!this.wireguard || this.tunnelType == 'client'),
-        minLength: minLength(3),
-      },
-      confirmPassword: {
-        required: requiredIf(!this.wireguard && this.tunnelType == 'server'),
-        sameAs: sameAs(this.password),
+        required: required,
+        minLength: minLength(44*3),
       },
       server: {
         required: requiredIf(this.tunnelType == 'client'),
@@ -298,30 +228,10 @@ export default {
       },
       network: {
         required: requiredIf(this.tunnelType == 'client'),
-        ipAddress: ipAddress,
       },
     };
   },
   methods: {
-    handleGeneratePassword() {
-      if (!this.generatePassword) {
-        this.password = '';
-        this.confirmPassword = '';
-      } else {
-        // Create a 6 character random password matching [a-zA-Z]
-        this.password = this.generateRandomPassword();
-        this.confirmPassword = this.password;
-      }
-    },
-    generateRandomPassword() {
-      // This is A-Z and a-z, just shuffled to avoid any patterns in the random number generator
-      const characters = 'fjyaYxnQBEzplkLiZuPhvXAVNOKSMFrdgGJTqRbDwIHWUCectosm';
-      let password = '';
-      for (let i = 0; i < 6; i++) {
-        password += characters.charAt(Math.floor(Math.random() * characters.length));
-      }
-      return password;
-    },
     handleSubmit(isFormValid) {
       this.submitted = true;
       if (!isFormValid && this.v$.$errors.length > 0) {
@@ -329,93 +239,47 @@ export default {
       }
 
       if (this.tunnelType == 'client') {
-        if (this.wireguard) {
-          // parse server address as a hostname and optional port
-          const networkParts = this.network.split(':');
-          if (networkParts.length > 2) {
+        // parse server address as a hostname and optional port
+        const networkParts = this.network.split(':');
+        if (networkParts.length !== 2) {
+          this.$toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Network must be in the format hostname:port',
+            life: 3000,
+          });
+          return;
+        }
+
+        if (networkParts[0].length > 253) {
+          this.$toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Network must be less than 254 characters',
+            life: 3000,
+          });
+          return;
+        }
+
+        if (!/^[A-Za-z0-9-\\.]+$/.test(networkParts[0])) {
+          this.$toast.add({
+            severity: 'error',
+            summary: 'Error',
+            detail: 'Network hostname must be alphanumeric, \'.\', or \'-\'',
+            life: 3000,
+          });
+          return;
+        }
+
+        if (networkParts.length == 2) {
+          if (networkParts[1] < 1 || networkParts[1] > 65535) {
             this.$toast.add({
               severity: 'error',
               summary: 'Error',
-              detail: 'Network must be in the format hostname:port',
+              detail: 'Network port must be between 1 and 65535',
               life: 3000,
             });
             return;
-          }
-
-          if (networkParts[0].length > 253) {
-            this.$toast.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Network must be less than 254 characters',
-              life: 3000,
-            });
-            return;
-          }
-
-          if (!/^[A-Za-z0-9-\\.]+$/.test(networkParts[0])) {
-            this.$toast.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Network hostname must be alphanumeric, \'.\', or \'-\'',
-              life: 3000,
-            });
-            return;
-          }
-
-          if (networkParts.length == 2) {
-            if (networkParts[1] < 1 || networkParts[1] > 65535) {
-              this.$toast.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Network port must be between 1 and 65535',
-                life: 3000,
-              });
-              return;
-            }
-          }
-        } else {
-          // parse server address as a hostname and optional port
-          const serverParts = this.server.split(':');
-          if (serverParts.length > 2) {
-            this.$toast.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Server Address must be in the format hostname:port',
-              life: 3000,
-            });
-            return;
-          }
-
-          if (serverParts[0].length > 253) {
-            this.$toast.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Server Address must be less than 254 characters',
-              life: 3000,
-            });
-            return;
-          }
-
-          if (!/^[A-Za-z0-9-\\.]+$/.test(serverParts[0])) {
-            this.$toast.add({
-              severity: 'error',
-              summary: 'Error',
-              detail: 'Server Address hostname must be alphanumeric, \'.\', or \'-\'',
-              life: 3000,
-            });
-            return;
-          }
-
-          if (serverParts.length == 2) {
-            if (serverParts[1] < 1 || serverParts[1] > 65535) {
-              this.$toast.add({
-                severity: 'error',
-                summary: 'Error',
-                detail: 'Server Address port must be between 1 and 65535',
-                life: 3000,
-              });
-              return;
-            }
           }
         }
 
@@ -424,7 +288,7 @@ export default {
           password: this.password.trim(),
           ip: this.network.trim(),
           client: true,
-          wireguard: this.wireguard,
+          wireguard: true,
         })
           .then((res) => {
             this.$toast.add({
@@ -454,17 +318,6 @@ export default {
             }
           });
       } else if (this.tunnelType == 'server') {
-        if (!this.wireguard && this.confirmPassword != this.password) {
-          this.$toast.add({
-            severity: 'error',
-            summary: 'Error',
-            detail: `Passwords do not match`,
-            life: 3000,
-          });
-          return;
-        }
-
-
         if (this.hostname.length > 63) {
           this.$toast.add({
             severity: 'error',
@@ -495,74 +348,38 @@ export default {
           return;
         }
 
-        if (this.wireguard) {
-          API.post('/tunnels', {
-            hostname: this.hostname.trim(),
-            client: false,
-            wireguard: true,
+        API.post('/tunnels', {
+          hostname: this.hostname.trim(),
+          client: false,
+          wireguard: true,
+        })
+          .then((res) => {
+            this.$toast.add({
+              severity: 'success',
+              summary: 'Success',
+              detail: res.data.message,
+              life: 3000,
+            });
+            this.$router.push('/admin/tunnels');
           })
-            .then((res) => {
+          .catch((err) => {
+            console.error(err);
+            if (err.response && err.response.data && err.response.data.error) {
               this.$toast.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: res.data.message,
+                severity: 'error',
+                summary: 'Error',
+                detail: err.response.data.error,
                 life: 3000,
               });
-              this.$router.push('/admin/tunnels');
-            })
-            .catch((err) => {
-              console.error(err);
-              if (err.response && err.response.data && err.response.data.error) {
-                this.$toast.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: err.response.data.error,
-                  life: 3000,
-                });
-              } else {
-                this.$toast.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: 'An unknown error occurred',
-                  life: 3000,
-                });
-              }
-            });
-        } else {
-          API.post('/tunnels', {
-            hostname: this.hostname.trim(),
-            password: this.password.trim(),
-            wireguard: false,
-            client: false,
-          })
-            .then((res) => {
+            } else {
               this.$toast.add({
-                severity: 'success',
-                summary: 'Success',
-                detail: res.data.message,
+                severity: 'error',
+                summary: 'Error',
+                detail: 'An unknown error occurred',
                 life: 3000,
               });
-              this.$router.push('/admin/tunnels');
-            })
-            .catch((err) => {
-              console.error(err);
-              if (err.response && err.response.data && err.response.data.error) {
-                this.$toast.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: err.response.data.error,
-                  life: 3000,
-                });
-              } else {
-                this.$toast.add({
-                  severity: 'error',
-                  summary: 'Error',
-                  detail: 'An unknown error occurred',
-                  life: 3000,
-                });
-              }
-            });
-        }
+            }
+          });
       }
     },
   },
