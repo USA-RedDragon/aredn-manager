@@ -114,6 +114,16 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	stopChan := make(chan error)
 	defer close(stopChan)
 	stop := func(sig os.Signal) {
+		switch sig {
+		case syscall.SIGINT:
+			log.Println("Received SIGINT, shutting down")
+		case syscall.SIGKILL:
+			log.Println("Received SIGKILL, shutting down")
+		case syscall.SIGTERM:
+			log.Println("Received SIGTERM, shutting down")
+		case syscall.SIGQUIT:
+			log.Println("Received SIGQUIT, shutting down")
+		}
 		errGrp := errgroup.Group{}
 
 		errGrp.Go(func() error {
