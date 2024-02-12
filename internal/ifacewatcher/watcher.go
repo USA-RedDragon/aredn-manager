@@ -143,6 +143,7 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 		var tun models.Tunnel
 		if strings.HasPrefix(iface.Name, "wg") {
 			var err error
+			ip[3] -= 1
 			tun, err = models.FindTunnelByIP(w.db, ip) // AREDN tunnel IPs are always the interface IP if a server
 			if err != nil {
 				ip[3] += 1 // AREDN tunnel IPs are always the interface IP + 1 if a client
