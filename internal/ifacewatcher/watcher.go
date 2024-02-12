@@ -107,6 +107,10 @@ func (w *Watcher) watch() {
 			if (strings.HasPrefix(iface.Name, "wg") || strings.HasPrefix(iface.Name, "tun")) && !ifaceContainsNetInterface(w.interfaces, iface) {
 				fmt.Printf("Interface %s is now present\n", iface.Name)
 				tunnel := w.findTunnel(iface)
+				if tunnel == nil {
+					fmt.Printf("No tunnel found for interface %s\n", iface.Name)
+					continue
+				}
 				err = w.Stats.Add(iface.Name)
 				if err != nil {
 					fmt.Println(err)
@@ -136,14 +140,29 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 			continue
 		}
 		ip = ip.To4()
-		ip[3] -= 2 // AREDN tunnel IPs are always the interface IP - 2 if a client
-		tun, err := models.FindTunnelByIP(w.db, ip)
-		if err != nil {
-			ip[3] += 1 // AREDN tunnel IPs are always the interface IP - 1 if a server
+		var tun models.Tunnel
+		if strings.HasPrefix(iface.Name, "wg") {
+			var err error
+			tun, err = models.FindTunnelByIP(w.db, ip) // AREDN tunnel IPs are always the interface IP if a server
+			if err != nil {
+				ip[3] += 1 // AREDN tunnel IPs are always the interface IP + 1 if a client
+				tun, err = models.FindTunnelByIP(w.db, ip)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+			}
+		} else {
+			var err error
+			ip[3] -= 2 // AREDN tunnel IPs are always the interface IP - 2 if a client
 			tun, err = models.FindTunnelByIP(w.db, ip)
 			if err != nil {
-				fmt.Println(err)
-				continue
+				ip[3] += 1 // AREDN tunnel IPs are always the interface IP - 1 if a server
+				tun, err = models.FindTunnelByIP(w.db, ip)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
 			}
 		}
 		return &tun
