@@ -16,6 +16,7 @@ require (
 	github.com/prometheus/client_golang v1.18.0
 	github.com/spf13/cobra v1.8.0
 	github.com/uptrace/opentelemetry-go-extra/otelgorm v0.2.3
+	github.com/vishvananda/netlink v1.1.0
 	github.com/ztrue/shutdown v0.1.1
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.48.0
 	go.opentelemetry.io/otel v1.23.1
@@ -78,6 +79,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.11 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.2.3 // indirect
+	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
 	github.com/wader/gormstore/v2 v2.0.0 // indirect
 	go.opentelemetry.io/otel/metric v1.23.1 // indirect
 	golang.org/x/arch v0.5.0 // indirect

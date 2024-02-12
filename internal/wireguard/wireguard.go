@@ -12,6 +12,7 @@ import (
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/phayes/freeport"
+	"github.com/vishvananda/netlink"
 	"golang.org/x/sync/errgroup"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
@@ -123,6 +124,18 @@ func GenerateWireguardInterfaceName(peer models.Tunnel) string {
 	return fmt.Sprintf("wgc%d", peer.ID)
 }
 
+type WG struct {
+	netlink.LinkAttrs
+}
+
+func (wglink *WG) Attrs() *netlink.LinkAttrs {
+	return &wglink.LinkAttrs
+}
+
+func (wglink *WG) Type() string {
+	return "wireguard"
+}
+
 func (m *Manager) addPeer(peer models.Tunnel) {
 	// Create a new wireguard interface listening on the port from the peer tunnel
 	// If the peer is a client, then the password is the public key of the client
@@ -130,6 +143,22 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	log.Println("adding peer", peer)
 
 	iface := GenerateWireguardInterfaceName(peer)
+
+	_, err := netlink.LinkByName(iface)
+	if err == nil {
+		log.Println("wireguard interface already exists", iface)
+	} else {
+		la := netlink.NewLinkAttrs()
+		la.Name = iface
+		la.MTU = 1420
+		wgdev := &WG{LinkAttrs: la}
+		err := netlink.LinkAdd(wgdev)
+		if err != nil {
+			log.Println("failed to add wireguard device", err)
+			return
+		}
+	}
+
 	var privkey wgtypes.Key
 	portInt := int(peer.WireguardPort)
 	var peers []wgtypes.PeerConfig
