@@ -131,16 +131,16 @@ export default {
       API.get('/dns/running').then((res) => {
         this.dnsRunning = res.data.running;
       });
-      API.get('/tunnels/count/vtun/connected').then((res) => {
+      API.get('/tunnels/vtun/count/connected').then((res) => {
         this.vtunTunnelsConnected = res.data.count;
       });
-      API.get('/tunnels/count/vtun').then((res) => {
+      API.get('/tunnels/vtun/count').then((res) => {
         this.totalVtunTunnels = res.data.count;
       });
-      API.get('/tunnels/count/wireguard/connected').then((res) => {
+      API.get('/tunnels/wireguard/count/connected').then((res) => {
         this.wireguardTunnelsConnected = res.data.count;
       });
-      API.get('/tunnels/count/wireguard').then((res) => {
+      API.get('/tunnels/wireguard/count').then((res) => {
         this.totalWireguardTunnels = res.data.count;
       });
       API.get('/stats').then((res) => {
