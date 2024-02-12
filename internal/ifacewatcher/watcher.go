@@ -117,6 +117,19 @@ func (w *Watcher) watch() {
 					tunnel,
 				})
 			}
+			if strings.HasPrefix(iface.Name, "wg") && !ifaceContainsNetInterface(w.interfaces, iface) {
+				fmt.Printf("Interface %s is now present\n", iface.Name)
+				tunnel := w.findTunnel(iface)
+				err = w.Stats.Add(iface.Name)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				w.interfaces = append(w.interfaces, _iface{
+					iface,
+					tunnel,
+				})
+			}
 		}
 	}
 	w.reconcileDB()
