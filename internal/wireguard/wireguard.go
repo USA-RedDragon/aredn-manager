@@ -349,6 +349,7 @@ func (m *Manager) waitForPeerAddition(ctx context.Context, peer models.Tunnel) e
 	case <-m.shutdownChan:
 		return fmt.Errorf("wireguard manager is shutting down")
 	case <-ctx.Done():
+		log.Printf("peerAddConfirm timed out: %v\n", peer.Hostname)
 		return ctx.Err()
 	case addedPeer := <-m.peerAddConfirmChan:
 		if addedPeer.ID != peer.ID {
@@ -372,6 +373,7 @@ func (m *Manager) waitForPeerRemoval(ctx context.Context, peer models.Tunnel) er
 	case <-m.shutdownChan:
 		return fmt.Errorf("wireguard manager is shutting down")
 	case <-ctx.Done():
+		log.Printf("peerRemoveConfirm timed out: %v\n", peer.Hostname)
 		return ctx.Err()
 	case addedPeer := <-m.peerRemoveConfirmChan:
 		if addedPeer.ID != peer.ID {
