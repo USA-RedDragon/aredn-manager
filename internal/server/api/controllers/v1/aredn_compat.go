@@ -278,6 +278,8 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 			linkType = "TUN"
 		} else if strings.HasPrefix(link.OLSRInterface, "eth") {
 			linkType = "DTD"
+		} else if strings.HasPrefix(link.OLSRInterface, "wg") {
+			linkType = "WIREGUARD"
 		} else {
 			linkType = "UNKNOWN"
 		}
