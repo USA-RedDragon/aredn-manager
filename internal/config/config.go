@@ -21,7 +21,6 @@ type Config struct {
 	OTLPEndpoint             string
 	InitialAdminUserPassword string
 	CORSHosts                []string
-	OtherSupernodes          []string
 	TrustedProxies           []string
 	HIBPAPIKey               string
 	ServerName               string
@@ -29,7 +28,6 @@ type Config struct {
 	Masquerade               bool
 	WireguardTapAddress      string
 	NodeIP                   string
-	SupernodeZone            string
 	strSessionSecret         string
 	SessionSecret            []byte
 	VTUNStartingAddress      string
@@ -85,7 +83,6 @@ func loadConfig() Config {
 		Masquerade:               os.Getenv("MASQUERADE") != "",
 		WireguardTapAddress:      os.Getenv("WIREGUARD_TAP_ADDRESS"),
 		NodeIP:                   os.Getenv("NODE_IP"),
-		SupernodeZone:            os.Getenv("SUPERNODE_ZONE"),
 		strSessionSecret:         os.Getenv("SESSION_SECRET"),
 		VTUNStartingAddress:      os.Getenv("VTUN_STARTING_ADDRESS"),
 		WireguardStartingAddress: os.Getenv("WIREGUARD_STARTING_ADDRESS"),
@@ -112,10 +109,6 @@ func loadConfig() Config {
 
 	if net.ParseIP(tmpConfig.VTUNStartingAddress) == nil {
 		panic("VTUN starting address is not a valid IP address")
-	}
-
-	if tmpConfig.Supernode && tmpConfig.SupernodeZone == "" {
-		panic("Supernode zone not set")
 	}
 
 	if tmpConfig.InitialAdminUserPassword == "" {
