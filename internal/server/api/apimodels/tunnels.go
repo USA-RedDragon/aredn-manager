@@ -9,7 +9,7 @@ const minHostnameLength = 3
 const maxHostnameLength = 63
 
 type CreateTunnel struct {
-	Wireguard bool   `json:"wireguard" binding:"required"`
+	Wireguard bool   `json:"wireguard"`
 	Hostname  string `json:"hostname" binding:"required"`
 	Password  string `json:"password"`
 	IP        string `json:"ip"`
