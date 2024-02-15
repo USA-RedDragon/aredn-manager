@@ -338,7 +338,7 @@ func (m *Manager) removePeer(peer models.Tunnel) {
 func (m *Manager) AddPeer(peer models.Tunnel) error {
 	m.peerAddChan <- peer
 
-	ctx, cancel := context.WithTimeout(context.Background(), defTimeout)
+	ctx, cancel := context.WithTimeout(context.TODO(), defTimeout)
 	defer cancel()
 
 	return m.waitForPeerAddition(ctx, peer)
@@ -361,7 +361,7 @@ func (m *Manager) waitForPeerAddition(ctx context.Context, peer models.Tunnel) e
 func (m *Manager) RemovePeer(peer models.Tunnel) error {
 	m.peerRemoveChan <- peer
 
-	ctx, cancel := context.WithTimeout(context.Background(), defTimeout)
+	ctx, cancel := context.WithTimeout(context.TODO(), defTimeout)
 	defer cancel()
 
 	return m.waitForPeerRemoval(ctx, peer)
