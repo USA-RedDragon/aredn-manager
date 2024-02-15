@@ -280,8 +280,8 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 			linkType = "DTD"
 		} else if strings.HasPrefix(link.OLSRInterface, "wg") {
 			linkType = "WIREGUARD"
-		} else {
-			linkType = "UNKNOWN"
+		} else if link.OLSRInterface == "br0" {
+			linkType = "DTD"
 		}
 
 		ret[ips[0].String()] = apimodels.LinkInfo{
