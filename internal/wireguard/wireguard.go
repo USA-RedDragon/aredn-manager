@@ -299,6 +299,8 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		return
 	}
 
+	log.Println("added wireguard device", iface)
+
 	m.activePeers.Store(iface, peer)
 	m.peerAddConfirmChan <- peer
 }
