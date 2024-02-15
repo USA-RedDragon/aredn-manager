@@ -104,7 +104,7 @@ func (w *Watcher) watch() {
 
 		// Loop through net.Interfaces() and check if any are missing from w.interfaces
 		for _, iface := range interfaces {
-			if (strings.HasPrefix(iface.Name, "wg") || strings.HasPrefix(iface.Name, "tun")) && !ifaceContainsNetInterface(w.interfaces, iface) {
+			if ((strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0") || strings.HasPrefix(iface.Name, "tun")) && !ifaceContainsNetInterface(w.interfaces, iface) {
 				fmt.Printf("Interface %s is now present\n", iface.Name)
 				tunnel := w.findTunnel(iface)
 				if tunnel == nil {
@@ -141,7 +141,7 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 		}
 		ip = ip.To4()
 		var tun models.Tunnel
-		if strings.HasPrefix(iface.Name, "wg") {
+		if strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0" {
 			var err error
 			ip[3] -= 1
 			tun, err = models.FindTunnelByIP(w.db, ip) // AREDN tunnel IPs are always the interface IP if a server

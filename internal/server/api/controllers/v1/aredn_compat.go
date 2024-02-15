@@ -170,7 +170,7 @@ func getInterfaces() []apimodels.Interface {
 			fmt.Printf("GETSysinfo: Unable to get addresses for interface %s: %v", iface.Name, err)
 			continue
 		}
-		if iface.Name == "lo" || strings.HasPrefix(iface.Name, "wg") {
+		if iface.Name == "lo" || iface.Name == "wg0" {
 			continue
 		}
 		for _, addr := range addrs {
