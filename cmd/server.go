@@ -86,9 +86,12 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	}
 	log.Printf("Wireguard manager started")
 
-	err = wireguardManager.Run()
+	fatalErr, err := wireguardManager.Run()
+	if fatalErr != nil {
+		return fatalErr
+	}
 	if err != nil {
-		return err
+		fmt.Println("Wireguard manager returned error", err)
 	}
 	log.Printf("Wireguard manager running")
 

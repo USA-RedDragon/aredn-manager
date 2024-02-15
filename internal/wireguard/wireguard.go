@@ -51,7 +51,7 @@ func NewManager(db *gorm.DB) (*Manager, error) {
 	}, nil
 }
 
-func (m *Manager) Run() error {
+func (m *Manager) Run() (error, error) {
 	go m.run()
 	return m.initializeTunnels()
 }
@@ -83,10 +83,10 @@ func (m *Manager) Stop() error {
 	return nil
 }
 
-func (m *Manager) initializeTunnels() error {
+func (m *Manager) initializeTunnels() (error, error) {
 	tunnels, err := models.ListWireguardTunnels(m.db)
 	if err != nil {
-		return err
+		return err, nil
 	}
 	errGroup := &errgroup.Group{}
 	for _, tunnel := range tunnels {
@@ -96,7 +96,7 @@ func (m *Manager) initializeTunnels() error {
 		})
 	}
 
-	return errGroup.Wait()
+	return nil, errGroup.Wait()
 }
 
 func (m *Manager) run() {
