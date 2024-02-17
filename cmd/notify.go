@@ -19,11 +19,6 @@ var (
 	}
 )
 
-//nolint:golint,gochecknoinits
-func init() {
-	RootCmd.AddCommand(notifyCmd)
-}
-
 func runNotify(cmd *cobra.Command, _ []string) error {
 	config := config.GetConfig(cmd)
 

@@ -7,19 +7,23 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//nolint:golint,gochecknoglobals
-var (
-	RootCmd = &cobra.Command{
-		Use:               "aredn-manager",
+func NewCommand(version, commit string) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:     "aredn-manager",
+		Version: fmt.Sprintf("%s - %s", version, commit),
+		Annotations: map[string]string{
+			"version": version,
+			"commit":  commit,
+		},
 		RunE:              runRoot,
 		SilenceErrors:     true,
 		DisableAutoGenTag: true,
 	}
-)
-
-//nolint:golint,gochecknoinits
-func init() {
-	RootCmd.PersistentFlags().BoolP("debug", "d", false, "enable debug logging")
+	cmd.PersistentFlags().BoolP("debug", "d", false, "enable debug logging")
+	cmd.AddCommand(generateCmd)
+	cmd.AddCommand(notifyCmd)
+	cmd.AddCommand(serverCmd)
+	return cmd
 }
 
 func runRoot(cmd *cobra.Command, _ []string) error {

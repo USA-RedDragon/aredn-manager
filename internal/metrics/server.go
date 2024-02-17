@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
-	"github.com/USA-RedDragon/aredn-manager/internal/sdk"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -32,13 +31,13 @@ var (
 	})
 )
 
-func CreateMetricsServer(config *config.Config) {
+func CreateMetricsServer(config *config.Config, version string) {
 	// We don't use RF, so we set it to 0
 	AREDNMeshRF.Set(0)
 	AREDNInfo.WithLabelValues(
 		"0x0000",
 		"AREDN Cloud Tunnel",
-		sdk.Version,
+		version,
 		config.Gridsquare,
 		config.Latitude,
 		config.Longitude,

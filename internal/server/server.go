@@ -53,7 +53,7 @@ func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterM
 	}
 }
 
-func (s *Server) Run() error {
+func (s *Server) Run(version string) error {
 	if s.config.Debug {
 		gin.SetMode(gin.DebugMode)
 	} else {
@@ -64,7 +64,7 @@ func (s *Server) Run() error {
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
 
-	s.addMiddleware(r)
+	s.addMiddleware(r, version)
 
 	api.ApplyRoutes(r, s.eventsChannel, s.config)
 
@@ -120,7 +120,7 @@ func (s *Server) Stop() error {
 	return nil
 }
 
-func (s *Server) addMiddleware(r *gin.Engine) {
+func (s *Server) addMiddleware(r *gin.Engine, version string) {
 	// Debug
 	if s.config.Debug {
 		pprof.Register(r)
@@ -141,6 +141,7 @@ func (s *Server) addMiddleware(r *gin.Engine) {
 	r.Use(middleware.WireguardManagerProvider(s.wireguardManager))
 	r.Use(middleware.NetworkStats(s.stats))
 	r.Use(middleware.PaginatedDatabaseProvider(s.db, middleware.PaginationConfig{}))
+	r.Use(middleware.VersionProvider(version))
 
 	// CORS
 	corsConfig := cors.DefaultConfig()

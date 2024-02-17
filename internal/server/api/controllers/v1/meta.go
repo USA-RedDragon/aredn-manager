@@ -6,12 +6,18 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/sdk"
 	"github.com/gin-gonic/gin"
 )
 
 func GETVersion(c *gin.Context) {
-	_, err := io.WriteString(c.Writer, fmt.Sprintf("%s-%s", sdk.Version, sdk.GitCommit))
+	version, ok := c.MustGet("Version").(string)
+	if !ok {
+		fmt.Println("POSTLogin: Unable to get version from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	_, err := io.WriteString(c.Writer, version)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting version"})
 	}

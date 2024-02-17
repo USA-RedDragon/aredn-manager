@@ -38,7 +38,6 @@ func init() {
 	serverCmd.Flags().String("pid-file", "/var/run/aredn-manager.pid", "file to write the daemon PID to")
 	serverCmd.Flags().IntP("port", "p", 3333, "port to listen on")
 	serverCmd.Flags().Bool("no-daemon", false, "do not daemonize the process")
-	RootCmd.AddCommand(serverCmd)
 }
 
 func runServer(cmd *cobra.Command, _ []string) error {
@@ -66,7 +65,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	}()
 
 	// Start the metrics server
-	go metrics.CreateMetricsServer(config)
+	go metrics.CreateMetricsServer(config, cmd.Version)
 	log.Printf("Metrics server started")
 
 	db := db.MakeDB(config)
@@ -119,7 +118,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 
 	// Start the server
 	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher, wireguardManager)
-	err = srv.Run()
+	err = srv.Run(cmd.Version)
 	if err != nil {
 		return err
 	}

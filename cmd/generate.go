@@ -21,11 +21,6 @@ var (
 	}
 )
 
-//nolint:golint,gochecknoinits
-func init() {
-	RootCmd.AddCommand(generateCmd)
-}
-
 func runGenerate(cmd *cobra.Command, _ []string) error {
 	config := config.GetConfig(cmd)
 	db := db.MakeDB(config)

@@ -13,7 +13,6 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
-	"github.com/USA-RedDragon/aredn-manager/internal/sdk"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
@@ -78,6 +77,13 @@ func GETSysinfo(c *gin.Context) {
 		return
 	}
 
+	version, ok := c.MustGet("Version").(string)
+	if !ok {
+		fmt.Println("POSTLogin: Unable to get version from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
 		fmt.Println("GETSysinfo: Unable to get Config from context")
@@ -138,7 +144,7 @@ func GETSysinfo(c *gin.Context) {
 			MeshGateway:          "1",
 			BoardID:              "0x0000",
 			FirmwareManufacturer: "github.com/USA-RedDragon/aredn-manager",
-			FirmwareVersion:      sdk.Version,
+			FirmwareVersion:      version,
 		},
 		Tunnels: apimodels.Tunnels{
 			ActiveTunnelCount: activeTunnels,
