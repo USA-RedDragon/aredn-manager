@@ -2,20 +2,14 @@ package bandwidth
 
 import (
 	"fmt"
-	"os"
-	"strconv"
-	"strings"
+	"log"
 	"sync"
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
+	"github.com/vishvananda/netlink"
 	"gorm.io/gorm"
-)
-
-const (
-	networkRXBytesPath = "/sys/class/net/%s/statistics/rx_bytes"
-	networkTXBytesPath = "/sys/class/net/%s/statistics/tx_bytes"
 )
 
 type StatCounter struct {
@@ -30,9 +24,14 @@ type StatCounter struct {
 	TXBandwidth    uint64
 	statsCallback  func(rxMb float64, txMb float64)
 	eventsChannel  chan events.Event
+	link           netlink.Link
 }
 
 func newStatCounter(iface string, db *gorm.DB, events chan events.Event, statsCallback func(rxMb float64, txMb float64)) *StatCounter {
+	dev, err := netlink.LinkByName(iface)
+	if err == nil {
+		log.Println("wireguard interface already exists", iface)
+	}
 	return &StatCounter{
 		iface: iface,
 		db:    db,
@@ -42,6 +41,7 @@ func newStatCounter(iface string, db *gorm.DB, events chan events.Event, statsCa
 			}
 		},
 		eventsChannel: events,
+		link:          dev,
 	}
 }
 
@@ -50,17 +50,8 @@ func (s *StatCounter) Start() error {
 		return fmt.Errorf("stat counter already running")
 	}
 	s.running = true
-	var err error
-	s.lastRXBytes, err = s.readRXBytes()
-	if err != nil {
-		fmt.Println("Error reading RX bytes:", err)
-		return err
-	}
-	s.lastTXBytes, err = s.readTXBytes()
-	if err != nil {
-		fmt.Println("Error reading TX bytes:", err)
-		return err
-	}
+	s.lastRXBytes = s.link.Attrs().Statistics.RxBytes
+	s.lastTXBytes = s.link.Attrs().Statistics.TxBytes
 	go func() {
 		count := 0
 		for s.running {
@@ -73,11 +64,7 @@ func (s *StatCounter) Start() error {
 			if !tunnel.Active {
 				return
 			}
-			rxBytes, err := s.readRXBytes()
-			if err != nil {
-				fmt.Println("Error reading RX bytes:", err)
-				continue
-			}
+			rxBytes := s.link.Attrs().Statistics.RxBytes
 			if rxBytes < s.lastRXBytes {
 				s.lastRXBytes = rxBytes
 				continue
@@ -92,11 +79,7 @@ func (s *StatCounter) Start() error {
 			s.lastNewRXBytes = newBytes
 			s.lastRXBytes = rxBytes
 
-			txBytes, err := s.readTXBytes()
-			if err != nil {
-				fmt.Println("Error reading TX bytes:", err)
-				continue
-			}
+			txBytes := s.link.Attrs().Statistics.TxBytes
 			if txBytes < s.lastTXBytes {
 				s.lastTXBytes = txBytes
 				continue
@@ -133,22 +116,6 @@ func (s *StatCounter) Start() error {
 
 func (s *StatCounter) Stop() {
 	s.running = false
-}
-
-func (s *StatCounter) readRXBytes() (uint64, error) {
-	rxBytes, err := os.ReadFile(fmt.Sprintf(networkRXBytesPath, s.iface))
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseUint(strings.TrimSpace(string(rxBytes)), 10, 64)
-}
-
-func (s *StatCounter) readTXBytes() (uint64, error) {
-	txBytes, err := os.ReadFile(fmt.Sprintf(networkTXBytesPath, s.iface))
-	if err != nil {
-		return 0, err
-	}
-	return strconv.ParseUint(strings.TrimSpace(string(txBytes)), 10, 64)
 }
 
 type StatCounterManager struct {
