@@ -180,32 +180,47 @@ export default {
   },
   mounted() {
     this.fetchData();
-    this.$EventBus.on('tunnel_stats', this.updateTunnel);
-    this.$EventBus.on('tunnel_connected', this.updateTunnel);
-    this.$EventBus.on('tunnel_disconnected', this.updateTunnel);
+    this.$EventBus.on('tunnel_stats', this.updateTunnelStats);
+    this.$EventBus.on('tunnel_connected', this.updateTunnelConnected);
+    this.$EventBus.on('tunnel_disconnected', this.updateTunnelDisconnected);
   },
   unmounted() {
-    this.$EventBus.off('tunnel_stats', this.updateTunnel);
-    this.$EventBus.off('tunnel_connected', this.updateTunnel);
-    this.$EventBus.off('tunnel_disconnected', this.updateTunnel);
+    this.$EventBus.off('tunnel_stats', this.updateTunnelStats);
+    this.$EventBus.off('tunnel_connected', this.updateTunnelConnected);
+    this.$EventBus.off('tunnel_disconnected', this.updateTunnelDisconnected);
   },
   methods: {
-    updateTunnel(tunnel) {
-      tunnel.created_at = moment(tunnel.created_at);
-      if (tunnel.connection_time == '0001-01-01T00:00:00Z' || !tunnel.connection_time) {
-        tunnel.connection_time = 'Never';
-      } else {
-        tunnel.connection_time = moment(tunnel.connection_time);
-      }
-      tunnel.total_rx_mb = Math.round(tunnel.total_rx_mb * 100) / 100;
-      tunnel.total_tx_mb = Math.round(tunnel.total_tx_mb * 100) / 100;
+    updateTunnelStats(tunnel) {
       for (let i = 0; i < this.tunnels.length; i++) {
         if (this.tunnels[i].id == tunnel.id) {
-          if ('password' in this.tunnels[i]) {
-            tunnel.password = this.tunnels[i].password;
+          this.tunnels[i].rx_bytes_per_sec = tunnel.rx_bytes_per_sec;
+          this.tunnels[i].tx_bytes_per_sec = tunnel.tx_bytes_per_sec;
+          this.tunnels[i].rx_bytes = tunnel.rx_bytes;
+          this.tunnels[i].tx_bytes = tunnel.tx_bytes;
+          this.tunnels[i].total_rx_mb = tunnel.total_rx_mb;
+          this.tunnels[i].total_tx_mb = tunnel.total_tx_mb;
+          return;
+        }
+      }
+    },
+    updateTunnelConnected(tunnel) {
+      for (let i = 0; i < this.tunnels.length; i++) {
+        if (this.tunnels[i].id == tunnel.id) {
+          this.tunnels[i].active = true;
+          if (tunnel.connection_time == '0001-01-01T00:00:00Z' || !tunnel.connection_time) {
+            tunnel.connection_time = 'Never';
+          } else {
+            tunnel.connection_time = moment(tunnel.connection_time);
           }
-          tunnel.editing = this.tunnels[i].editing;
-          this.tunnels[i] = tunnel;
+          this.tunnels[i].connection_time = tunnel.connection_time;
+          return;
+        }
+      }
+    },
+    updateTunnelDisconnected(tunnel) {
+      for (let i = 0; i < this.tunnels.length; i++) {
+        if (this.tunnels[i].id == tunnel.id) {
+          this.tunnels[i].active = false;
           return;
         }
       }
