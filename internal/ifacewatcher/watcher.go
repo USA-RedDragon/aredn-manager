@@ -203,7 +203,6 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 		var tun models.Tunnel
 		if strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0" {
 			var err error
-			ip[3] -= 1
 			if strings.HasPrefix(iface.Name, "wgs") {
 				tun, err = models.FindTunnelByIP(w.db, ip)
 				if err != nil {
@@ -211,7 +210,7 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 					continue
 				}
 			} else if strings.HasPrefix(iface.Name, "wgc") {
-				ip[3] += 1
+				ip[3] -= 1
 				tun, err = models.FindTunnelByIP(w.db, ip)
 				if err != nil {
 					fmt.Println(err)
