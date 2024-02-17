@@ -205,10 +205,6 @@ func parseHosts() (ret []*AREDNHost, err error) {
 		ret = append(ret, host)
 	}
 
-	if len(orphanedChildren) > 0 {
-		fmt.Printf("Found orphaned children: %v\n", orphanedChildren)
-	}
-
 	svcs := NewServicesParser()
 	err = svcs.Parse()
 	if err != nil {
