@@ -137,7 +137,9 @@ func (w *Watcher) watch() {
 				fmt.Printf("Interface %s is no longer present\n", iface.Name)
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelDisconnection,
-					Data: iface.AssociatedTunnel,
+					Data: apimodels.WebsocketTunnelDisconnect{
+						ID: iface.AssociatedTunnel.ID,
+					},
 				}
 				err = w.Stats.Remove(iface.Name)
 				if err != nil {
