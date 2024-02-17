@@ -182,7 +182,10 @@ func (s *StatCounterManager) Start() {
 
 func (s *StatCounterManager) Add(iface string) error {
 	statCounter := newStatCounter(iface, s.db, s.eventsChannel, s.totalStatsUpdate)
-	s.counters.Store(iface, statCounter)
+	_, loaded := s.counters.LoadOrStore(iface, statCounter)
+	if loaded {
+		return fmt.Errorf("stat counter already exists for interface %s", iface)
+	}
 	return statCounter.Start()
 }
 
@@ -216,8 +219,8 @@ func (s *StatCounterManager) updateTotalBandwidth() {
 }
 
 func (s *StatCounterManager) Remove(iface string) error {
-	statCounter, ok := s.counters.Load(iface)
-	if !ok {
+	statCounter, loaded := s.counters.LoadAndDelete(iface)
+	if !loaded {
 		return fmt.Errorf("stat counter not found for interface %s", iface)
 	}
 	sc, ok := statCounter.(*StatCounter)
@@ -225,7 +228,6 @@ func (s *StatCounterManager) Remove(iface string) error {
 		return fmt.Errorf("stat counter type assertion error")
 	}
 	sc.Stop()
-	s.counters.Delete(iface)
 	return nil
 }
 
