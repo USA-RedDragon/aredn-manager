@@ -51,7 +51,7 @@ func NewManager(db *gorm.DB) (*Manager, error) {
 	}, nil
 }
 
-func (m *Manager) Run() (error, error) {
+func (m *Manager) Run() error {
 	go m.run()
 	return m.initializeTunnels()
 }
@@ -83,10 +83,10 @@ func (m *Manager) Stop() error {
 	return nil
 }
 
-func (m *Manager) initializeTunnels() (error, error) {
+func (m *Manager) initializeTunnels() error {
 	tunnels, err := models.ListWireguardTunnels(m.db)
 	if err != nil {
-		return err, nil
+		return err
 	}
 	errGroup := &errgroup.Group{}
 	for _, tunnel := range tunnels {
@@ -96,7 +96,7 @@ func (m *Manager) initializeTunnels() (error, error) {
 		})
 	}
 
-	return nil, errGroup.Wait()
+	return errGroup.Wait()
 }
 
 func (m *Manager) run() {
@@ -384,6 +384,8 @@ func (m *Manager) waitForPeerRemoval(ctx context.Context, peer models.Tunnel) er
 		return ctx.Err()
 	case addedPeer := <-m.peerRemoveConfirmChan:
 		if addedPeer.ID != peer.ID {
+			// Pop the wrong peer back onto the channel
+			m.peerRemoveConfirmChan <- addedPeer
 			return m.waitForPeerRemoval(ctx, peer)
 		}
 		return nil
