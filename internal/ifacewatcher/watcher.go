@@ -9,6 +9,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
+	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"gorm.io/gorm"
 )
@@ -121,7 +122,9 @@ func (w *Watcher) watch() {
 				fmt.Printf("Interface %s is no longer present\n", iface.Name)
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelDisconnection,
-					Data: iface.AssociatedTunnel,
+					Data: apimodels.WebsocketTunnelDisconnect{
+						ID: iface.AssociatedTunnel.ID,
+					},
 				}
 				err = w.Stats.Remove(iface.Name)
 				if err != nil {
@@ -267,9 +270,12 @@ func (w *Watcher) reconcileDB() {
 				iface.AssociatedTunnel.Active = true
 				iface.AssociatedTunnel.TunnelInterface = iface.Name
 				iface.AssociatedTunnel.ConnectionTime = time.Now()
+
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelConnection,
-					Data: iface.AssociatedTunnel,
+					Data: apimodels.WebsocketTunnelConnect{
+						ID: iface.AssociatedTunnel.ID,
+					},
 				}
 				w.db.Save(iface.AssociatedTunnel)
 			}

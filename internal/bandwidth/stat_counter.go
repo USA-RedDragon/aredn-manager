@@ -8,6 +8,7 @@ import (
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
+	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"github.com/vishvananda/netlink"
 	"gorm.io/gorm"
 )
@@ -103,9 +104,18 @@ func (s *StatCounter) Start() error {
 			s.lastNewTXBytes = newBytes
 			s.lastTXBytes = txBytes
 
+			wsTunnel := apimodels.WebsocketTunnelStats{
+				RXBytesPerSecond: tunnel.RXBytesPerSec,
+				TXBytesPerSecond: tunnel.TXBytesPerSec,
+				RXBytes:          tunnel.RXBytes,
+				TXBytes:          tunnel.TXBytes,
+				TotalRXMB:        tunnel.TotalRXMB,
+				TotalTXMB:        tunnel.TotalTXMB,
+			}
+
 			s.eventsChannel <- events.Event{
 				Type: events.EventTypeTunnelStats,
-				Data: tunnel,
+				Data: wsTunnel,
 			}
 
 			s.statsCallback(float64(s.lastNewRXBytes)/1024/1024, float64(s.lastNewTXBytes)/1024/1024)
