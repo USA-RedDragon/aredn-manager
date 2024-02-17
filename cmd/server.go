@@ -65,7 +65,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	}()
 
 	// Start the metrics server
-	go metrics.CreateMetricsServer(config, cmd.Version)
+	go metrics.CreateMetricsServer(config, cmd.Root().Version)
 	log.Printf("Metrics server started")
 
 	db := db.MakeDB(config)
@@ -118,7 +118,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 
 	// Start the server
 	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher, wireguardManager)
-	err = srv.Run(cmd.Version)
+	err = srv.Run(cmd.Root().Version)
 	if err != nil {
 		return err
 	}
