@@ -357,7 +357,8 @@ func (m *Manager) waitForPeerAddition(ctx context.Context, peer models.Tunnel) e
 		return ctx.Err()
 	case addedPeer := <-m.peerAddConfirmChan:
 		if addedPeer.ID != peer.ID {
-			log.Printf("peerAddConfirm received wrong peer: %v\n", addedPeer.Hostname)
+			// Pop the wrong peer back onto the channel
+			m.peerAddConfirmChan <- addedPeer
 			return m.waitForPeerAddition(ctx, peer)
 		}
 		log.Printf("peerAddConfirm received correct peer: %v\n", addedPeer.Hostname)
