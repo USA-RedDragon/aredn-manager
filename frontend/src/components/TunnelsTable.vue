@@ -197,7 +197,9 @@ export default {
           this.tunnels[i].tx_bytes_per_sec = tunnel.tx_bytes_per_sec;
           this.tunnels[i].rx_bytes = tunnel.rx_bytes;
           this.tunnels[i].tx_bytes = tunnel.tx_bytes;
+          tunnel.total_rx_mb = tunnel.total_rx_mb * 1024 * 1024;
           this.tunnels[i].total_rx_mb = tunnel.total_rx_mb;
+          tunnel.total_tx_mb = tunnel.total_tx_mb * 1024 * 1024;
           this.tunnels[i].total_tx_mb = tunnel.total_tx_mb;
           return;
         }
