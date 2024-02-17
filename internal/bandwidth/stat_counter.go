@@ -105,6 +105,7 @@ func (s *StatCounter) Start() error {
 			s.lastTXBytes = txBytes
 
 			wsTunnel := apimodels.WebsocketTunnelStats{
+				ID:               tunnel.ID,
 				RXBytesPerSecond: tunnel.RXBytesPerSec,
 				TXBytesPerSecond: tunnel.TXBytesPerSec,
 				RXBytes:          tunnel.RXBytes,

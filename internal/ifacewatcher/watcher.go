@@ -253,11 +253,23 @@ func (w *Watcher) reconcileDB() {
 			iface.AssociatedTunnel.TXBytes = 0
 			w.eventChannel <- events.Event{
 				Type: events.EventTypeTunnelDisconnection,
-				Data: iface.AssociatedTunnel,
+				Data: apimodels.WebsocketTunnelDisconnect{
+					ID: iface.AssociatedTunnel.ID,
+				},
+			}
+
+			wsTunnel := apimodels.WebsocketTunnelStats{
+				ID:               iface.AssociatedTunnel.ID,
+				RXBytesPerSecond: iface.AssociatedTunnel.RXBytesPerSec,
+				TXBytesPerSecond: iface.AssociatedTunnel.TXBytesPerSec,
+				RXBytes:          iface.AssociatedTunnel.RXBytes,
+				TXBytes:          iface.AssociatedTunnel.TXBytes,
+				TotalRXMB:        iface.AssociatedTunnel.TotalRXMB,
+				TotalTXMB:        iface.AssociatedTunnel.TotalTXMB,
 			}
 			w.eventChannel <- events.Event{
 				Type: events.EventTypeTunnelStats,
-				Data: iface.AssociatedTunnel,
+				Data: wsTunnel,
 			}
 			w.db.Save(iface.AssociatedTunnel)
 		}
