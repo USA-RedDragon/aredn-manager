@@ -9,6 +9,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
+	"golang.zx2c4.com/wireguard/wgctrl"
 	"gorm.io/gorm"
 )
 
@@ -24,17 +25,23 @@ type Watcher struct {
 	interfacesToMarkInactive []_iface
 	Stats                    *bandwidth.StatCounterManager
 	eventChannel             chan events.Event
+	wgClient                 *wgctrl.Client
 }
 
-func NewWatcher(db *gorm.DB, events chan events.Event) *Watcher {
+func NewWatcher(db *gorm.DB, events chan events.Event) (*Watcher, error) {
+	wgClient, err := wgctrl.New()
+	if err != nil {
+		return nil, err
+	}
 	w := &Watcher{
 		stopped:      true,
 		db:           db,
 		Stats:        bandwidth.NewStatCounterManager(db, events),
 		eventChannel: events,
+		wgClient:     wgClient,
 	}
 	w.Stats.Start()
-	return w
+	return w, nil
 }
 
 func (w *Watcher) Watch() error {
@@ -78,6 +85,30 @@ func remove(s []_iface, e _iface) []_iface {
 	return s
 }
 
+func (w *Watcher) wgInterfaceActive(iface _iface) bool {
+	if iface.Name == "wg0" {
+		return false
+	}
+	if !strings.HasPrefix(iface.Name, "wg") {
+		return false
+	}
+	dev, err := w.wgClient.Device(iface.Name)
+	if err != nil {
+		return false
+	}
+	if len(dev.Peers) > 0 {
+		for _, peer := range dev.Peers {
+			// If the last handshake time is more than 3 minutes ago, consider the interface inactive
+			if peer.LastHandshakeTime.IsZero() || time.Since(peer.LastHandshakeTime) > 180*time.Second {
+				return false
+			} else {
+				return true
+			}
+		}
+	}
+	return false
+}
+
 func (w *Watcher) watch() {
 	w.interfacesToMarkInactive = []_iface{}
 	interfaces, err := net.Interfaces()
@@ -86,7 +117,20 @@ func (w *Watcher) watch() {
 	} else {
 		// Loop through w.interfaces and check if any are present but missing from net.Interfaces()
 		for _, iface := range w.interfaces {
-			if !netInterfaceContainsIface(interfaces, iface) {
+			if strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0" && !w.wgInterfaceActive(iface) {
+				fmt.Printf("Interface %s is no longer present\n", iface.Name)
+				w.eventChannel <- events.Event{
+					Type: events.EventTypeTunnelDisconnection,
+					Data: iface.AssociatedTunnel,
+				}
+				err = w.Stats.Remove(iface.Name)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				w.interfaces = remove(w.interfaces, iface)
+				w.interfacesToMarkInactive = append(w.interfacesToMarkInactive, iface)
+			} else if strings.HasPrefix(iface.Name, "tun") && !netInterfaceContainsIface(interfaces, iface) {
 				fmt.Printf("Interface %s is no longer present\n", iface.Name)
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelDisconnection,
@@ -104,7 +148,23 @@ func (w *Watcher) watch() {
 
 		// Loop through net.Interfaces() and check if any are missing from w.interfaces
 		for _, iface := range interfaces {
-			if ((strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0") || strings.HasPrefix(iface.Name, "tun")) && !ifaceContainsNetInterface(w.interfaces, iface) {
+			if strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0" && w.wgInterfaceActive(_iface{iface, nil}) {
+				fmt.Printf("Interface %s is now present\n", iface.Name)
+				tunnel := w.findTunnel(iface)
+				if tunnel == nil {
+					fmt.Printf("No tunnel found for interface %s\n", iface.Name)
+					continue
+				}
+				err = w.Stats.Add(iface.Name)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+				w.interfaces = append(w.interfaces, _iface{
+					iface,
+					tunnel,
+				})
+			} else if strings.HasPrefix(iface.Name, "tun") && !ifaceContainsNetInterface(w.interfaces, iface) {
 				fmt.Printf("Interface %s is now present\n", iface.Name)
 				tunnel := w.findTunnel(iface)
 				if tunnel == nil {

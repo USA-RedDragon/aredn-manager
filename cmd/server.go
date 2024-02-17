@@ -104,7 +104,10 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	log.Printf("Event bus started")
 
 	// Start the interface watcher
-	ifWatcher := ifacewatcher.NewWatcher(db, eventBus.GetChannel())
+	ifWatcher, err := ifacewatcher.NewWatcher(db, eventBus.GetChannel())
+	if err != nil {
+		return err
+	}
 	err = ifWatcher.Watch()
 	if err != nil {
 		return err
