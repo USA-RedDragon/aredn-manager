@@ -268,18 +268,18 @@ func parseHosts() (ret []*AREDNHost, err error) {
 	}
 
 	// Now check if there are any services that we didn't find a host for
-	for _, svc := range services {
-		hasFoundService := false
-		for _, foundSvc := range foundServices {
-			if foundSvc == svc {
-				hasFoundService = true
-				break
-			}
-		}
-		if !hasFoundService {
-			fmt.Printf("Found service with no host: %v\n", svc)
-		}
-	}
+	// for _, svc := range services {
+	// 	hasFoundService := false
+	// 	for _, foundSvc := range foundServices {
+	// 		if foundSvc == svc {
+	// 			hasFoundService = true
+	// 			break
+	// 		}
+	// 	}
+	// 	if !hasFoundService {
+	// 		fmt.Printf("Found service with no host: %v\n", svc)
+	// 	}
+	// }
 
 	return
 }

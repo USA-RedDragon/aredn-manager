@@ -73,7 +73,6 @@ func parseServices() (ret []*AREDNService, err error) {
 		// Split the line by '|'
 		split := strings.Split(line, "|")
 		if len(split) != 3 {
-			fmt.Printf("Invalid line in services file: %s\n", line)
 			continue
 		}
 
