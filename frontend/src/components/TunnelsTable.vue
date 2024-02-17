@@ -198,9 +198,7 @@ export default {
         tunnel.connection_time = moment(tunnel.connection_time);
       }
       tunnel.total_rx_mb = Math.round(tunnel.total_rx_mb * 100) / 100;
-      tunnel.total_rx_mb = tunnel.total_rx_mb * 1024 * 1024;
       tunnel.total_tx_mb = Math.round(tunnel.total_tx_mb * 100) / 100;
-      tunnel.total_tx_mb = tunnel.total_tx_mb * 1024 * 1024;
       for (let i = 0; i < this.tunnels.length; i++) {
         if (this.tunnels[i].id == tunnel.id) {
           if ('password' in this.tunnels[i]) {
