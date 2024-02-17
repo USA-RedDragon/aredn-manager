@@ -15,8 +15,8 @@ import API from '@/services/API';
 import { mapStores } from 'pinia';
 import { useUserStore, useSettingsStore } from '@/store';
 
-// import { getWebsocketURI } from '@/services/util';
-// import ws from '@/services/ws';
+import { getWebsocketURI } from '@/services/util';
+import ws from '@/services/ws';
 
 export default {
   name: 'App',
@@ -34,7 +34,7 @@ export default {
   created() {},
   mounted() {
     this.fetchData();
-    // this.socket = ws.connect(getWebsocketURI() + '/events', this.onWebsocketMessage);
+    this.socket = ws.connect(getWebsocketURI() + '/events', this.onWebsocketMessage);
   },
   unmounted() {
     if (this.socket) {
