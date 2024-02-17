@@ -287,6 +287,8 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		}
 	}
 
+	log.Println("configuring wireguard device", iface)
+
 	err = m.wgClient.ConfigureDevice(iface, wgtypes.Config{
 		PrivateKey:   &privkey,
 		ListenPort:   &portInt,
