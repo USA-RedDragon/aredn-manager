@@ -153,7 +153,7 @@ func (w *Watcher) watch() {
 
 		// Loop through net.Interfaces() and check if any are missing from w.interfaces
 		for _, iface := range interfaces {
-			if strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0" && w.wgInterfaceActive(_iface{iface, nil}) {
+			if strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0" && w.wgInterfaceActive(_iface{iface, nil}) && !ifaceContainsNetInterface(w.interfaces, iface) {
 				fmt.Printf("Interface %s is now present\n", iface.Name)
 				tunnel := w.findTunnel(iface)
 				if tunnel == nil {
