@@ -24,14 +24,9 @@ type StatCounter struct {
 	TXBandwidth    uint64
 	statsCallback  func(rxMb float64, txMb float64)
 	eventsChannel  chan events.Event
-	link           netlink.Link
 }
 
 func newStatCounter(iface string, db *gorm.DB, events chan events.Event, statsCallback func(rxMb float64, txMb float64)) *StatCounter {
-	dev, err := netlink.LinkByName(iface)
-	if err == nil {
-		log.Println("wireguard interface already exists", iface)
-	}
 	return &StatCounter{
 		iface: iface,
 		db:    db,
@@ -41,7 +36,6 @@ func newStatCounter(iface string, db *gorm.DB, events chan events.Event, statsCa
 			}
 		},
 		eventsChannel: events,
-		link:          dev,
 	}
 }
 
@@ -49,9 +43,13 @@ func (s *StatCounter) Start() error {
 	if s.running {
 		return fmt.Errorf("stat counter already running")
 	}
+	dev, err := netlink.LinkByName(s.iface)
+	if err != nil {
+		return fmt.Errorf("error getting link %s by name: %w", s.iface, err)
+	}
 	s.running = true
-	s.lastRXBytes = s.link.Attrs().Statistics.RxBytes
-	s.lastTXBytes = s.link.Attrs().Statistics.TxBytes
+	s.lastRXBytes = dev.Attrs().Statistics.RxBytes
+	s.lastTXBytes = dev.Attrs().Statistics.TxBytes
 	go func() {
 		count := 0
 		for s.running {
@@ -64,7 +62,11 @@ func (s *StatCounter) Start() error {
 			if !tunnel.Active {
 				return
 			}
-			rxBytes := s.link.Attrs().Statistics.RxBytes
+			dev, err = netlink.LinkByName(s.iface)
+			if err != nil {
+				log.Printf("Error getting link %s by name: %v\n", s.iface, err)
+			}
+			rxBytes := dev.Attrs().Statistics.RxBytes
 			if rxBytes < s.lastRXBytes {
 				s.lastRXBytes = rxBytes
 				continue
@@ -79,7 +81,7 @@ func (s *StatCounter) Start() error {
 			s.lastNewRXBytes = newBytes
 			s.lastRXBytes = rxBytes
 
-			txBytes := s.link.Attrs().Statistics.TxBytes
+			txBytes := dev.Attrs().Statistics.TxBytes
 			if txBytes < s.lastTXBytes {
 				s.lastTXBytes = txBytes
 				continue
