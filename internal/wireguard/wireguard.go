@@ -287,8 +287,6 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		}
 	}
 
-	log.Println("configuring wireguard device", iface)
-
 	err = m.wgClient.ConfigureDevice(iface, wgtypes.Config{
 		PrivateKey:   &privkey,
 		ListenPort:   &portInt,
@@ -361,7 +359,6 @@ func (m *Manager) waitForPeerAddition(ctx context.Context, peer models.Tunnel) e
 			m.peerAddConfirmChan <- addedPeer
 			return m.waitForPeerAddition(ctx, peer)
 		}
-		log.Printf("peerAddConfirm received correct peer: %v\n", addedPeer.Hostname)
 		return nil
 	}
 }

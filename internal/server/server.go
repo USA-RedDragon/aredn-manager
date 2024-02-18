@@ -54,12 +54,6 @@ func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterM
 }
 
 func (s *Server) Run(version string) error {
-	if s.config.Debug {
-		gin.SetMode(gin.DebugMode)
-	} else {
-		gin.SetMode(gin.ReleaseMode)
-	}
-
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
