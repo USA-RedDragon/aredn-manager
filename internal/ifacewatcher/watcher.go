@@ -297,7 +297,7 @@ func (w *Watcher) reconcileDB() {
 	}
 }
 
-func (w *Watcher) Stop() {
+func (w *Watcher) Stop() error {
 	w.stopped = true
-	w.Stats.Stop()
+	return w.Stats.Stop()
 }

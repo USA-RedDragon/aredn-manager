@@ -140,17 +140,19 @@ func runServer(cmd *cobra.Command, _ []string) error {
 			return vtunClientWatcher.Stop()
 		})
 
+		// Run the next steps serially
+		errGrp.SetLimit(1)
+
 		errGrp.Go(func() error {
-			eventBus.Close()
-			return nil
+			return ifWatcher.Stop()
 		})
 
 		errGrp.Go(func() error {
-			ifWatcher.Stop()
 			return models.ClearActiveFromAllTunnels(db)
 		})
 
-		cancel()
+		// Run the next steps serially
+		errGrp.SetLimit(2)
 
 		errGrp.Go(func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
@@ -173,6 +175,13 @@ func runServer(cmd *cobra.Command, _ []string) error {
 				return nil
 			}
 		})
+
+		errGrp.Go(func() error {
+			eventBus.Close()
+			return nil
+		})
+
+		go cancel()
 
 		stopChan <- errGrp.Wait()
 	}

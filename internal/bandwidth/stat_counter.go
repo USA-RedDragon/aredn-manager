@@ -10,6 +10,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"github.com/vishvananda/netlink"
+	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"
 )
 
@@ -228,7 +229,7 @@ func (s *StatCounterManager) GetAll() []*StatCounter {
 	s.counters.Range(func(key, value interface{}) bool {
 		sc, ok := value.(*StatCounter)
 		if !ok {
-			return false
+			return true
 		}
 		counters = append(counters, sc)
 		return true
@@ -236,14 +237,20 @@ func (s *StatCounterManager) GetAll() []*StatCounter {
 	return counters
 }
 
-func (s *StatCounterManager) Stop() {
+func (s *StatCounterManager) Stop() error {
 	s.running = false
+	errGrp := errgroup.Group{}
 	s.counters.Range(func(key, value interface{}) bool {
 		sc, ok := value.(*StatCounter)
 		if !ok {
-			return false
+			return true
 		}
-		sc.Stop()
+		errGrp.Go(func() error {
+			sc.Stop()
+			return nil
+		})
 		return true
 	})
+
+	return errGrp.Wait()
 }
