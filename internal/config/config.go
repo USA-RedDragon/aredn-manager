@@ -203,28 +203,5 @@ func GetConfig(cmd *cobra.Command) *Config {
 		}
 	}
 
-	if currentConfig.Debug {
-		fmt.Println(currentConfig.ToString())
-	}
-
 	return &currentConfig
-}
-
-// ToString returns a string representation of the configuration
-func (config *Config) ToString() string {
-	return "Debug: " + strconv.FormatBool(config.Debug) + "\n" +
-		"Port: " + strconv.Itoa(config.Port) + "\n" +
-		"PasswordSalt: " + config.PasswordSalt + "\n" +
-		"OTLPEndpoint: " + config.OTLPEndpoint + "\n" +
-		"InitialAdminUserPassword: " + config.InitialAdminUserPassword + "\n" +
-		"HIBPAPIKey: " + config.HIBPAPIKey + "\n" +
-		"PostgresDSN: " + config.PostgresDSN + "\n" +
-		"PostgresUser: " + config.postgresUser + "\n" +
-		"PostgresPassword: " + config.postgresPassword + "\n" +
-		"PostgresHost: " + config.postgresHost + "\n" +
-		"PostgresPort: " + strconv.Itoa(config.postgresPort) + "\n" +
-		"PostgresDatabase: " + config.postgresDatabase + "\n" +
-		"CORSHosts: " + strings.Join(config.CORSHosts, ",") + "\n" +
-		"TrustedProxies: " + strings.Join(config.TrustedProxies, ",") + "\n" +
-		"MetricsPort: " + strconv.Itoa(config.MetricsPort) + "\n"
 }

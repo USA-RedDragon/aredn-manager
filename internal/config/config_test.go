@@ -13,5 +13,4 @@ func TestNoop(t *testing.T) {
 	if conf.Debug != true {
 		t.Error("Debug should be true")
 	}
-	t.Log(conf.ToString())
 }
