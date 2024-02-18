@@ -130,26 +130,6 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		errGrp.SetLimit(1)
 
 		errGrp.Go(func() error {
-			return wireguardManager.Stop()
-		})
-
-		errGrp.Go(func() error {
-			return srv.Stop()
-		})
-
-		errGrp.Go(func() error {
-			return vtunClientWatcher.Stop()
-		})
-
-		errGrp.Go(func() error {
-			return ifWatcher.Stop()
-		})
-
-		errGrp.Go(func() error {
-			return models.ClearActiveFromAllTunnels(db)
-		})
-
-		errGrp.Go(func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 			select {
@@ -169,6 +149,26 @@ func runServer(cmd *cobra.Command, _ []string) error {
 			case <-vtunExitedChan:
 				return nil
 			}
+		})
+
+		errGrp.Go(func() error {
+			return wireguardManager.Stop()
+		})
+
+		errGrp.Go(func() error {
+			return srv.Stop()
+		})
+
+		errGrp.Go(func() error {
+			return vtunClientWatcher.Stop()
+		})
+
+		errGrp.Go(func() error {
+			return ifWatcher.Stop()
+		})
+
+		errGrp.Go(func() error {
+			return models.ClearActiveFromAllTunnels(db)
 		})
 
 		errGrp.Go(func() error {
