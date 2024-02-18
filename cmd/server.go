@@ -127,6 +127,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 			log.Println("Received SIGQUIT, shutting down")
 		}
 		errGrp := errgroup.Group{}
+		errGrp.SetLimit(1)
 
 		errGrp.Go(func() error {
 			return wireguardManager.Stop()
@@ -140,9 +141,6 @@ func runServer(cmd *cobra.Command, _ []string) error {
 			return vtunClientWatcher.Stop()
 		})
 
-		// Run the next steps serially
-		errGrp.SetLimit(1)
-
 		errGrp.Go(func() error {
 			return ifWatcher.Stop()
 		})
@@ -150,9 +148,6 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		errGrp.Go(func() error {
 			return models.ClearActiveFromAllTunnels(db)
 		})
-
-		// Run the next steps serially
-		errGrp.SetLimit(2)
 
 		errGrp.Go(func() error {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
