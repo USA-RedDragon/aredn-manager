@@ -3,6 +3,7 @@ package olsrd
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"syscall"
@@ -15,12 +16,20 @@ var (
 	olsrCmd *exec.Cmd
 )
 
-func Run(ctx context.Context) error {
+func Run(ctx context.Context) chan struct{} {
+	stopChan := make(chan struct{})
+	defer close(stopChan)
+	go run(ctx, stopChan)
+	return stopChan
+}
+
+func run(ctx context.Context, stopChan chan struct{}) {
 	olsrCmd = exec.CommandContext(ctx, "olsrd", "-f", "/etc/olsrd/olsrd.conf", "-nofork")
 	processResults, err := runner.Run(ctx, olsrCmd)
 	defer close(processResults)
 	if err != nil {
-		return err
+		fmt.Println("olsrd failed to start:", err)
+		return
 	}
 	fmt.Println("OLSR started")
 
@@ -31,17 +40,13 @@ func Run(ctx context.Context) error {
 		} else {
 			fmt.Println("OLSR process exited, restarting it")
 		}
-		return Run(ctx)
+		run(ctx, stopChan)
 	case <-ctx.Done():
-		fmt.Println("Context cancelled")
+		err = <-processResults
+		if err != nil {
+			log.Printf("olsrd process exited with error: %v", err)
+		}
 	}
-	fmt.Println("Waiting for OLSR process to exit")
-	err = <-processResults
-	if err != nil {
-		return fmt.Errorf("olsrd process exited with error: %v", err)
-	}
-
-	return nil
 }
 
 func IsRunning() bool {

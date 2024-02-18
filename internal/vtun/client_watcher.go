@@ -9,6 +9,7 @@ import (
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/aredn-manager/internal/runner"
 	"gorm.io/gorm"
 )
 
@@ -103,8 +104,8 @@ func (v *VTunClientWatcher) watch() {
 	}
 }
 
-func (v *VTunClientWatcher) run(ctx context.Context, cmd exec.Cmd, tunnel models.Tunnel) {
-	err := cmd.Wait()
+func (v *VTunClientWatcher) wait(ctx context.Context, processResults chan error, tunnel models.Tunnel) {
+	err := <-processResults
 	if err != nil {
 		if !v.started {
 			return
@@ -155,12 +156,13 @@ func (v *VTunClientWatcher) runClient(ctx context.Context, tunnel models.Tunnel)
 	tunInfo.cmd = *cmd
 	v.cancels[tunnel.ID] = tunInfo
 
-	err := cmd.Start()
+	processResults, err := runner.Run(ctx, cmd)
+	defer close(processResults)
 	if err != nil {
 		return err
 	}
 
-	go v.run(ctx, *cmd, tunnel)
+	go v.wait(ctx, processResults, tunnel)
 
 	return nil
 }

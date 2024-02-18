@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"syscall"
+	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db"
@@ -49,20 +50,8 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Run olsrd and vtun
-	go func() {
-		err := olsrd.Run(ctx)
-		if err != nil {
-			log.Println("OLSRD returned error", err)
-		}
-	}()
-
-	go func() {
-		err := vtun.Run(ctx)
-		if err != nil {
-			log.Println("VTUND returned error", err)
-		}
-	}()
+	olsrdExitedChan := olsrd.Run(ctx)
+	vtunExitedChan := vtun.Run(ctx)
 
 	// Start the metrics server
 	go metrics.CreateMetricsServer(config, cmd.Root().Version)
@@ -159,6 +148,30 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		errGrp.Go(func() error {
 			ifWatcher.Stop()
 			return models.ClearActiveFromAllTunnels(db)
+		})
+
+		cancel()
+
+		errGrp.Go(func() error {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			select {
+			case <-ctx.Done():
+				return fmt.Errorf("olsrd did not exit in time")
+			case <-olsrdExitedChan:
+				return nil
+			}
+		})
+
+		errGrp.Go(func() error {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			select {
+			case <-ctx.Done():
+				return fmt.Errorf("vtund did not exit in time")
+			case <-vtunExitedChan:
+				return nil
+			}
 		})
 
 		stopChan <- errGrp.Wait()

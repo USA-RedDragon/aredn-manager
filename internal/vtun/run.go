@@ -3,6 +3,7 @@ package vtun
 import (
 	"context"
 	"fmt"
+	"log"
 	"os"
 	"os/exec"
 	"syscall"
@@ -15,12 +16,20 @@ var (
 	vtunCmd *exec.Cmd
 )
 
-func Run(ctx context.Context) error {
+func Run(ctx context.Context) chan struct{} {
+	stopChan := make(chan struct{})
+	defer close(stopChan)
+	go run(ctx, stopChan)
+	return stopChan
+}
+
+func run(ctx context.Context, stopChan chan struct{}) {
 	vtunCmd = exec.CommandContext(ctx, "vtund", "-s", "-f", "/etc/vtundsrv.conf", "-n")
 	processResults, err := runner.Run(ctx, vtunCmd)
 	defer close(processResults)
 	if err != nil {
-		return err
+		fmt.Println("vtund failed to start:", err)
+		return
 	}
 	fmt.Println("VTun started")
 
@@ -31,17 +40,13 @@ func Run(ctx context.Context) error {
 		} else {
 			fmt.Println("VTun process exited, restarting it")
 		}
-		return Run(ctx)
+		run(ctx, stopChan)
 	case <-ctx.Done():
-		fmt.Println("Context cancelled")
+		err = <-processResults
+		if err != nil {
+			log.Printf("vtund process exited with error: %v", err)
+		}
 	}
-	fmt.Println("Waiting for VTun process to exit")
-	err = <-processResults
-	if err != nil {
-		return fmt.Errorf("vtun process exited with error: %v", err)
-	}
-
-	return nil
 }
 
 func IsRunning() bool {
