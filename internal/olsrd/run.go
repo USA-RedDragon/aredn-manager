@@ -40,7 +40,11 @@ func run(ctx context.Context, stopChan chan struct{}) {
 		} else {
 			fmt.Println("OLSR process exited, restarting it")
 		}
-		run(ctx, stopChan)
+		err = olsrCmd.Process.Signal(os.Signal(syscall.SIGKILL))
+		if err != nil {
+			log.Printf("failed to kill process: %v\n", err)
+		}
+		go run(ctx, stopChan)
 	case <-ctx.Done():
 		err = <-processResults
 		if err != nil {
