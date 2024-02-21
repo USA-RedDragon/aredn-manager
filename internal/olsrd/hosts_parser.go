@@ -6,12 +6,14 @@ import (
 	"net/url"
 	"os"
 	"strings"
+	"sync/atomic"
 )
 
 const hostsFile = "/var/run/hosts_olsr"
 
 type HostsParser struct {
 	currentHosts []*AREDNHost
+	isParsing    atomic.Bool
 }
 
 func NewHostsParser() *HostsParser {
@@ -47,6 +49,11 @@ func (p *HostsParser) GetHostsPaginated(page int, limit int, filter string) []*A
 }
 
 func (p *HostsParser) Parse() (err error) {
+	if p.isParsing.Load() {
+		return
+	}
+	p.isParsing.Store(true)
+	defer p.isParsing.Store(false)
 	hosts, err := parseHosts()
 	if err != nil {
 		return
