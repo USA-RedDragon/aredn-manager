@@ -70,6 +70,19 @@ func GETMetrics(c *gin.Context) {
 }
 
 func GETSysinfo(c *gin.Context) {
+	var sysinfoChan = make(chan *syscall.Sysinfo_t)
+	var sysinfoErrorChan = make(chan error)
+	defer close(sysinfoChan)
+	defer close(sysinfoErrorChan)
+	go func() {
+		var info *syscall.Sysinfo_t
+		err := syscall.Sysinfo(info)
+		if err != nil {
+			sysinfoErrorChan <- err
+		}
+		sysinfoChan <- info
+	}()
+
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
 		fmt.Println("POSTLogin: Unable to get DB from context")
@@ -106,19 +119,23 @@ func GETSysinfo(c *gin.Context) {
 		return
 	}
 
-	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.HostsParser)
-	if !ok {
-		fmt.Println("GETSysinfo: OLSRDHostParser not found in context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
+	hostsStr, exists := c.GetQuery("hosts")
+	if !exists {
+		hostsStr = "0"
 	}
+	doHosts := hostsStr == "1"
 
-	olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsrd.ServicesParser)
-	if !ok {
-		fmt.Println("GETSysinfo: OLSRDServicesParser not found in context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
+	servicesStr, exists := c.GetQuery("services")
+	if !exists {
+		servicesStr = "0"
 	}
+	doServices := servicesStr == "1"
+
+	linkInfoStr, exists := c.GetQuery("link_info")
+	if !exists {
+		linkInfoStr = "0"
+	}
+	doLinkInfo := linkInfoStr == "1"
 
 	sysinfo := apimodels.SysinfoResponse{
 		Longitude: config.Longitude,
@@ -153,9 +170,30 @@ func GETSysinfo(c *gin.Context) {
 			Enabled: false,
 		},
 		Interfaces: getInterfaces(),
-		Hosts:      getHosts(olsrdParser),
-		Services:   getServices(olsrdServicesParser),
-		LinkInfo:   getLinkInfo(),
+	}
+
+	if doHosts {
+		olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.HostsParser)
+		if !ok {
+			fmt.Println("GETSysinfo: OLSRDHostParser not found in context")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+		sysinfo.Hosts = getHosts(olsrdParser)
+	}
+
+	if doServices {
+		olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsrd.ServicesParser)
+		if !ok {
+			fmt.Println("GETSysinfo: OLSRDServicesParser not found in context")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+		sysinfo.Services = getServices(olsrdServicesParser)
+	}
+
+	if doLinkInfo {
+		sysinfo.LinkInfo = getLinkInfo()
 	}
 
 	c.JSON(http.StatusOK, sysinfo)
