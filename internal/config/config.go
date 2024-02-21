@@ -44,6 +44,7 @@ type Config struct {
 	Latitude                 string
 	Longitude                string
 	Gridsquare               string
+	DisableVTun              bool
 }
 
 func loadConfig() Config {
@@ -97,6 +98,7 @@ func loadConfig() Config {
 		Latitude:                 os.Getenv("SERVER_LAT"),
 		Longitude:                os.Getenv("SERVER_LON"),
 		Gridsquare:               os.Getenv("SERVER_GRIDSQUARE"),
+		DisableVTun:              os.Getenv("DISABLE_VTUN") != "",
 	}
 
 	if tmpConfig.VTUNStartingAddress == "" {

@@ -51,7 +51,11 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	defer cancel()
 
 	olsrdExitedChan := olsrd.Run(ctx)
-	vtunExitedChan := vtun.Run(ctx)
+
+	vtunExitedChan := make(chan struct{})
+	if !config.DisableVTun {
+		vtunExitedChan = vtun.Run(ctx)
+	}
 
 	// Start the metrics server
 	go metrics.CreateMetricsServer(config, cmd.Root().Version)
@@ -100,10 +104,13 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	}
 	log.Printf("Interface watcher started")
 
-	// Start the vtun client watcher
-	vtunClientWatcher := vtun.NewVTunClientWatcher(db, config)
-	vtunClientWatcher.Run()
-	log.Printf("VTun client watcher started")
+	var vtunClientWatcher *vtun.VTunClientWatcher
+	if !config.DisableVTun {
+		// Start the vtun client watcher
+		vtunClientWatcher = vtun.NewVTunClientWatcher(db, config)
+		vtunClientWatcher.Run()
+		log.Printf("VTun client watcher started")
+	}
 
 	// Start the server
 	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher, wireguardManager)
@@ -140,16 +147,18 @@ func runServer(cmd *cobra.Command, _ []string) error {
 			}
 		})
 
-		errGrp.Go(func() error {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			select {
-			case <-ctx.Done():
-				return fmt.Errorf("vtund did not exit in time")
-			case <-vtunExitedChan:
-				return nil
-			}
-		})
+		if !config.DisableVTun {
+			errGrp.Go(func() error {
+				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+				defer cancel()
+				select {
+				case <-ctx.Done():
+					return fmt.Errorf("vtund did not exit in time")
+				case <-vtunExitedChan:
+					return nil
+				}
+			})
+		}
 
 		errGrp.Go(func() error {
 			return wireguardManager.Stop()
@@ -159,9 +168,11 @@ func runServer(cmd *cobra.Command, _ []string) error {
 			return srv.Stop()
 		})
 
-		errGrp.Go(func() error {
-			return vtunClientWatcher.Stop()
-		})
+		if !config.DisableVTun {
+			errGrp.Go(func() error {
+				return vtunClientWatcher.Stop()
+			})
+		}
 
 		errGrp.Go(func() error {
 			return ifWatcher.Stop()

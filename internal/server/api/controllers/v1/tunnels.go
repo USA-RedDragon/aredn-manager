@@ -206,11 +206,14 @@ func POSTTunnel(c *gin.Context) {
 		return
 	}
 
-	vtunClientWatcher, ok := c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
-	if !ok {
-		fmt.Println("DELETETunnel: Unable to get VTunClientWatcher from context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
+	var vtunClientWatcher *vtun.VTunClientWatcher
+	if !config.DisableVTun {
+		vtunClientWatcher, ok = c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
+		if !ok {
+			fmt.Println("DELETETunnel: Unable to get VTunClientWatcher from context")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
 	}
 
 	wireguardManager, ok := c.MustGet("WireguardManager").(*wireguard.Manager)
@@ -228,6 +231,11 @@ func POSTTunnel(c *gin.Context) {
 	} else {
 		if (!json.Wireguard || json.Client) && json.Password == "" {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Password cannot be empty"})
+			return
+		}
+
+		if !json.Wireguard && config.DisableVTun {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "VTun is disabled"})
 			return
 		}
 
@@ -463,7 +471,7 @@ func POSTTunnel(c *gin.Context) {
 				return
 			}
 
-			if !tunnel.Wireguard {
+			if !tunnel.Wireguard && !config.DisableVTun {
 				err = vtun.GenerateAndSaveClient(config, db)
 				if err != nil {
 					fmt.Printf("POSTTunnel: Error generating vtun client config: %v\n", err)
@@ -477,7 +485,7 @@ func POSTTunnel(c *gin.Context) {
 					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
 					return
 				}
-			} else {
+			} else if tunnel.Wireguard {
 				err = wireguardManager.AddPeer(tunnel)
 				if err != nil {
 					fmt.Printf("POSTTunnel: Error adding wireguard peer: %v\n", err)
@@ -527,11 +535,14 @@ func PATCHTunnel(c *gin.Context) {
 		return
 	}
 
-	vtunClientWatcher, ok := c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
-	if !ok {
-		fmt.Println("PATCHTunnel: Unable to get VTunClientWatcher from context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
+	var vtunClientWatcher *vtun.VTunClientWatcher
+	if !config.DisableVTun {
+		vtunClientWatcher, ok = c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
+		if !ok {
+			fmt.Println("PATCHTunnel: Unable to get VTunClientWatcher from context")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
 	}
 
 	wireguardManager, ok := c.MustGet("WireguardManager").(*wireguard.Manager)
@@ -656,7 +667,7 @@ func PATCHTunnel(c *gin.Context) {
 			return
 		}
 
-		if !tunnel.Wireguard {
+		if !tunnel.Wireguard && !config.DisableVTun {
 			err = vtun.GenerateAndSave(config, db)
 			if err != nil {
 				fmt.Printf("PATCHTunnel: Error generating vtun config: %v\n", err)
@@ -677,7 +688,7 @@ func PATCHTunnel(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
 				return
 			}
-		} else {
+		} else if tunnel.Wireguard {
 			err = wireguardManager.RemovePeer(origTunnel)
 			if err != nil {
 				fmt.Printf("PATCHTunnel: Error adding wireguard peer: %v\n", err)
@@ -732,11 +743,14 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
-	vtunClientWatcher, ok := c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
-	if !ok {
-		fmt.Println("DELETETunnel: Unable to get VTunClientWatcher from context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
+	var vtunClientWatcher *vtun.VTunClientWatcher
+	if !config.DisableVTun {
+		vtunClientWatcher, ok = c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
+		if !ok {
+			fmt.Println("DELETETunnel: Unable to get VTunClientWatcher from context")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
 	}
 
 	wireguardManager, ok := c.MustGet("WireguardManager").(*wireguard.Manager)
@@ -807,18 +821,20 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
-	err = vtun.Reload()
-	if err != nil {
-		fmt.Printf("Error reloading vtun: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun"})
-		return
-	}
+	if !config.DisableVTun {
+		err = vtun.Reload()
+		if err != nil {
+			fmt.Printf("Error reloading vtun: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun"})
+			return
+		}
 
-	err = vtun.ReloadAllClients(db, vtunClientWatcher)
-	if err != nil {
-		fmt.Printf("DELETETunnel: Error reloading vtun client: %v\n", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
-		return
+		err = vtun.ReloadAllClients(db, vtunClientWatcher)
+		if err != nil {
+			fmt.Printf("DELETETunnel: Error reloading vtun client: %v\n", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun client"})
+			return
+		}
 	}
 
 	err = olsrd.Reload()
