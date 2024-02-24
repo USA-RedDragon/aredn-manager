@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -40,7 +41,16 @@ func GETMetrics(c *gin.Context) {
 		Timeout: 5 * time.Second,
 	}
 
-	nodeResp, err := client.Get(fmt.Sprintf("http://%s:9100/metrics", config.MetricsNodeExporterHost))
+	hostPort := net.JoinHostPort(config.MetricsNodeExporterHost, "9100")
+
+	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, fmt.Sprintf("http://%s/metrics", hostPort), nil)
+	if err != nil {
+		fmt.Printf("GETMetrics: Unable to create request: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	nodeResp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("GETMetrics: Unable to get node-exporter metrics: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -55,7 +65,16 @@ func GETMetrics(c *gin.Context) {
 		n, err = nodeResp.Body.Read(buf)
 	}
 
-	metricsResp, err := client.Get(fmt.Sprintf("http://localhost:%d/metrics", config.MetricsPort))
+	hostPort = net.JoinHostPort("localhost", fmt.Sprintf("%d", config.MetricsPort))
+
+	req, err = http.NewRequestWithContext(c.Request.Context(), http.MethodGet, fmt.Sprintf("http://%s/metrics", hostPort), nil)
+	if err != nil {
+		fmt.Printf("GETMetrics: Unable to create request: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	metricsResp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("GETMetrics: Unable to get metrics: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -185,7 +204,7 @@ func GETSysinfo(c *gin.Context) {
 	}
 
 	if doLinkInfo {
-		sysinfo.LinkInfo = getLinkInfo()
+		sysinfo.LinkInfo = getLinkInfo(c.Request.Context())
 	}
 
 	c.JSON(http.StatusOK, sysinfo)
@@ -252,13 +271,18 @@ func getHosts(parser *olsrd.HostsParser) []apimodels.Host {
 	return ret
 }
 
-func getLinkInfo() map[string]apimodels.LinkInfo {
+func getLinkInfo(ctx context.Context) map[string]apimodels.LinkInfo {
 	ret := make(map[string]apimodels.LinkInfo)
 	client := http.Client{
 		Timeout: 5 * time.Second,
 	}
 	// http request http://localhost:9090/links
-	resp, err := client.Get("http://localhost:9090/links")
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:9090/links", nil)
+	if err != nil {
+		fmt.Printf("GETSysinfo: Unable to create request: %v\n", err)
+		return nil
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to get links: %v\n", err)
 		return nil
@@ -278,7 +302,7 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 			continue
 		}
 
-		hostname := ""
+		var hostname string
 		if len(hosts) > 0 {
 			hostname = hosts[0]
 			// Strip off mid\d. from the hostname if it exists
@@ -310,15 +334,18 @@ func getLinkInfo() map[string]apimodels.LinkInfo {
 			continue
 		}
 
-		linkType := ""
-		if strings.HasPrefix(link.OLSRInterface, "tun") {
+		var linkType string
+		switch {
+		case strings.HasPrefix(link.OLSRInterface, "tun"):
 			linkType = "TUN"
-		} else if strings.HasPrefix(link.OLSRInterface, "eth") {
+		case strings.HasPrefix(link.OLSRInterface, "eth"):
 			linkType = "DTD"
-		} else if strings.HasPrefix(link.OLSRInterface, "wg") {
+		case strings.HasPrefix(link.OLSRInterface, "wg"):
 			linkType = "WIREGUARD"
-		} else if link.OLSRInterface == "br0" {
+		case link.OLSRInterface == "br0":
 			linkType = "DTD"
+		default:
+			linkType = "UNKNOWN"
 		}
 
 		ret[ips[0].String()] = apimodels.LinkInfo{

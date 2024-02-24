@@ -25,7 +25,7 @@ func Run(ctx context.Context) chan struct{} {
 
 func run(ctx context.Context, stopChan chan struct{}) {
 	vtunCmd = exec.CommandContext(ctx, "vtund", "-s", "-f", "/etc/vtundsrv.conf", "-n")
-	processResults, err := runner.Run(ctx, vtunCmd)
+	processResults, err := runner.Run(vtunCmd)
 	defer close(processResults)
 	if err != nil {
 		fmt.Println("vtund failed to start:", err)

@@ -224,12 +224,11 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 
 		peers = []wgtypes.PeerConfig{
 			{
-				PublicKey:                   wgtypes.Key(clientPubkey),
+				PublicKey:                   clientPubkey,
 				AllowedIPs:                  []net.IPNet{*netip},
 				PersistentKeepaliveInterval: &duration,
 			},
 		}
-
 	} else {
 		var err error
 		portInt = freeport.GetPort()
@@ -279,7 +278,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 
 		peers = []wgtypes.PeerConfig{
 			{
-				PublicKey:                   wgtypes.Key(serverPubkey),
+				PublicKey:                   serverPubkey,
 				AllowedIPs:                  []net.IPNet{*netip},
 				PersistentKeepaliveInterval: &duration,
 				Endpoint:                    &net.UDPAddr{IP: net.ParseIP(hostnameParts[0]), Port: port},

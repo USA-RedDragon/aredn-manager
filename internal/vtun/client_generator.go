@@ -89,8 +89,8 @@ func GenerateAndSaveClient(config *config.Config, db *gorm.DB) error {
 		tun++
 	}
 
-	for hostname, tunnel_info := range tunnelMapping {
-		conf := generateClient(config, tunnel_info)
+	for hostname, tunnelInfo := range tunnelMapping {
+		conf := generateClient(config, tunnelInfo)
 		if conf == "" {
 			return fmt.Errorf("failed to generate vtun-%s.conf", hostname)
 		}
@@ -126,6 +126,7 @@ func generateClient(config *config.Config, tunInfo tunnelInfo) string {
 		wgTapIP := net.ParseIP(config.WireguardTapAddress).To4()
 		wgTapIPPlus1 := net.IPv4(wgTapIP[0], wgTapIP[1], wgTapIP[2], wgTapIP[3]+1)
 		if extraUpRules != "" {
+			//nolint:golint,goconst
 			extraUpRules += "\n        "
 			extraDownRules += "\n        "
 		}

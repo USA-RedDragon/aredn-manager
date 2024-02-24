@@ -3,6 +3,7 @@ package metrics
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/prometheus/client_golang/prometheus"
@@ -10,6 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+//nolint:golint,gochecknoglobals
 var (
 	AREDNMeshRF = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "node_details_meshrf",
@@ -48,6 +50,13 @@ func CreateMetricsServer(config *config.Config, version string) {
 	port := config.MetricsPort
 	if port != 0 {
 		http.Handle("/metrics", promhttp.Handler())
-		http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+		server := &http.Server{
+			Addr:              fmt.Sprintf(":%d", port),
+			ReadHeaderTimeout: 5 * time.Second,
+		}
+		err := server.ListenAndServe()
+		if err != nil {
+			fmt.Println("Error starting metrics server:", err)
+		}
 	}
 }

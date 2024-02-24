@@ -18,15 +18,15 @@ type vtunClient struct {
 	cmd    exec.Cmd
 }
 
-type VTunClientWatcher struct {
+type ClientWatcher struct {
 	started bool
 	db      *gorm.DB
 	config  *config.Config
 	cancels map[uint]vtunClient
 }
 
-func NewVTunClientWatcher(db *gorm.DB, config *config.Config) *VTunClientWatcher {
-	return &VTunClientWatcher{
+func NewVTunClientWatcher(db *gorm.DB, config *config.Config) *ClientWatcher {
+	return &ClientWatcher{
 		started: false,
 		db:      db,
 		config:  config,
@@ -34,7 +34,7 @@ func NewVTunClientWatcher(db *gorm.DB, config *config.Config) *VTunClientWatcher
 	}
 }
 
-func (v *VTunClientWatcher) Run() {
+func (v *ClientWatcher) Run() {
 	if v.started {
 		return
 	}
@@ -42,7 +42,7 @@ func (v *VTunClientWatcher) Run() {
 	go v.watch()
 }
 
-func (v *VTunClientWatcher) Stop() error {
+func (v *ClientWatcher) Stop() error {
 	if !v.started {
 		return fmt.Errorf("vtun client watcher not started")
 	}
@@ -53,7 +53,7 @@ func (v *VTunClientWatcher) Stop() error {
 	return nil
 }
 
-func (v *VTunClientWatcher) ReloadTunnel(id uint) {
+func (v *ClientWatcher) ReloadTunnel(id uint) {
 	if !v.started {
 		return
 	}
@@ -66,7 +66,7 @@ func (v *VTunClientWatcher) ReloadTunnel(id uint) {
 	}
 }
 
-func (v *VTunClientWatcher) Running(id uint) bool {
+func (v *ClientWatcher) Running(id uint) bool {
 	if !v.started {
 		return false
 	}
@@ -74,7 +74,7 @@ func (v *VTunClientWatcher) Running(id uint) bool {
 	return ok
 }
 
-func (v *VTunClientWatcher) watch() {
+func (v *ClientWatcher) watch() {
 	for {
 		if !v.started {
 			return
@@ -104,7 +104,7 @@ func (v *VTunClientWatcher) watch() {
 	}
 }
 
-func (v *VTunClientWatcher) wait(ctx context.Context, processResults chan error, tunnel models.Tunnel) {
+func (v *ClientWatcher) wait(ctx context.Context, processResults chan error, tunnel models.Tunnel) {
 	err := <-processResults
 	if err != nil {
 		if !v.started {
@@ -117,13 +117,17 @@ func (v *VTunClientWatcher) wait(ctx context.Context, processResults chan error,
 			return
 		}
 		if tunnel.Client {
-			v.runClient(ctx, tunnel)
+			err = v.runClient(ctx, tunnel)
+			if err != nil {
+				fmt.Printf("VTunClientWatcher: Error restarting vtun client %s %s: %v\n", tunnel.Hostname, tunnel.IP, err)
+				return
+			}
 		}
 		return
 	}
 }
 
-func (v *VTunClientWatcher) runClient(ctx context.Context, tunnel models.Tunnel) error {
+func (v *ClientWatcher) runClient(ctx context.Context, tunnel models.Tunnel) error {
 	// All we need to do is run the vtund client, it will daemonize itself and exit
 	// vtund \
 	//   -n
@@ -139,6 +143,7 @@ func (v *VTunClientWatcher) runClient(ctx context.Context, tunnel models.Tunnel)
 		port = split[1]
 	}
 
+	//nolint:golint,gosec
 	cmd := exec.CommandContext(
 		ctx,
 		"vtund",
@@ -156,7 +161,7 @@ func (v *VTunClientWatcher) runClient(ctx context.Context, tunnel models.Tunnel)
 	tunInfo.cmd = *cmd
 	v.cancels[tunnel.ID] = tunInfo
 
-	processResults, err := runner.Run(ctx, cmd)
+	processResults, err := runner.Run(cmd)
 	defer close(processResults)
 	if err != nil {
 		return err

@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func ReloadAllClients(db *gorm.DB, watcher *VTunClientWatcher) error {
+func ReloadAllClients(db *gorm.DB, watcher *ClientWatcher) error {
 	tunnels, err := models.ListClientTunnels(db)
 	if err != nil {
 		return err

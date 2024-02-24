@@ -14,6 +14,8 @@ import (
 	"gorm.io/gorm"
 )
 
+const WG0 = "wg0"
+
 type _iface struct {
 	net.Interface
 	AssociatedTunnel *models.Tunnel
@@ -87,7 +89,7 @@ func remove(s []_iface, e _iface) []_iface {
 }
 
 func (w *Watcher) wgInterfaceActive(iface _iface) bool {
-	if iface.Name == "wg0" {
+	if iface.Name == WG0 {
 		return false
 	}
 	if !strings.HasPrefix(iface.Name, "wg") {
@@ -100,9 +102,7 @@ func (w *Watcher) wgInterfaceActive(iface _iface) bool {
 	if len(dev.Peers) > 0 {
 		for _, peer := range dev.Peers {
 			// If the last handshake time is more than 3 minutes ago, consider the interface inactive
-			if peer.LastHandshakeTime.IsZero() || time.Since(peer.LastHandshakeTime) > 180*time.Second {
-				return false
-			} else {
+			if !peer.LastHandshakeTime.IsZero() && time.Since(peer.LastHandshakeTime) < 180*time.Second {
 				return true
 			}
 		}
@@ -118,7 +118,7 @@ func (w *Watcher) watch() {
 	} else {
 		// Loop through w.interfaces and check if any are present but missing from net.Interfaces()
 		for _, iface := range w.interfaces {
-			if strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0" && !w.wgInterfaceActive(iface) {
+			if strings.HasPrefix(iface.Name, "wg") && iface.Name != WG0 && !w.wgInterfaceActive(iface) {
 				fmt.Printf("Interface %s is no longer present\n", iface.Name)
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelDisconnection,
@@ -153,7 +153,7 @@ func (w *Watcher) watch() {
 
 		// Loop through net.Interfaces() and check if any are missing from w.interfaces
 		for _, iface := range interfaces {
-			if strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0" && w.wgInterfaceActive(_iface{iface, nil}) && !ifaceContainsNetInterface(w.interfaces, iface) {
+			if strings.HasPrefix(iface.Name, "wg") && iface.Name != WG0 && w.wgInterfaceActive(_iface{iface, nil}) && !ifaceContainsNetInterface(w.interfaces, iface) {
 				fmt.Printf("Interface %s is now present\n", iface.Name)
 				tunnel := w.findTunnel(iface)
 				if tunnel == nil {
@@ -206,7 +206,7 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 		}
 		ip = ip.To4()
 		var tun models.Tunnel
-		if strings.HasPrefix(iface.Name, "wg") && iface.Name != "wg0" {
+		if strings.HasPrefix(iface.Name, "wg") && iface.Name != WG0 {
 			var err error
 			if strings.HasPrefix(iface.Name, "wgs") {
 				tun, err = models.FindTunnelByIP(w.db, ip)
@@ -215,7 +215,7 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 					continue
 				}
 			} else if strings.HasPrefix(iface.Name, "wgc") {
-				ip[3] -= 1
+				ip[3]--
 				tun, err = models.FindTunnelByIP(w.db, ip)
 				if err != nil {
 					fmt.Println(err)
@@ -227,7 +227,7 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 			ip[3] -= 2 // AREDN tunnel IPs are always the interface IP - 2 if a client
 			tun, err = models.FindTunnelByIP(w.db, ip)
 			if err != nil {
-				ip[3] += 1 // AREDN tunnel IPs are always the interface IP - 1 if a server
+				ip[3]++ // AREDN tunnel IPs are always the interface IP - 1 if a server
 				tun, err = models.FindTunnelByIP(w.db, ip)
 				if err != nil {
 					fmt.Println(err)

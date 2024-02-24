@@ -25,7 +25,7 @@ func Run(ctx context.Context) chan struct{} {
 
 func run(ctx context.Context, stopChan chan struct{}) {
 	olsrCmd = exec.CommandContext(ctx, "olsrd", "-f", "/etc/olsrd/olsrd.conf", "-nofork")
-	processResults, err := runner.Run(ctx, olsrCmd)
+	processResults, err := runner.Run(olsrCmd)
 	defer close(processResults)
 	if err != nil {
 		fmt.Println("olsrd failed to start:", err)

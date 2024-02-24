@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
+//nolint:golint,gochecknoglobals
 var (
 	OLSRLinkAsymmetryTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "node_olsr_link_asymmetry_time",
@@ -32,11 +34,11 @@ var (
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLinkCost = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "node_olsr_link_link_cost",
-		Help: "OLSR Link Link Cost",
+		Help: "OLSR Link Cost",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLinkQuality = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "node_olsr_link_link_quality",
-		Help: "OLSR Link Link Quality",
+		Help: "OLSR Link Quality",
 	}, []string{"device", "local_ip", "remote_ip"})
 	OLSRLinkLossHelloInterval = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "node_olsr_link_loss_hello_interval",
@@ -90,7 +92,13 @@ func OLSRWatcher(db *gorm.DB) {
 	}
 
 	for {
-		resp, err := client.Get("http://localhost:9090/links")
+		req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, "http://localhost:9090/links", nil)
+		if err != nil {
+			fmt.Printf("OLSRWatcher: Unable to create request: %v\n", err)
+			time.Sleep(1 * time.Second)
+			continue
+		}
+		resp, err := client.Do(req)
 		if err != nil {
 			fmt.Printf("OLSRWatcher: Unable to get links: %v\n", err)
 			time.Sleep(1 * time.Second)

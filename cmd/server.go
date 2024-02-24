@@ -104,7 +104,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	}
 	log.Printf("Interface watcher started")
 
-	var vtunClientWatcher *vtun.VTunClientWatcher
+	var vtunClientWatcher *vtun.ClientWatcher
 	if !config.DisableVTun {
 		// Start the vtun client watcher
 		vtunClientWatcher = vtun.NewVTunClientWatcher(db, config)

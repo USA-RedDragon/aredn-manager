@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func cancelAndWaitForExit(cmd *exec.Cmd, signal syscall.Signal, processResults chan error) error {
+func cancelAndWaitForExit(signal syscall.Signal, processResults chan error) error {
 	newCtx, cancel := context.WithTimeout(context.TODO(), 5*time.Second)
 	defer cancel()
 
@@ -21,15 +21,15 @@ func cancelAndWaitForExit(cmd *exec.Cmd, signal syscall.Signal, processResults c
 	}
 }
 
-func Run(ctx context.Context, cmd *exec.Cmd) (chan error, error) {
+func Run(cmd *exec.Cmd) (chan error, error) {
 	processResults := make(chan error)
 
 	cmd.Cancel = func() error {
-		err := cancelAndWaitForExit(cmd, syscall.SIGTERM, processResults)
+		err := cancelAndWaitForExit(syscall.SIGTERM, processResults)
 		if err != nil {
 			// SIGTERM didn't work, log it and try SIGKILL
 			log.Printf("failed to send SIGTERM to process: %v\n", err)
-			err = cancelAndWaitForExit(cmd, syscall.SIGKILL, processResults)
+			err = cancelAndWaitForExit(syscall.SIGKILL, processResults)
 			if err != nil {
 				return fmt.Errorf("failed to kill process: %w", err)
 			}

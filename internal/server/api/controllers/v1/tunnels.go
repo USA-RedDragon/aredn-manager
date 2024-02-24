@@ -191,6 +191,7 @@ func GETWireguardTunnelsCountConnected(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"count": count})
 }
 
+//nolint:golint,gocyclo
 func POSTTunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
@@ -206,9 +207,9 @@ func POSTTunnel(c *gin.Context) {
 		return
 	}
 
-	var vtunClientWatcher *vtun.VTunClientWatcher
+	var vtunClientWatcher *vtun.ClientWatcher
 	if !config.DisableVTun {
-		vtunClientWatcher, ok = c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
+		vtunClientWatcher, ok = c.MustGet("VTunClientWatcher").(*vtun.ClientWatcher)
 		if !ok {
 			fmt.Println("DELETETunnel: Unable to get VTunClientWatcher from context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -520,6 +521,7 @@ func POSTTunnel(c *gin.Context) {
 	}
 }
 
+//nolint:golint,gocyclo
 func PATCHTunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
@@ -535,9 +537,9 @@ func PATCHTunnel(c *gin.Context) {
 		return
 	}
 
-	var vtunClientWatcher *vtun.VTunClientWatcher
+	var vtunClientWatcher *vtun.ClientWatcher
 	if !config.DisableVTun {
-		vtunClientWatcher, ok = c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
+		vtunClientWatcher, ok = c.MustGet("VTunClientWatcher").(*vtun.ClientWatcher)
 		if !ok {
 			fmt.Println("PATCHTunnel: Unable to get VTunClientWatcher from context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -743,9 +745,9 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
-	var vtunClientWatcher *vtun.VTunClientWatcher
+	var vtunClientWatcher *vtun.ClientWatcher
 	if !config.DisableVTun {
-		vtunClientWatcher, ok = c.MustGet("VTunClientWatcher").(*vtun.VTunClientWatcher)
+		vtunClientWatcher, ok = c.MustGet("VTunClientWatcher").(*vtun.ClientWatcher)
 		if !ok {
 			fmt.Println("DELETETunnel: Unable to get VTunClientWatcher from context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})

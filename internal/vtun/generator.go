@@ -23,6 +23,7 @@ options {
     firewall /sbin/iptables;
 }`
 
+	//nolint:golint,dupword
 	snippetVtunConfStandardTunnel = `${CONNECTION_HOST} {
     passwd ${PWD};
     type tun;
@@ -119,6 +120,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 			wgTapIP := net.ParseIP(config.WireguardTapAddress).To4()
 			wgTapIPPlus1 := net.IPv4(wgTapIP[0], wgTapIP[1], wgTapIP[2], wgTapIP[3]+1)
 			if extraUpRules != "" {
+				//nolint:golint,goconst
 				extraUpRules += "\n        "
 				extraDownRules += "\n        "
 			}

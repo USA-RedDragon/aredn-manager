@@ -5,7 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func VTunClientWatcherProvider(clientWatcher *vtun.VTunClientWatcher) gin.HandlerFunc {
+func VTunClientWatcherProvider(clientWatcher *vtun.ClientWatcher) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Set("VTunClientWatcher", clientWatcher)
 		c.Next()

@@ -37,11 +37,11 @@ type Server struct {
 	shutdownChannel   chan bool
 	stats             *bandwidth.StatCounterManager
 	eventsChannel     chan events.Event
-	vtunClientWatcher *vtun.VTunClientWatcher
+	vtunClientWatcher *vtun.ClientWatcher
 	wireguardManager  *wireguard.Manager
 }
 
-func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager, eventsChannel chan events.Event, vtunClientWatcher *vtun.VTunClientWatcher, wireguardManager *wireguard.Manager) *Server {
+func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager, eventsChannel chan events.Event, vtunClientWatcher *vtun.ClientWatcher, wireguardManager *wireguard.Manager) *Server {
 	return &Server{
 		config:            config,
 		db:                db,
