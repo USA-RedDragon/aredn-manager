@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
@@ -35,7 +36,11 @@ func GETMetrics(c *gin.Context) {
 		return
 	}
 
-	nodeResp, err := http.DefaultClient.Get(fmt.Sprintf("http://%s:9100/metrics", config.MetricsNodeExporterHost))
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	nodeResp, err := client.Get(fmt.Sprintf("http://%s:9100/metrics", config.MetricsNodeExporterHost))
 	if err != nil {
 		fmt.Printf("GETMetrics: Unable to get node-exporter metrics: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -50,7 +55,7 @@ func GETMetrics(c *gin.Context) {
 		n, err = nodeResp.Body.Read(buf)
 	}
 
-	metricsResp, err := http.DefaultClient.Get(fmt.Sprintf("http://localhost:%d/metrics", config.MetricsPort))
+	metricsResp, err := client.Get(fmt.Sprintf("http://localhost:%d/metrics", config.MetricsPort))
 	if err != nil {
 		fmt.Printf("GETMetrics: Unable to get metrics: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -249,8 +254,11 @@ func getHosts(parser *olsrd.HostsParser) []apimodels.Host {
 
 func getLinkInfo() map[string]apimodels.LinkInfo {
 	ret := make(map[string]apimodels.LinkInfo)
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
 	// http request http://localhost:9090/links
-	resp, err := http.DefaultClient.Get("http://localhost:9090/links")
+	resp, err := client.Get("http://localhost:9090/links")
 	if err != nil {
 		fmt.Printf("GETSysinfo: Unable to get links: %v\n", err)
 		return nil

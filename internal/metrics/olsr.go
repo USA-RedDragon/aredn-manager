@@ -85,14 +85,17 @@ var (
 )
 
 func OLSRWatcher(db *gorm.DB) {
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
 	for {
-		resp, err := http.DefaultClient.Get("http://localhost:9090/links")
+		resp, err := client.Get("http://localhost:9090/links")
 		if err != nil {
 			fmt.Printf("OLSRWatcher: Unable to get links: %v\n", err)
 			time.Sleep(1 * time.Second)
 			continue
 		}
-		defer resp.Body.Close()
 		var links apimodels.OlsrdLinks
 		err = json.NewDecoder(resp.Body).Decode(&links)
 		if err != nil {
@@ -101,6 +104,7 @@ func OLSRWatcher(db *gorm.DB) {
 			resp.Body.Close()
 			continue
 		}
+		resp.Body.Close()
 
 		foundInterfaces := []string{}
 

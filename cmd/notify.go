@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/spf13/cobra"
@@ -28,7 +29,11 @@ func runNotify(cmd *cobra.Command, _ []string) error {
 	}
 	req.Header.Add("Content-Type", "application/json")
 
-	resp, err := http.DefaultClient.Do(req)
+	client := http.Client{
+		Timeout: 5 * time.Second,
+	}
+
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
