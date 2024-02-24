@@ -32,6 +32,7 @@ func runNotify(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return fmt.Errorf("error notifying daemon: %s", resp.Status)
