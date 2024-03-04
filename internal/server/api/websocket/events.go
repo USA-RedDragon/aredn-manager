@@ -14,13 +14,30 @@ import (
 
 type EventsWebsocket struct {
 	websocket.Websocket
-	cancel        context.CancelFunc
-	eventsChannel chan events.Event
+	cancel           context.CancelFunc
+	websocketChannel chan events.Event
+	eventsChannel    chan events.Event
+	connectedCount   uint
 }
 
 func CreateEventsWebsocket(eventsChannel chan events.Event) *EventsWebsocket {
-	return &EventsWebsocket{
-		eventsChannel: eventsChannel,
+	ew := &EventsWebsocket{
+		websocketChannel: make(chan events.Event),
+		eventsChannel:    eventsChannel,
+	}
+
+	go ew.start()
+
+	return ew
+}
+
+func (c *EventsWebsocket) start() {
+	for {
+		event := <-c.eventsChannel
+		// If the websocket is closed, we just want to drop the event
+		if c.connectedCount > 0 {
+			c.websocketChannel <- event
+		}
 	}
 }
 
@@ -31,6 +48,8 @@ func (c *EventsWebsocket) OnConnect(ctx context.Context, _ *http.Request, w webs
 	newCtx, cancel := context.WithCancel(ctx)
 	c.cancel = cancel
 
+	c.connectedCount++
+
 	go func() {
 		channel := make(chan websocket.Message)
 		for {
@@ -39,7 +58,7 @@ func (c *EventsWebsocket) OnConnect(ctx context.Context, _ *http.Request, w webs
 				return
 			case <-newCtx.Done():
 				return
-			case event := <-c.eventsChannel:
+			case event := <-c.websocketChannel:
 				eventDataJSON, err := json.Marshal(event)
 				if err != nil {
 					fmt.Println("Error marshalling event data:", err)
@@ -58,5 +77,6 @@ func (c *EventsWebsocket) OnConnect(ctx context.Context, _ *http.Request, w webs
 }
 
 func (c *EventsWebsocket) OnDisconnect(_ context.Context, _ *http.Request, _ sessions.Session) {
+	c.connectedCount--
 	c.cancel()
 }
