@@ -1,6 +1,6 @@
 module github.com/USA-RedDragon/aredn-manager
 
-go 1.22.1
+go 1.22.2
 
 require (
 	github.com/JGLTechnologies/gin-rate-limit v1.5.4
