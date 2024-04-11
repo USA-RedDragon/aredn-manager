@@ -1,4 +1,4 @@
-FROM node:21.7.2-alpine as aredn-manager-frontend
+FROM node:21.7.3-alpine as aredn-manager-frontend
 
 WORKDIR /app
 
