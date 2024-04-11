@@ -33,7 +33,7 @@
   "devDependencies": {
     "@rushstack/eslint-patch": "^1.10.2",
     "@vitejs/plugin-vue": "^5.0.4",
-    "@vitest/ui": "^1.4.0",
+    "@vitest/ui": "^1.5.0",
     "@vue/eslint-config-prettier": "^9.0.0",
     "axios": "^1.6.8",
     "cypress": "^13.7.2",
@@ -51,6 +51,6 @@
     "sass": "^1.74.1",
     "start-server-and-test": "^2.0.3",
     "vite": "^5.2.8",
-    "vitest": "^1.4.0"
+    "vitest": "^1.5.0"
   }
 }
