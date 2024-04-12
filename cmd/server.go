@@ -52,11 +52,6 @@ func runServer(cmd *cobra.Command, _ []string) error {
 
 	olsrdExitedChan := olsrd.Run(ctx)
 
-	vtunExitedChan := make(chan struct{})
-	if !config.DisableVTun {
-		vtunExitedChan = vtun.Run(ctx)
-	}
-
 	// Start the metrics server
 	go metrics.CreateMetricsServer(config, cmd.Root().Version)
 	log.Printf("Metrics server started")
@@ -146,19 +141,6 @@ func runServer(cmd *cobra.Command, _ []string) error {
 				return nil
 			}
 		})
-
-		if !config.DisableVTun {
-			errGrp.Go(func() error {
-				ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-				defer cancel()
-				select {
-				case <-ctx.Done():
-					return fmt.Errorf("vtund did not exit in time")
-				case <-vtunExitedChan:
-					return nil
-				}
-			})
-		}
 
 		errGrp.Go(func() error {
 			return wireguardManager.Stop()
