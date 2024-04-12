@@ -6,7 +6,7 @@ require (
 	github.com/JGLTechnologies/gin-rate-limit v1.5.4
 	github.com/gin-contrib/cors v1.7.1
 	github.com/gin-contrib/pprof v1.4.0
-	github.com/gin-contrib/sessions v0.0.5
+	github.com/gin-contrib/sessions v1.0.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/glebarez/sqlite v1.11.0
 	github.com/gorilla/websocket v1.5.1
@@ -48,9 +48,9 @@ require (
 	github.com/goccy/go-json v0.10.2 // indirect
 	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/google/uuid v1.3.0 // indirect
-	github.com/gorilla/context v1.1.1 // indirect
-	github.com/gorilla/securecookie v1.1.1 // indirect
-	github.com/gorilla/sessions v1.2.1 // indirect
+	github.com/gorilla/context v1.1.2 // indirect
+	github.com/gorilla/securecookie v1.1.2 // indirect
+	github.com/gorilla/sessions v1.2.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/jackc/pgpassfile v1.0.0 // indirect
 	github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a // indirect
@@ -79,7 +79,7 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.2.4 // indirect
 	github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df // indirect
-	github.com/wader/gormstore/v2 v2.0.0 // indirect
+	github.com/wader/gormstore/v2 v2.0.3 // indirect
 	go.opentelemetry.io/otel/metric v1.25.0 // indirect
 	golang.org/x/arch v0.7.0 // indirect
 	golang.org/x/net v0.23.0 // indirect
