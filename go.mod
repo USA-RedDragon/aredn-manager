@@ -85,7 +85,7 @@ require (
 	github.com/wader/gormstore/v2 v2.0.3 // indirect
 	go.opentelemetry.io/otel/metric v1.25.0 // indirect
 	golang.org/x/arch v0.7.0 // indirect
-	golang.org/x/net v0.23.0 // indirect
+	golang.org/x/net v0.24.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
 	golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b // indirect
