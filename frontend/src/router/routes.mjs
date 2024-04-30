@@ -15,6 +15,11 @@ export default [
     component: () => import('../views/TunnelsPage.vue'),
   },
   {
+    path: '/meshmap',
+    name: 'MeshMap',
+    component: () => import('../views/MeshMapPage.vue'),
+  },
+  {
     path: '/nodes',
     name: 'Nodes',
     component: () => import('../views/NodesPage.vue'),

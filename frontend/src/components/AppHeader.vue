@@ -8,6 +8,7 @@
         <RouterLink to="/">Home</RouterLink>
         <RouterLink to="/nodes">Nodes</RouterLink>
         <RouterLink to="/tunnels">Tunnels</RouterLink>
+        <RouterLink v-if="hasMeshmap" to="/meshmap">Mesh Map</RouterLink>
 
         <router-link
           v-if="this.userStore.loggedIn"
@@ -80,7 +81,9 @@ export default {
     PVMenu: Menu,
   },
   data: function() {
-    return {};
+    return {
+      hasMeshmap: true,
+    };
   },
   mounted() {},
   methods: {
