@@ -14,6 +14,8 @@
     @page="onPage($event)"
   >
     <template #header>
+        <p>Found {{ this.arednNodesCount }} AREDN nodes and {{ this.devicesCount }} total devices.</p>
+        <br />
         <div class="flex justify-content-between">
             <PVButton type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
             <span class="p-input-icon-left">
@@ -87,6 +89,8 @@ export default {
       totalRecords: 0,
       filters: null,
       page: 1,
+      arednNodesCount: 0,
+      devicesCount: 0,
     };
   },
   created() {
@@ -118,6 +122,14 @@ export default {
     },
     fetchData(page = 1, limit = 50) {
       this.loading = true;
+      API.get(`/olsr/hosts/count`)
+        .then((res) => {
+          this.arednNodesCount = res.data.nodes;
+          this.devicesCount = res.data.total;
+        })
+        .catch((err) => {
+          console.error(err);
+        });
       API.get(`/olsr/hosts?page=${page}&limit=${limit}`)
         .then((res) => {
           if (!res.data.nodes) {
