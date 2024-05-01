@@ -154,7 +154,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, err error) {
 		}
 
 		if strings.Contains(split[1], ".") {
-			if regexp.MustCompile(`dtdlink\d+\.`).MatchString(split[1]) {
+			if regexp.MustCompile(`dtdlink\.`).MatchString(split[1]) {
 				arednCount++
 			}
 			continue
