@@ -2,24 +2,35 @@
   <DataTable
     :value="tunnels"
     v-model:expandedRows="expandedRows"
+    v-model:filters="filters"
     dataKey="id"
     :lazy="true"
     :paginator="true"
     :rows="10"
     :totalRecords="totalRecords"
     :loading="loading"
+    filterDisplay="menu"
+    :globalFilterFields="['hostname']"
     :scrollable="true"
     @page="onPage($event)"
   >
-    <template #header v-if="$props.admin">
+    <template #header>
       <div class="table-header-container">
-        <RouterLink :to="'/admin/tunnels/create/' + ($props.wireguard ? 'wireguard':'vtun')">
+        <RouterLink v-if="this.admin" :to="'/admin/tunnels/create/' + ($props.wireguard ? 'wireguard':'vtun')">
           <PVButton
             class="p-button-raised p-button-rounded p-button-success"
             icon="pi pi-plus"
             label="New Tunnel"
           />
         </RouterLink>
+        <br v-if="this.admin" />
+        <div class="flex justify-content-between">
+            <PVButton type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
+            <span class="p-input-icon-left">
+                <i class="pi pi-search" />
+                <InputText v-model="filters['global'].value" @change="onFilter()" placeholder="Search" />
+            </span>
+        </div>
       </div>
     </template>
     <template #empty> No tunnels found. </template>
@@ -132,6 +143,8 @@
 </template>
 
 <script>
+import { FilterMatchMode } from 'primevue/api';
+
 import Button from 'primevue/button';
 import Badge from 'primevue/badge';
 import Column from 'primevue/column';
@@ -176,7 +189,11 @@ export default {
       expandedRows: [],
       loading: false,
       totalRecords: 0,
+      filters: null,
     };
+  },
+  created() {
+    this.initFilters();
   },
   mounted() {
     this.fetchData();
@@ -190,6 +207,20 @@ export default {
     this.$EventBus.off('tunnel_disconnected', this.updateTunnelDisconnected);
   },
   methods: {
+    initFilters() {
+      this.filters = {
+        global: { value: null, matchMode: FilterMatchMode.CONTAINS },
+      };
+    },
+    onFilter() {
+      this.loading = true;
+      this.fetchData(this.page, this.filters.global.value);
+    },
+    clearFilter() {
+      this.initFilters();
+      this.loading = true;
+      this.fetchData(this.page);
+    },
     updateTunnelStats(tunnel) {
       for (let i = 0; i < this.tunnels.length; i++) {
         if (this.tunnels[i].id == tunnel.id) {
@@ -235,12 +266,16 @@ export default {
     },
     onPage(event) {
       this.loading = true;
-      this.fetchData(event.page + 1, event.rows);
+      this.fetchData(event.page + 1, this.filters.global.value, event.rows);
     },
-    fetchData(page = 1, limit = 10) {
+    fetchData(page = 1, filter = null, limit = 10) {
       this.loading = true;
-      API.get(`/tunnels?page=${page}&limit=${limit}&admin=${this.$props.admin}` +
-              `&type=${this.$props.wireguard ? 'wireguard' : 'vtun'}`)
+      let url = `/tunnels?page=${page}&limit=${limit}&admin=${this.$props.admin}` +
+              `&type=${this.$props.wireguard ? 'wireguard' : 'vtun'}`;
+      if (filter) {
+        url += `&filter=${filter}`;
+      }
+      API.get(url)
         .then((res) => {
           if (!res.data.tunnels) {
             res.data.tunnels = [];
