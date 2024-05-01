@@ -36,7 +36,7 @@ func (p *HostsParser) GetAREDNHostsCount() int {
 }
 
 func (p *HostsParser) GetTotalHostsCount() int {
-	return p.totalCount
+	return p.totalCount + p.arednNodesCount
 }
 
 func (p *HostsParser) GetHostsPaginated(page int, limit int, filter string) []*AREDNHost {
