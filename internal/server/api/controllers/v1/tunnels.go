@@ -40,12 +40,17 @@ func GETTunnels(c *gin.Context) {
 		typeStr = "vtun"
 	}
 
-	var tunnels []models.Tunnel
+	filter, exists := c.GetQuery("filter")
+	if !exists {
+		filter = ""
+	}
+
+	var unfilteredTunnels []models.Tunnel
 	var total int
 	switch typeStr {
 	case "vtun":
 		var err error
-		tunnels, err = models.ListVtunTunnels(db)
+		unfilteredTunnels, err = models.ListVtunTunnels(db)
 		if err != nil {
 			fmt.Printf("GETTunnels: Error getting tunnels: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnels"})
@@ -59,7 +64,7 @@ func GETTunnels(c *gin.Context) {
 		}
 	case "wireguard":
 		var err error
-		tunnels, err = models.ListWireguardTunnels(db)
+		unfilteredTunnels, err = models.ListWireguardTunnels(db)
 		if err != nil {
 			fmt.Printf("GETTunnels: Error getting tunnels: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnels"})
@@ -85,6 +90,16 @@ func GETTunnels(c *gin.Context) {
 		fmt.Printf("GETTunnels: Error parsing admin query: %v\n", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error parsing admin query"})
 		return
+	}
+
+	tunnels := unfilteredTunnels
+	if filter != "" {
+		tunnels = []models.Tunnel{}
+		for _, tunnel := range unfilteredTunnels {
+			if strings.Contains(strings.ToUpper(tunnel.Hostname), strings.ToUpper(filter)) {
+				tunnels = append(tunnels, tunnel)
+			}
+		}
 	}
 
 	if admin {
