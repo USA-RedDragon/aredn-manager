@@ -15,6 +15,7 @@ const hostsFile = "/var/run/hosts_olsr"
 type HostsParser struct {
 	currentHosts    []*AREDNHost
 	arednNodesCount int
+	totalCount      int
 	isParsing       atomic.Bool
 }
 
@@ -32,6 +33,10 @@ func (p *HostsParser) GetHostsCount() int {
 
 func (p *HostsParser) GetAREDNHostsCount() int {
 	return p.arednNodesCount
+}
+
+func (p *HostsParser) GetTotalHostsCount() int {
+	return p.totalCount
 }
 
 func (p *HostsParser) GetHostsPaginated(page int, limit int, filter string) []*AREDNHost {
@@ -60,11 +65,12 @@ func (p *HostsParser) Parse() (err error) {
 	}
 	p.isParsing.Store(true)
 	defer p.isParsing.Store(false)
-	hosts, arednCount, err := parseHosts()
+	hosts, arednCount, totalCount, err := parseHosts()
 	if err != nil {
 		return
 	}
 	p.arednNodesCount = arednCount
+	p.totalCount = totalCount
 	p.currentHosts = hosts
 	return
 }
@@ -103,7 +109,7 @@ func (h *AREDNHost) String() string {
 // Lines with only whitespace or that are empty are ignored
 //
 //nolint:golint,gocyclo
-func parseHosts() (ret []*AREDNHost, arednCount int, err error) {
+func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) {
 	hostsFile, err := os.ReadFile(hostsFile)
 	if err != nil {
 		return
@@ -154,7 +160,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, err error) {
 		}
 
 		if strings.Contains(split[1], ".") {
-			if regexp.MustCompile(`dtdlink\.`).MatchString(split[1]) {
+			if regexp.MustCompile(`^dtdlink\.`).MatchString(split[1]) {
 				arednCount++
 			}
 			continue
@@ -170,6 +176,8 @@ func parseHosts() (ret []*AREDNHost, arednCount int, err error) {
 			fmt.Printf("Invalid IP in hosts file: %s\n", line)
 			continue
 		}
+
+		totalCount++
 
 		// If the parentIP is not the same as the IP, then we need to treat this as a child
 		if parentIP.String() != ip.String() {

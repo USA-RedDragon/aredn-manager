@@ -60,7 +60,7 @@ func GETOLSRHostsCount(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"nodes": olsrdParser.GetAREDNHostsCount(), "total": olsrdParser.GetHostsCount()})
+	c.JSON(http.StatusOK, gin.H{"nodes": olsrdParser.GetAREDNHostsCount(), "total": olsrdParser.GetTotalHostsCount()})
 }
 
 func GETOLSRRunning(c *gin.Context) {
