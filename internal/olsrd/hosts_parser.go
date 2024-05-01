@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"regexp"
 	"strings"
 	"sync/atomic"
 )
@@ -12,8 +13,9 @@ import (
 const hostsFile = "/var/run/hosts_olsr"
 
 type HostsParser struct {
-	currentHosts []*AREDNHost
-	isParsing    atomic.Bool
+	currentHosts    []*AREDNHost
+	arednNodesCount int
+	isParsing       atomic.Bool
 }
 
 func NewHostsParser() *HostsParser {
@@ -26,6 +28,10 @@ func (p *HostsParser) GetHosts() []*AREDNHost {
 
 func (p *HostsParser) GetHostsCount() int {
 	return len(p.currentHosts)
+}
+
+func (p *HostsParser) GetAREDNHostsCount() int {
+	return p.arednNodesCount
 }
 
 func (p *HostsParser) GetHostsPaginated(page int, limit int, filter string) []*AREDNHost {
@@ -54,10 +60,11 @@ func (p *HostsParser) Parse() (err error) {
 	}
 	p.isParsing.Store(true)
 	defer p.isParsing.Store(false)
-	hosts, err := parseHosts()
+	hosts, arednCount, err := parseHosts()
 	if err != nil {
 		return
 	}
+	p.arednNodesCount = arednCount
 	p.currentHosts = hosts
 	return
 }
@@ -96,7 +103,7 @@ func (h *AREDNHost) String() string {
 // Lines with only whitespace or that are empty are ignored
 //
 //nolint:golint,gocyclo
-func parseHosts() (ret []*AREDNHost, err error) {
+func parseHosts() (ret []*AREDNHost, arednCount int, err error) {
 	hostsFile, err := os.ReadFile(hostsFile)
 	if err != nil {
 		return
@@ -147,6 +154,9 @@ func parseHosts() (ret []*AREDNHost, err error) {
 		}
 
 		if strings.Contains(split[1], ".") {
+			if regexp.MustCompile(`mid\d+\.`).MatchString(split[1]) {
+				arednCount++
+			}
 			continue
 		}
 

@@ -50,6 +50,7 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 
 	v1OLSR := group.Group("/olsr")
 	v1OLSR.GET("/hosts", v1Controllers.GETOLSRHosts)
+	v1OLSR.GET("/hosts/count", v1Controllers.GETOLSRHostsCount)
 	v1OLSR.GET("/running", v1Controllers.GETOLSRRunning)
 
 	v1VTun := group.Group("/vtun")
