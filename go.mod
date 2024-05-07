@@ -7,7 +7,7 @@ require (
 	github.com/gin-contrib/cors v1.7.2
 	github.com/gin-contrib/pprof v1.5.0
 	github.com/gin-contrib/sessions v1.0.1
-	github.com/gin-gonic/gin v1.9.1
+	github.com/gin-gonic/gin v1.10.0
 	github.com/glebarez/sqlite v1.11.0
 	github.com/gorilla/websocket v1.5.1
 	github.com/kachit/gorm-seeder v0.0.3
@@ -85,11 +85,11 @@ require (
 	github.com/wader/gormstore/v2 v2.0.3 // indirect
 	go.opentelemetry.io/otel/metric v1.26.0 // indirect
 	golang.org/x/arch v0.8.0 // indirect
-	golang.org/x/net v0.24.0 // indirect
+	golang.org/x/net v0.25.0 // indirect
 	golang.org/x/sys v0.20.0 // indirect
 	golang.org/x/text v0.15.0 // indirect
 	golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b // indirect
-	google.golang.org/protobuf v1.34.0 // indirect
+	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.50.3 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
