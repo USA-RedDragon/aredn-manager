@@ -11,6 +11,6 @@ ENV NODE_ENV=production
 
 RUN npm run build
 
-FROM nginx:1.26.0-alpine
+FROM nginx:1.27.0-alpine
 
 COPY --from=aredn-manager-frontend /app/dist /usr/share/nginx/html
