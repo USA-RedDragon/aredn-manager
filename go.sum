@@ -254,10 +254,10 @@ github.com/twitchyliquid64/golang-asm v0.15.1 h1:SU5vSMR7hnwNxj24w34ZyCi/FmDZTkS
 github.com/twitchyliquid64/golang-asm v0.15.1/go.mod h1:a1lVb/DtPvCB8fslRZhAngC2+aY1QWCk3Cedj/Gdt08=
 github.com/ugorji/go/codec v1.2.12 h1:9LC83zGrHhuUA9l16C9AHXAqEV/2wBQ4nkvumAE65EE=
 github.com/ugorji/go/codec v1.2.12/go.mod h1:UNopzCgEMSXjBc6AOMqYvWC1ktqTAfzJZUZgYf6w6lg=
-github.com/uptrace/opentelemetry-go-extra/otelgorm v0.3.0 h1:LJeamV6V1wfnQjakLGiTvQBQnyczcw1p/2VfUWh3vWE=
-github.com/uptrace/opentelemetry-go-extra/otelgorm v0.3.0/go.mod h1:Ss/iWr/WjPOjWXKmCdI/QoM80n6JQND67vraS6VDzeA=
-github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.0 h1:Icg/YRReJBQVUFfr+eH+Ze/ZzPxx4GPC1ICALMKCNGU=
-github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.0/go.mod h1:ZKgZNsGk5Y+uOxRHcYb4MKLVpmKYU4/u7BUtbStJm7w=
+github.com/uptrace/opentelemetry-go-extra/otelgorm v0.3.1 h1:GFFXCsiOWqrAovcIzxqJOYBEy2A/0jd//JNz/jTy1CA=
+github.com/uptrace/opentelemetry-go-extra/otelgorm v0.3.1/go.mod h1:ncqprpzpjuZHDkvsnl/baPLA0stLgZSLsYEvUhAVkbM=
+github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.1 h1:i4f4ey/v5x0zXurkqV/zbOZlMLu8WNIvpDn1tJzdutY=
+github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.1/go.mod h1:ZKgZNsGk5Y+uOxRHcYb4MKLVpmKYU4/u7BUtbStJm7w=
 github.com/vishvananda/netlink v1.1.0 h1:1iyaYNBLmP6L0220aDnYQpo1QEV4t4hJ+xEEhhJH8j0=
 github.com/vishvananda/netlink v1.1.0/go.mod h1:cTgwzPIzzgDAYoQrMm0EdrjRUBkTqKYppBueQtXaqoE=
 github.com/vishvananda/netns v0.0.0-20191106174202-0a2b9b5464df h1:OviZH7qLw/7ZovXvuNyL3XQl8UFofeikI1NW1Gypu7k=
