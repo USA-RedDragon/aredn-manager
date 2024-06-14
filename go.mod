@@ -14,7 +14,7 @@ require (
 	github.com/mavjs/goPwned v0.0.2
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
 	github.com/prometheus/client_golang v1.19.1
-	github.com/spf13/cobra v1.8.0
+	github.com/spf13/cobra v1.8.1
 	github.com/uptrace/opentelemetry-go-extra/otelgorm v0.3.1
 	github.com/vishvananda/netlink v1.1.0
 	github.com/ztrue/shutdown v0.1.1
