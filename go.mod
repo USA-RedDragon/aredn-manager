@@ -13,7 +13,7 @@ require (
 	github.com/kachit/gorm-seeder v0.0.3
 	github.com/mavjs/goPwned v0.0.2
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
-	github.com/prometheus/client_golang v1.20.2
+	github.com/prometheus/client_golang v1.20.3
 	github.com/spf13/cobra v1.8.1
 	github.com/uptrace/opentelemetry-go-extra/otelgorm v0.3.1
 	github.com/vishvananda/netlink v1.3.0
