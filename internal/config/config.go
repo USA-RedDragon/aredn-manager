@@ -15,36 +15,38 @@ import (
 
 // Config stores the application configuration.
 type Config struct {
-	Debug                    bool
-	Port                     int
-	PasswordSalt             string
-	OTLPEndpoint             string
-	InitialAdminUserPassword string
-	CORSHosts                []string
-	TrustedProxies           []string
-	HIBPAPIKey               string
-	ServerName               string
-	Supernode                bool
-	Masquerade               bool
-	WireguardTapAddress      string
-	NodeIP                   string
-	strSessionSecret         string
-	SessionSecret            []byte
-	VTUNStartingAddress      string
-	WireguardStartingAddress string
-	WireguardStartingPort    uint16
-	PostgresDSN              string
-	postgresUser             string
-	postgresPassword         string
-	postgresHost             string
-	postgresPort             int
-	postgresDatabase         string
-	MetricsNodeExporterHost  string
-	MetricsPort              int
-	Latitude                 string
-	Longitude                string
-	Gridsquare               string
-	DisableVTun              bool
+	Debug                             bool
+	Port                              int
+	PasswordSalt                      string
+	OTLPEndpoint                      string
+	InitialAdminUserPassword          string
+	CORSHosts                         []string
+	TrustedProxies                    []string
+	HIBPAPIKey                        string
+	ServerName                        string
+	Supernode                         bool
+	Masquerade                        bool
+	WireguardTapAddress               string
+	NodeIP                            string
+	strSessionSecret                  string
+	SessionSecret                     []byte
+	VTUNStartingAddress               string
+	WireguardStartingAddress          string
+	WireguardStartingPort             uint16
+	PostgresDSN                       string
+	postgresUser                      string
+	postgresPassword                  string
+	postgresHost                      string
+	postgresPort                      int
+	postgresDatabase                  string
+	MetricsNodeExporterHost           string
+	MetricsPort                       int
+	Latitude                          string
+	Longitude                         string
+	Gridsquare                        string
+	DisableVTun                       bool
+	AdditionalOlsrdInterfaces         []string
+	AdditionalOlsrdInterfacesIsolated []string
 }
 
 func loadConfig() Config {
@@ -73,32 +75,34 @@ func loadConfig() Config {
 	}
 
 	tmpConfig := Config{
-		Debug:                    os.Getenv("DEBUG") != "",
-		Port:                     int(httpPort),
-		PasswordSalt:             os.Getenv("PASSWORD_SALT"),
-		OTLPEndpoint:             os.Getenv("OTLP_ENDPOINT"),
-		InitialAdminUserPassword: os.Getenv("INIT_ADMIN_USER_PASSWORD"),
-		HIBPAPIKey:               os.Getenv("HIBP_API_KEY"),
-		ServerName:               strings.ToUpper(os.Getenv("SERVER_NAME")),
-		Supernode:                os.Getenv("SUPERNODE") != "",
-		Masquerade:               os.Getenv("MASQUERADE") != "",
-		WireguardTapAddress:      os.Getenv("WIREGUARD_TAP_ADDRESS"),
-		NodeIP:                   os.Getenv("NODE_IP"),
-		strSessionSecret:         os.Getenv("SESSION_SECRET"),
-		VTUNStartingAddress:      os.Getenv("VTUN_STARTING_ADDRESS"),
-		WireguardStartingAddress: os.Getenv("WIREGUARD_STARTING_ADDRESS"),
-		WireguardStartingPort:    uint16(wireguardStartingPort),
-		postgresUser:             os.Getenv("PG_USER"),
-		postgresPassword:         os.Getenv("PG_PASSWORD"),
-		postgresHost:             os.Getenv("PG_HOST"),
-		postgresPort:             int(pgPort),
-		postgresDatabase:         os.Getenv("PG_DATABASE"),
-		MetricsNodeExporterHost:  os.Getenv("METRICS_NODE_EXPORTER_HOST"),
-		MetricsPort:              int(metricsPort),
-		Latitude:                 os.Getenv("SERVER_LAT"),
-		Longitude:                os.Getenv("SERVER_LON"),
-		Gridsquare:               os.Getenv("SERVER_GRIDSQUARE"),
-		DisableVTun:              os.Getenv("DISABLE_VTUN") != "",
+		Debug:                             os.Getenv("DEBUG") != "",
+		Port:                              int(httpPort),
+		PasswordSalt:                      os.Getenv("PASSWORD_SALT"),
+		OTLPEndpoint:                      os.Getenv("OTLP_ENDPOINT"),
+		InitialAdminUserPassword:          os.Getenv("INIT_ADMIN_USER_PASSWORD"),
+		HIBPAPIKey:                        os.Getenv("HIBP_API_KEY"),
+		ServerName:                        strings.ToUpper(os.Getenv("SERVER_NAME")),
+		Supernode:                         os.Getenv("SUPERNODE") != "",
+		Masquerade:                        os.Getenv("MASQUERADE") != "",
+		WireguardTapAddress:               os.Getenv("WIREGUARD_TAP_ADDRESS"),
+		NodeIP:                            os.Getenv("NODE_IP"),
+		strSessionSecret:                  os.Getenv("SESSION_SECRET"),
+		VTUNStartingAddress:               os.Getenv("VTUN_STARTING_ADDRESS"),
+		WireguardStartingAddress:          os.Getenv("WIREGUARD_STARTING_ADDRESS"),
+		WireguardStartingPort:             uint16(wireguardStartingPort),
+		postgresUser:                      os.Getenv("PG_USER"),
+		postgresPassword:                  os.Getenv("PG_PASSWORD"),
+		postgresHost:                      os.Getenv("PG_HOST"),
+		postgresPort:                      int(pgPort),
+		postgresDatabase:                  os.Getenv("PG_DATABASE"),
+		MetricsNodeExporterHost:           os.Getenv("METRICS_NODE_EXPORTER_HOST"),
+		MetricsPort:                       int(metricsPort),
+		Latitude:                          os.Getenv("SERVER_LAT"),
+		Longitude:                         os.Getenv("SERVER_LON"),
+		Gridsquare:                        os.Getenv("SERVER_GRIDSQUARE"),
+		DisableVTun:                       os.Getenv("DISABLE_VTUN") != "",
+		AdditionalOlsrdInterfaces:         strings.Split(os.Getenv("ADDITIONAL_OLSRD_INTERFACES"), ","),
+		AdditionalOlsrdInterfacesIsolated: strings.Split(os.Getenv("ADDITIONAL_OLSRD_INTERFACES_ISOLATED"), ","),
 	}
 
 	if tmpConfig.VTUNStartingAddress == "" {

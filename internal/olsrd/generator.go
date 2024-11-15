@@ -84,7 +84,7 @@ LoadPlugin "olsrd_watchdog.so.0.1"
     PlParam "interval" "5"
 }`
 
-	snippetOlsrdConfEth0Supernode = `Interface "br0"
+	snippetOlsrdConfInterfaceSupernode = `Interface "${IFACE}"
 {
     Mode "isolated"
     Ip4Broadcast 255.255.255.255
@@ -92,7 +92,7 @@ LoadPlugin "olsrd_watchdog.so.0.1"
     HnaValidityTime 600.0
 }`
 
-	snippetOlsrdConfEth0Standard = `Interface "br0"
+	snippetOlsrdConfInterfaceStandard = `Interface "${IFACE}"
 {
     Mode "ether"
 }`
@@ -143,9 +143,25 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	)
 	ret += "\n\n"
 	if config.Supernode {
-		ret += snippetOlsrdConfEth0Supernode
+		for _, iface := range config.AdditionalOlsrdInterfacesIsolated {
+			snippet := snippetOlsrdConfInterfaceSupernode
+			utils.ShellReplace(&snippet, map[string]string{"IFACE": iface})
+			ret += snippet
+			ret += "\n\n"
+		}
+		snippet := snippetOlsrdConfInterfaceSupernode
+		utils.ShellReplace(&snippet, map[string]string{"IFACE": "eth0"})
+		ret += snippet
 	} else {
-		ret += snippetOlsrdConfEth0Standard
+		for _, iface := range config.AdditionalOlsrdInterfaces {
+			snippet := snippetOlsrdConfInterfaceStandard
+			utils.ShellReplace(&snippet, map[string]string{"IFACE": iface})
+			ret += snippet
+			ret += "\n\n"
+		}
+		snippet := snippetOlsrdConfInterfaceStandard
+		utils.ShellReplace(&snippet, map[string]string{"IFACE": "eth0"})
+		ret += snippet
 	}
 	ret += "\n\n"
 
