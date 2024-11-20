@@ -84,13 +84,6 @@ LoadPlugin "olsrd_watchdog.so.0.1"
     PlParam "interval" "5"
 }`
 
-	snippetOlsrdConfEth0Supernode = `Interface "eth0"
-{
-    Mode "isolated"
-    Ip4Broadcast 255.255.255.255
-    HnaInterval 1.0
-    HnaValidityTime 600.0
-}`
 	snippetOlsrdConfInterfaceSupernode = `Interface "${IFACE}"
 {
     Mode "isolated"
@@ -158,7 +151,6 @@ func Generate(config *config.Config, db *gorm.DB) string {
 			ret += snippet
 			ret += "\n\n"
 		}
-		ret += snippetOlsrdConfEth0Supernode
 		snippet := snippetOlsrdConfInterfaceSupernode
 		utils.ShellReplace(&snippet, map[string]string{"IFACE": "br0"})
 		ret += snippet
@@ -173,9 +165,6 @@ func Generate(config *config.Config, db *gorm.DB) string {
 			ret += "\n\n"
 		}
 		snippet := snippetOlsrdConfInterfaceStandard
-		utils.ShellReplace(&snippet, map[string]string{"IFACE": "eth0"})
-		ret += snippet
-		snippet = snippetOlsrdConfInterfaceStandard
 		utils.ShellReplace(&snippet, map[string]string{"IFACE": "br0"})
 		ret += snippet
 	}
