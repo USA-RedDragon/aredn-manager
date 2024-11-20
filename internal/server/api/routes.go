@@ -25,6 +25,7 @@ func arednCompat(router *gin.Engine) {
 	router.GET("/cgi-bin/sysinfo.json", v1Controllers.GETSysinfo)
 	router.GET("/cgi-bin/metrics", v1Controllers.GETMetrics)
 	router.GET("/cgi-bin/mesh", v1Controllers.GETMesh)
+	router.GET("/a/mesh", v1Controllers.GetAMesh)
 }
 
 func v1(group *gin.RouterGroup, config *config.Config) {

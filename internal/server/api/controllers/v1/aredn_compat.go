@@ -24,6 +24,10 @@ func GETMesh(c *gin.Context) {
 	c.Redirect(http.StatusMovedPermanently, "/nodes")
 }
 
+func GetAMesh(c *gin.Context) {
+	c.Redirect(http.StatusMovedPermanently, "/nodes")
+}
+
 func GETMetrics(c *gin.Context) {
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
