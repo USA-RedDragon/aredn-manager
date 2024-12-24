@@ -5,7 +5,7 @@ go 1.23.4
 require (
 	github.com/JGLTechnologies/gin-rate-limit v1.5.4
 	github.com/gin-contrib/cors v1.7.2
-	github.com/gin-contrib/pprof v1.5.1
+	github.com/gin-contrib/pprof v1.5.2
 	github.com/gin-contrib/sessions v1.0.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/glebarez/sqlite v1.11.0
@@ -31,7 +31,7 @@ require (
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
-	github.com/bytedance/sonic v1.12.5 // indirect
+	github.com/bytedance/sonic v1.12.6 // indirect
 	github.com/bytedance/sonic/loader v0.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
@@ -88,12 +88,12 @@ require (
 	go.opentelemetry.io/otel/metric v1.33.0 // indirect
 	golang.org/x/arch v0.12.0 // indirect
 	golang.org/x/mod v0.18.0 // indirect
-	golang.org/x/net v0.32.0 // indirect
+	golang.org/x/net v0.33.0 // indirect
 	golang.org/x/sys v0.28.0 // indirect
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b // indirect
-	google.golang.org/protobuf v1.35.2 // indirect
+	google.golang.org/protobuf v1.36.1 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	modernc.org/libc v1.50.3 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
