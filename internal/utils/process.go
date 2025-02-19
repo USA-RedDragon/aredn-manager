@@ -1,6 +1,8 @@
 package utils
 
 import (
+	"fmt"
+	"log/slog"
 	"os"
 	"strconv"
 	"syscall"
@@ -34,14 +36,14 @@ func PIDFromPIDFile(pidFile string) (int, error) {
 		}
 		return int(pid), nil
 	}
-	return -1, nil
+	return -1, os.ErrNotExist
 }
 
 func PIDFileIsRunning(pidFile string) bool {
-	if pid, err := PIDFromPIDFile(pidFile); err == nil {
-		if ProcessIsRunning(int(pid)) {
-			return true
-		}
+	pid, err := PIDFromPIDFile(pidFile)
+	if err != nil {
+		slog.Warn(fmt.Sprintf("Failed to get PID from %s: %s", pidFile, err))
+		return false
 	}
-	return false
+	return ProcessIsRunning(pid)
 }
