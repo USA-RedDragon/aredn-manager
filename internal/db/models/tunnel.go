@@ -14,7 +14,7 @@ type Tunnel struct {
 	Hostname           string         `json:"hostname" binding:"required"`
 	IP                 string         `json:"ip" binding:"required"`
 	Password           string         `json:"-" binding:"required"`
-	Enabled            bool           `json:"enabled"`
+	Enabled            bool           `json:"enabled" gorm:"default:true"`
 	Active             bool           `json:"active"`
 	Client             bool           `json:"client"`
 	TunnelInterface    string         `json:"-"`
