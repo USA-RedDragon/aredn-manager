@@ -22,6 +22,12 @@ func NewService(config *config.Config) *Service {
 }
 
 func (s *Service) Start() error {
+	if s.olsrCmd.Process != nil && !s.olsrCmd.ProcessState.Exited() {
+		return s.olsrCmd.Wait()
+	}
+	if s.olsrCmd.ProcessState != nil && s.olsrCmd.ProcessState.Exited() {
+		s.olsrCmd = exec.Command("olsrd", "-f", "/etc/olsrd/olsrd.conf", "-nofork")
+	}
 	err := s.olsrCmd.Start()
 	if err != nil {
 		return fmt.Errorf("failed to start process: %w", err)
