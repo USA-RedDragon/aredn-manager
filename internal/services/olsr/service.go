@@ -2,7 +2,6 @@ package olsr
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/exec"
 	"syscall"
@@ -11,9 +10,8 @@ import (
 )
 
 type Service struct {
-	config         *config.Config
-	olsrCmd        *exec.Cmd
-	processResults chan error
+	config  *config.Config
+	olsrCmd *exec.Cmd
 }
 
 func NewService(config *config.Config) *Service {
@@ -24,16 +22,11 @@ func NewService(config *config.Config) *Service {
 }
 
 func (s *Service) Start() error {
-	for {
-		if s.olsrCmd == nil {
-			log.Println("olsr command is nil")
-			return nil
-		}
-		err := s.olsrCmd.Start()
-		if err != nil {
-			return fmt.Errorf("failed to start process: %w", err)
-		}
+	err := s.olsrCmd.Start()
+	if err != nil {
+		return fmt.Errorf("failed to start process: %w", err)
 	}
+	return s.olsrCmd.Wait()
 }
 
 func (s *Service) Stop() error {
@@ -43,7 +36,6 @@ func (s *Service) Stop() error {
 			return fmt.Errorf("failed to kill process: %w", err)
 		}
 	}
-	defer close(s.processResults)
 	return s.olsrCmd.Wait()
 }
 
