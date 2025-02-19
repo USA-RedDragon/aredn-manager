@@ -45,7 +45,7 @@ type TunnelWithPass struct {
 
 type EditTunnel struct {
 	ID        uint   `json:"id" binding:"required"`
-	Enabled   bool   `json:"enabled" binding:"required"`
+	Enabled   *bool  `json:"enabled" binding:"required"`
 	Wireguard bool   `json:"wireguard" binding:"required"`
 	Hostname  string `json:"hostname" binding:"required"`
 	Password  string `json:"password"`
