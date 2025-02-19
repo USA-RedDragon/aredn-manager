@@ -428,11 +428,11 @@ func POSTTunnel(c *gin.Context) {
 				}
 
 				// Check that the hostname is resolvable
-				_, err = net.LookupIP(split[0])
-				if err != nil {
-					c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is not resolvable"})
-					return
-				}
+				// _, err = net.LookupIP(split[0])
+				// if err != nil {
+				// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is not resolvable"})
+				// 	return
+				// }
 			}
 
 			// Check if the port is valid
@@ -669,11 +669,11 @@ func PATCHTunnel(c *gin.Context) {
 			}
 
 			// Check that the hostname is resolvable
-			_, err = net.LookupIP(split[0])
-			if err != nil {
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is not resolvable"})
-				return
-			}
+			// _, err = net.LookupIP(split[0])
+			// if err != nil {
+			// 	c.JSON(http.StatusBadRequest, gin.H{"error": "Server address is not resolvable"})
+			// 	return
+			// }
 		}
 
 		// Check if the port is valid
