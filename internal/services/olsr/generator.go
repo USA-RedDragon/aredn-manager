@@ -206,6 +206,9 @@ func Generate(config *config.Config, db *gorm.DB) string {
 		tunnelString := ""
 		for tunnelNumber := 0; tunnelNumber < len(tunnels); tunnelNumber++ {
 			tunnel := tunnels[tunnelNumber]
+			if !tunnel.Enabled {
+				continue
+			}
 			if tunnel.Client {
 				tunnelString += "\"tun" + fmt.Sprintf("%d", clientTun) + "\""
 				clientTun++
@@ -237,6 +240,9 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	if len(tunnels) > 0 {
 		tunnelString := ""
 		for _, tunnel := range tunnels {
+			if !tunnel.Enabled {
+				continue
+			}
 			iface := wireguard.GenerateWireguardInterfaceName(tunnel)
 			tunnelString += "\"" + iface + "\""
 			if tunnel != tunnels[len(tunnels)-1] {

@@ -116,6 +116,7 @@ func GETTunnels(c *gin.Context) {
 
 		for _, tunnel := range tunnels {
 			tunnelsWithPass = append(tunnelsWithPass, apimodels.TunnelWithPass{
+				Enabled:        tunnel.Enabled,
 				Wireguard:      tunnel.Wireguard,
 				WireguardPort:  tunnel.WireguardPort,
 				ID:             tunnel.ID,
@@ -276,6 +277,7 @@ func POSTTunnel(c *gin.Context) {
 			}
 
 			tunnel = models.Tunnel{
+				Enabled:   true,
 				Hostname:  json.Hostname,
 				Password:  json.Password,
 				Client:    json.Client,
@@ -704,6 +706,7 @@ func PATCHTunnel(c *gin.Context) {
 		tunnel.Hostname = json.Hostname
 		tunnel.Password = json.Password
 		tunnel.IP = json.IP
+		tunnel.Enabled = json.Enabled
 
 		if tunnel.Wireguard != json.Wireguard {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Changing tunnel type not allowed"})

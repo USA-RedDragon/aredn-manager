@@ -337,6 +337,9 @@ func (m *Manager) removePeer(peer models.Tunnel) {
 }
 
 func (m *Manager) AddPeer(peer models.Tunnel) error {
+	if !peer.Enabled {
+		return nil
+	}
 	m.peerAddChan <- peer
 
 	ctx, cancel := context.WithTimeout(context.TODO(), defTimeout)

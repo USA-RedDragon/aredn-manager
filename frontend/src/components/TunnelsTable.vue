@@ -36,6 +36,20 @@
     <template #empty> No tunnels found. </template>
     <template #loading> Loading tunnels, please wait. </template>
     <Column :expander="true" v-if="$props.admin" />
+    <Column field="enabled" header="Enabled">
+      <template #body="slotProps">
+        <span v-if="slotProps.data.editing">
+          <PVCheckbox
+              :binary="true"
+              v-model="slotProps.data.enabled"
+            />
+        </span>
+        <span v-else>
+          <PVBadge v-if="slotProps.data.enabled" value="✔️" severity="success"></PVBadge>
+          <PVBadge v-else value="✖️" severity="danger"></PVBadge>
+        </span>
+      </template>
+    </Column>
     <Column field="active" header="Connected">
       <template #body="slotProps">
         <PVBadge v-if="slotProps.data.active" value="✔️" severity="success"></PVBadge>
@@ -148,6 +162,7 @@ import { FilterMatchMode } from 'primevue/api';
 import Button from 'primevue/button';
 import Badge from 'primevue/badge';
 import Column from 'primevue/column';
+import Checkbox from 'primevue/checkbox';
 import DataTable from 'primevue/datatable';
 import InputText from 'primevue/inputtext';
 
@@ -177,6 +192,7 @@ export default {
   },
   components: {
     PVButton: Button,
+    PVCheckbox: Checkbox,
     DataTable,
     Column,
     PVBadge: Badge,
@@ -334,6 +350,7 @@ export default {
         id: tunnel.id,
         hostname: tunnel.hostname,
         password: tunnel.password,
+        enabled: tunnel.enabled,
         ip: tunnel.ip,
       })
         .then((_res) => {

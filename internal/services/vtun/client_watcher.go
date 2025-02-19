@@ -85,7 +85,7 @@ func (v *ClientWatcher) watch() {
 			continue
 		}
 		for _, tunnel := range tunnels {
-			if tunnel.Wireguard {
+			if tunnel.Wireguard || !tunnel.Enabled {
 				continue
 			}
 			if !v.Running(tunnel.ID) {
@@ -179,6 +179,9 @@ func ReloadAllClients(db *gorm.DB, watcher *ClientWatcher) error {
 	}
 
 	for _, tunnel := range tunnels {
+		if !tunnel.Enabled {
+			continue
+		}
 		watcher.ReloadTunnel(tunnel.ID)
 	}
 	return nil

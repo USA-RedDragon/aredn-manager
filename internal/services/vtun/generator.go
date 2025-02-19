@@ -95,7 +95,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 
 	tun := 50
 	for _, tunnel := range tunnels {
-		if tunnel.Wireguard {
+		if tunnel.Wireguard || !tunnel.Enabled {
 			continue
 		}
 		ret += "\n\n"
