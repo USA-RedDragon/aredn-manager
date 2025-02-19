@@ -22,10 +22,10 @@ func NewService(config *config.Config) *Service {
 }
 
 func (s *Service) Start() error {
-	if s.olsrCmd.Process != nil && !s.olsrCmd.ProcessState.Exited() {
+	if s.olsrCmd.Process != nil && s.olsrCmd.ProcessState == nil {
 		return s.olsrCmd.Wait()
 	}
-	if s.olsrCmd.ProcessState != nil && s.olsrCmd.ProcessState.Exited() {
+	if s.olsrCmd.ProcessState != nil {
 		s.olsrCmd = exec.Command("olsrd", "-f", "/etc/olsrd/olsrd.conf", "-nofork")
 	}
 	err := s.olsrCmd.Start()
