@@ -1,11 +1,10 @@
 package vtun
 
 import (
-	"os"
-	"strconv"
 	"syscall"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/aredn-manager/internal/utils"
 	"gorm.io/gorm"
 )
 
@@ -15,13 +14,7 @@ const (
 )
 
 func Reload() error {
-	// Read the PID file
-	pidBytes, err := os.ReadFile(pidFile)
-	if err != nil {
-		return err
-	}
-	pidStr := string(pidBytes)
-	pid, err := strconv.ParseInt(pidStr, 10, 64)
+	pid, err := utils.PIDFromPIDFile(pidFile)
 	if err != nil {
 		return err
 	}
@@ -41,15 +34,5 @@ func ReloadAllClients(db *gorm.DB, watcher *ClientWatcher) error {
 }
 
 func IsRunning() bool {
-	pidBytes, err := os.ReadFile(pidFile)
-	if err != nil {
-		return false
-	}
-	pidStr := string(pidBytes)
-	pid, err := strconv.ParseInt(pidStr, 10, 64)
-	if err != nil {
-		return false
-	}
-	err = syscall.Kill(int(pid), 0)
-	return err == nil
+	return utils.PIDFileIsRunning(pidFile)
 }

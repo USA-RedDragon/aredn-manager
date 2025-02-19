@@ -16,20 +16,29 @@ func ProcessIsRunning(pid int) bool {
 	return false
 }
 
-func PIDFileIsRunning(pidFile string) bool {
+func PIDFromPIDFile(pidFile string) (int, error) {
 	// Check if the PID file exists
 	if _, err := os.Stat(pidFile); err == nil {
 		// Read the PID file
 		pidBytes, err := os.ReadFile(pidFile)
 		if err != nil {
-			return false
+			return -1, err
 		}
 		pidStr := string(pidBytes)
+		if pidStr[len(pidStr)-1] == '\n' {
+			pidStr = pidStr[:len(pidStr)-1]
+		}
 		pid, err := strconv.ParseInt(pidStr, 10, 64)
 		if err != nil {
-			return false
+			return -1, err
 		}
+		return int(pid), nil
+	}
+	return -1, nil
+}
 
+func PIDFileIsRunning(pidFile string) bool {
+	if pid, err := PIDFromPIDFile(pidFile); err == nil {
 		if ProcessIsRunning(int(pid)) {
 			return true
 		}
