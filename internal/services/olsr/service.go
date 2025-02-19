@@ -8,7 +8,6 @@ import (
 	"syscall"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
-	"github.com/USA-RedDragon/aredn-manager/internal/runner"
 )
 
 type Service struct {
@@ -25,24 +24,15 @@ func NewService(config *config.Config) *Service {
 }
 
 func (s *Service) Start() error {
-	var err error
-	s.processResults, err = runner.Run(s.olsrCmd)
-	if err != nil {
-		return fmt.Errorf("olsrd failed to start: %w", err)
-	}
-	fmt.Println("OLSR started")
-
-	select {
-	case err := <-s.processResults:
-		var ret error
-		if err != nil {
-			ret = fmt.Errorf("OLSR process exited with error: %w, restarting it", err)
+	for {
+		if s.olsrCmd == nil {
+			log.Println("olsr command is nil")
+			return nil
 		}
-		err = s.olsrCmd.Process.Signal(os.Signal(syscall.SIGKILL))
+		err := s.olsrCmd.Start()
 		if err != nil {
-			log.Printf("failed to kill process: %v\n", err)
+			return fmt.Errorf("failed to start process: %w", err)
 		}
-		return ret
 	}
 }
 
