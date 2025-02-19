@@ -12,8 +12,9 @@ import (
 )
 
 type Service struct {
-	config  *config.Config
-	olsrCmd *exec.Cmd
+	config         *config.Config
+	olsrCmd        *exec.Cmd
+	processResults chan error
 }
 
 func NewService(config *config.Config) *Service {
@@ -24,15 +25,15 @@ func NewService(config *config.Config) *Service {
 }
 
 func (s *Service) Start() error {
-	processResults, err := runner.Run(s.olsrCmd)
-	defer close(processResults)
+	var err error
+	s.processResults, err = runner.Run(s.olsrCmd)
 	if err != nil {
 		return fmt.Errorf("olsrd failed to start: %w", err)
 	}
 	fmt.Println("OLSR started")
 
 	select {
-	case err := <-processResults:
+	case err := <-s.processResults:
 		var ret error
 		if err != nil {
 			ret = fmt.Errorf("OLSR process exited with error: %w, restarting it", err)
@@ -52,6 +53,7 @@ func (s *Service) Stop() error {
 			return fmt.Errorf("failed to kill process: %w", err)
 		}
 	}
+	defer close(s.processResults)
 	return s.olsrCmd.Wait()
 }
 
