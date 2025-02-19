@@ -17,7 +17,7 @@ func ProcessIsRunning(pid int) bool {
 	}
 	// Workaround since FindProcess doesn't actually check if the process is running
 	err = process.Signal(syscall.Signal(0))
-	return err != nil
+	return err == nil
 }
 
 func PIDFromPIDFile(pidFile string) (int, error) {
