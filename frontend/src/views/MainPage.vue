@@ -17,6 +17,7 @@
             <PVBadge v-else value="✖️" severity="danger"></PVBadge>
             {{ babelRunning ? 'Running':'Stopped' }}
           </p>
+          <br />
           <h3 style="font-weight: bold;">OLSR Daemon</h3>
           <p>
             <PVBadge v-if="olsrdRunning" value="✔️" severity="success"></PVBadge>
