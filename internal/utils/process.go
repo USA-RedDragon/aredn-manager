@@ -10,12 +10,14 @@ import (
 
 func ProcessIsRunning(pid int) bool {
 	// Check if the PID is running
-	if process, err := os.FindProcess(pid); err == nil {
-		// Workaround since FindProcess doesn't actually check if the process is running
-		err := process.Signal(syscall.Signal(0))
-		return err != nil
+	process, err := os.FindProcess(pid)
+	if err != nil {
+		slog.Warn(fmt.Sprintf("Failed to find process %d: %s", pid, err))
+		return false
 	}
-	return false
+	// Workaround since FindProcess doesn't actually check if the process is running
+	err = process.Signal(syscall.Signal(0))
+	return err != nil
 }
 
 func PIDFromPIDFile(pidFile string) (int, error) {
