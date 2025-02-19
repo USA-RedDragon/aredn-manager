@@ -32,10 +32,12 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 		return err
 	}
 
-	fmt.Println("Generating babeld config")
-	err = babel.GenerateAndSave(config, db)
-	if err != nil {
-		return err
+	if config.EnableBabel {
+		fmt.Println("Generating babeld config")
+		err = babel.GenerateAndSave(config, db)
+		if err != nil {
+			return err
+		}
 	}
 
 	fmt.Println("Generating vtund config")

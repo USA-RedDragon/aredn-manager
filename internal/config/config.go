@@ -47,7 +47,8 @@ type Config struct {
 	DisableVTun                       bool
 	AdditionalOlsrdInterfaces         []string
 	AdditionalOlsrdInterfacesIsolated []string
-	AdditionalBabelInterfaces         []string
+	BabelRouterID                     string
+	EnableBabel                       bool
 }
 
 func loadConfig() Config {
@@ -104,7 +105,8 @@ func loadConfig() Config {
 		DisableVTun:                       os.Getenv("DISABLE_VTUN") != "",
 		AdditionalOlsrdInterfaces:         strings.Split(os.Getenv("ADDITIONAL_OLSRD_INTERFACES"), ","),
 		AdditionalOlsrdInterfacesIsolated: strings.Split(os.Getenv("ADDITIONAL_OLSRD_INTERFACES_ISOLATED"), ","),
-		AdditionalBabelInterfaces:         strings.Split(os.Getenv("ADDITIONAL_BABEL_INTERFACES"), ","),
+		EnableBabel:                       os.Getenv("ENABLE_BABEL") != "",
+		BabelRouterID:                     os.Getenv("BABEL_ROUTER_ID"),
 	}
 
 	if tmpConfig.VTUNStartingAddress == "" {
@@ -121,6 +123,10 @@ func loadConfig() Config {
 
 	if net.ParseIP(tmpConfig.VTUNStartingAddress) == nil {
 		panic("VTUN starting address is not a valid IP address")
+	}
+
+	if tmpConfig.EnableBabel && tmpConfig.BabelRouterID == "" {
+		panic("BABEL_ROUTER_ID not set")
 	}
 
 	if tmpConfig.InitialAdminUserPassword == "" {
