@@ -15,6 +15,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/server"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/babel"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/dnsmasq"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/vtun"
 	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
@@ -51,6 +52,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	serviceRegistry.Register(services.OLSRServiceName, olsr.NewService(config))
 	serviceRegistry.Register(services.BabelServiceName, babel.NewService(config))
 	serviceRegistry.Register(services.VTunServiceName, vtun.NewService(config))
+	serviceRegistry.Register(services.DNSMasqServiceName, dnsmasq.NewService(config))
 
 	go serviceRegistry.StartAll()
 

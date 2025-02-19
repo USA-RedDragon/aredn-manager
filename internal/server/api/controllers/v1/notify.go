@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/dnsmasq"
+	"github.com/USA-RedDragon/aredn-manager/internal/services"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +16,20 @@ func POSTNotify(c *gin.Context) {
 		return
 	}
 
-	err := dnsmasq.Reload()
+	registry, ok := c.MustGet("registry").(*services.Registry)
+	if !ok {
+		fmt.Println("Error getting registry")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+	dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
+	if !ok {
+		fmt.Println("Error getting DNSMasq service")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	err := dnsmasqService.Reload()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error regenerating DNS"})
 		fmt.Println("Error reloading DNS config:", err)

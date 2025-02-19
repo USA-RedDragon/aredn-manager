@@ -73,7 +73,7 @@ func GETOLSRRunning(c *gin.Context) {
 	}
 	olsrService, ok := registry.Get(services.OLSRServiceName)
 	if !ok {
-		fmt.Println("Error getting VTun service")
+		fmt.Println("Error getting OLSR service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}

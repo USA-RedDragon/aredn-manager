@@ -2,6 +2,7 @@ package vtun
 
 import (
 	"syscall"
+	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/utils"
@@ -22,7 +23,9 @@ func NewService(config *config.Config) *Service {
 }
 
 func (s *Service) Start() error {
-	return nil
+	for {
+		time.Sleep(50 * time.Millisecond)
+	}
 }
 
 func (s *Service) Stop() error {

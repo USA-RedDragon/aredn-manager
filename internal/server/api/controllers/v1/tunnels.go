@@ -10,7 +10,6 @@ import (
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
-	"github.com/USA-RedDragon/aredn-manager/internal/dnsmasq"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
@@ -540,7 +539,7 @@ func POSTTunnel(c *gin.Context) {
 		}
 		olsrService, ok := registry.Get(services.OLSRServiceName)
 		if !ok {
-			fmt.Println("Error getting VTun service")
+			fmt.Println("Error getting OLSR service")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
@@ -552,7 +551,14 @@ func POSTTunnel(c *gin.Context) {
 			return
 		}
 
-		err = dnsmasq.Reload()
+		dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
+		if !ok {
+			fmt.Println("Error getting DNSMasq service")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+
+		err = dnsmasqService.Reload()
 		if err != nil {
 			fmt.Printf("Error reloading DNS: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading DNS"})
@@ -763,7 +769,7 @@ func PATCHTunnel(c *gin.Context) {
 		}
 		olsrService, ok := registry.Get(services.OLSRServiceName)
 		if !ok {
-			fmt.Println("Error getting VTun service")
+			fmt.Println("Error getting OLSR service")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
@@ -775,7 +781,14 @@ func PATCHTunnel(c *gin.Context) {
 			return
 		}
 
-		err = dnsmasq.Reload()
+		dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
+		if !ok {
+			fmt.Println("Error getting DNSMasq service")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+
+		err = dnsmasqService.Reload()
 		if err != nil {
 			fmt.Printf("Error reloading DNS: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading DNS"})
@@ -915,7 +928,7 @@ func DELETETunnel(c *gin.Context) {
 	}
 	olsrService, ok := registry.Get(services.OLSRServiceName)
 	if !ok {
-		fmt.Println("Error getting VTun service")
+		fmt.Println("Error getting OLSR service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -927,7 +940,14 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
-	err = dnsmasq.Reload()
+	dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
+	if !ok {
+		fmt.Println("Error getting DNSMasq service")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	err = dnsmasqService.Reload()
 	if err != nil {
 		fmt.Printf("Error reloading DNS: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading DNS"})

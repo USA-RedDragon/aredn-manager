@@ -1,4 +1,4 @@
-package babel
+package dnsmasq
 
 import (
 	"syscall"
@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	pidFile = "/tmp/babeld.pid"
+	pidFile = "/var/run/dnsmasq.pid"
 )
 
 type Service struct {
@@ -45,5 +45,5 @@ func (s *Service) IsRunning() bool {
 }
 
 func (s *Service) IsEnabled() bool {
-	return s.config.EnableBabel
+	return true
 }
