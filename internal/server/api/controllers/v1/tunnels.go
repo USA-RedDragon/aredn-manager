@@ -706,7 +706,16 @@ func PATCHTunnel(c *gin.Context) {
 		tunnel.Hostname = json.Hostname
 		tunnel.Password = json.Password
 		tunnel.IP = json.IP
-		tunnel.Enabled = *json.Enabled
+
+		if tunnel.Enabled != *json.Enabled {
+			tunnel.Enabled = *json.Enabled
+			err = db.Model(&tunnel).Updates(models.Tunnel{Enabled: *json.Enabled}).Error
+			if err != nil {
+				fmt.Printf("PATCHTunnel: Error updating tunnel: %v\n", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating tunnel"})
+				return
+			}
+		}
 
 		if tunnel.Wireguard != *json.Wireguard {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Changing tunnel type not allowed"})
