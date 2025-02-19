@@ -113,7 +113,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 
 	// Start the server
 	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher, wireguardManager)
-	err = srv.Run(cmd.Root().Version)
+	err = srv.Run(cmd.Root().Version, serviceRegistry)
 	if err != nil {
 		return err
 	}

@@ -13,6 +13,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
+	"github.com/USA-RedDragon/aredn-manager/internal/services"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/vtun"
 	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
@@ -53,12 +54,12 @@ func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterM
 	}
 }
 
-func (s *Server) Run(version string) error {
+func (s *Server) Run(version string, registry *services.Registry) error {
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(gin.Logger())
 
-	s.addMiddleware(r, version)
+	s.addMiddleware(r, version, registry)
 
 	api.ApplyRoutes(r, s.eventsChannel, s.config)
 
@@ -114,7 +115,7 @@ func (s *Server) Stop() error {
 	return nil
 }
 
-func (s *Server) addMiddleware(r *gin.Engine, version string) {
+func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services.Registry) {
 	// Debug
 	if s.config.Debug {
 		pprof.Register(r)
@@ -138,6 +139,7 @@ func (s *Server) addMiddleware(r *gin.Engine, version string) {
 	r.Use(middleware.NetworkStats(s.stats))
 	r.Use(middleware.PaginatedDatabaseProvider(s.db, middleware.PaginationConfig{}))
 	r.Use(middleware.VersionProvider(version))
+	r.Use(middleware.ServiceRegistryProvider(registry))
 
 	// CORS
 	corsConfig := cors.DefaultConfig()
