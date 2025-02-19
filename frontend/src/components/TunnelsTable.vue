@@ -351,6 +351,7 @@ export default {
         hostname: tunnel.hostname,
         password: tunnel.password,
         enabled: tunnel.enabled,
+        wireguard: tunnel.wireguard,
         ip: tunnel.ip,
       })
         .then((_res) => {
