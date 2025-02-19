@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/babel"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db"
 	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
@@ -14,7 +15,7 @@ import (
 var (
 	generateCmd = &cobra.Command{
 		Use:               "generate",
-		Short:             "Generate olsrd and vtund configs",
+		Short:             "Generate olsrd, babeld, and vtund configs",
 		RunE:              runGenerate,
 		SilenceErrors:     true,
 		DisableAutoGenTag: true,
@@ -27,6 +28,12 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 
 	fmt.Println("Generating olsrd config")
 	err := olsrd.GenerateAndSave(config, db)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("Generating babeld config")
+	err = babel.GenerateAndSave(config, db)
 	if err != nil {
 		return err
 	}

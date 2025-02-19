@@ -47,6 +47,7 @@ type Config struct {
 	DisableVTun                       bool
 	AdditionalOlsrdInterfaces         []string
 	AdditionalOlsrdInterfacesIsolated []string
+	AdditionalBabelInterfaces         []string
 }
 
 func loadConfig() Config {
@@ -103,6 +104,7 @@ func loadConfig() Config {
 		DisableVTun:                       os.Getenv("DISABLE_VTUN") != "",
 		AdditionalOlsrdInterfaces:         strings.Split(os.Getenv("ADDITIONAL_OLSRD_INTERFACES"), ","),
 		AdditionalOlsrdInterfacesIsolated: strings.Split(os.Getenv("ADDITIONAL_OLSRD_INTERFACES_ISOLATED"), ","),
+		AdditionalBabelInterfaces:         strings.Split(os.Getenv("ADDITIONAL_BABEL_INTERFACES"), ","),
 	}
 
 	if tmpConfig.VTUNStartingAddress == "" {

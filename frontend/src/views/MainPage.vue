@@ -11,6 +11,12 @@
             {{ vtundRunning ? 'Running':'Stopped' }}
           </p>
           <br />
+          <h3 style="font-weight: bold;">Babel Daemon</h3>
+          <p>
+            <PVBadge v-if="babelRunning" value="✔️" severity="success"></PVBadge>
+            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
+            {{ babelRunning ? 'Running':'Stopped' }}
+          </p>
           <h3 style="font-weight: bold;">OLSR Daemon</h3>
           <p>
             <PVBadge v-if="olsrdRunning" value="✔️" severity="success"></PVBadge>
@@ -79,6 +85,7 @@ export default {
   },
   data: function() {
     return {
+      babelRunning: true,
       vtundRunning: true,
       olsrdRunning: true,
       dnsRunning: true,
@@ -127,6 +134,9 @@ export default {
       });
       API.get('/vtun/running').then((res) => {
         this.vtundRunning = res.data.running;
+      });
+      API.get('/babel/running').then((res) => {
+        this.babelRunning = res.data.running;
       });
       API.get('/dns/running').then((res) => {
         this.dnsRunning = res.data.running;

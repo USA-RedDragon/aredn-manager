@@ -57,6 +57,9 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1VTun := group.Group("/vtun")
 	v1VTun.GET("/running", v1Controllers.GETVtunRunning)
 
+	v1Babel := group.Group("/babel")
+	v1Babel.GET("/running", v1Controllers.GETBabelRunning)
+
 	v1Wireguard := group.Group("/wireguard")
 	v1Wireguard.GET("/genkey", v1Controllers.GETWireguardGenkey)
 	v1Wireguard.POST("/pubkey", v1Controllers.POSTWireguardPubkey)
