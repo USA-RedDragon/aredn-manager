@@ -11,9 +11,10 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/dnsmasq"
-	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
-	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
+	"github.com/USA-RedDragon/aredn-manager/internal/services"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/vtun"
 	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -336,7 +337,20 @@ func POSTTunnel(c *gin.Context) {
 					return
 				}
 
-				err = vtun.Reload()
+				registry, ok := c.MustGet("registry").(*services.Registry)
+				if !ok {
+					fmt.Println("Error getting registry")
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+					return
+				}
+				vtunService, ok := registry.Get(services.VTunServiceName)
+				if !ok {
+					fmt.Println("Error getting VTun service")
+					c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+					return
+				}
+
+				err = vtunService.Reload()
 				if err != nil {
 					fmt.Printf("POSTTunnel: Error reloading vtun: %v\n", err)
 					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun"})
@@ -511,14 +525,27 @@ func POSTTunnel(c *gin.Context) {
 			}
 		}
 
-		err = olsrd.GenerateAndSave(config, db)
+		err = olsr.GenerateAndSave(config, db)
 		if err != nil {
 			fmt.Printf("POSTTunnel: Error generating olsrd config: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
 			return
 		}
 
-		err = olsrd.Reload()
+		registry, ok := c.MustGet("registry").(*services.Registry)
+		if !ok {
+			fmt.Println("Error getting registry")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+		olsrService, ok := registry.Get(services.OLSRServiceName)
+		if !ok {
+			fmt.Println("Error getting VTun service")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+
+		err = olsrService.Reload()
 		if err != nil {
 			fmt.Printf("POSTTunnel: Error reloading olsrd: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
@@ -721,14 +748,27 @@ func PATCHTunnel(c *gin.Context) {
 			}
 		}
 
-		err = olsrd.GenerateAndSave(config, db)
+		err = olsr.GenerateAndSave(config, db)
 		if err != nil {
 			fmt.Printf("PATCHTunnel: Error generating olsrd config: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
 			return
 		}
 
-		err = olsrd.Reload()
+		registry, ok := c.MustGet("registry").(*services.Registry)
+		if !ok {
+			fmt.Println("Error getting registry")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+		olsrService, ok := registry.Get(services.OLSRServiceName)
+		if !ok {
+			fmt.Println("Error getting VTun service")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+
+		err = olsrService.Reload()
 		if err != nil {
 			fmt.Printf("PATCHTunnel: Error reloading olsrd: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
@@ -831,7 +871,7 @@ func DELETETunnel(c *gin.Context) {
 		}
 	}
 
-	err = olsrd.GenerateAndSave(config, db)
+	err = olsr.GenerateAndSave(config, db)
 	if err != nil {
 		fmt.Printf("Error generating olsrd config: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
@@ -839,7 +879,20 @@ func DELETETunnel(c *gin.Context) {
 	}
 
 	if !config.DisableVTun {
-		err = vtun.Reload()
+		registry, ok := c.MustGet("registry").(*services.Registry)
+		if !ok {
+			fmt.Println("Error getting registry")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+		vtunService, ok := registry.Get(services.VTunServiceName)
+		if !ok {
+			fmt.Println("Error getting VTun service")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+
+		err = vtunService.Reload()
 		if err != nil {
 			fmt.Printf("Error reloading vtun: %v\n", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading vtun"})
@@ -854,7 +907,20 @@ func DELETETunnel(c *gin.Context) {
 		}
 	}
 
-	err = olsrd.Reload()
+	registry, ok := c.MustGet("registry").(*services.Registry)
+	if !ok {
+		fmt.Println("Error getting registry")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+	olsrService, ok := registry.Get(services.OLSRServiceName)
+	if !ok {
+		fmt.Println("Error getting VTun service")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	err = olsrService.Reload()
 	if err != nil {
 		fmt.Printf("Error reloading olsrd: %v\n", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})

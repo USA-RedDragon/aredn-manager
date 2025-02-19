@@ -14,8 +14,8 @@ import (
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
-	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -188,7 +188,7 @@ func GETSysinfo(c *gin.Context) {
 	}
 
 	if doHosts {
-		olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.HostsParser)
+		olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
 		if !ok {
 			fmt.Println("GETSysinfo: OLSRDHostParser not found in context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -198,7 +198,7 @@ func GETSysinfo(c *gin.Context) {
 	}
 
 	if doServices {
-		olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsrd.ServicesParser)
+		olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsr.ServicesParser)
 		if !ok {
 			fmt.Println("GETSysinfo: OLSRDServicesParser not found in context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -253,7 +253,7 @@ var (
 	regexDtd = regexp.MustCompile(`^dtdlink\..*`)
 )
 
-func getHosts(parser *olsrd.HostsParser) []apimodels.Host {
+func getHosts(parser *olsr.HostsParser) []apimodels.Host {
 	hosts := parser.GetHosts()
 	ret := []apimodels.Host{}
 	for _, host := range hosts {
@@ -381,7 +381,7 @@ func getLinkInfo(ctx context.Context) map[string]apimodels.LinkInfo {
 	return ret
 }
 
-func getServices(parser *olsrd.ServicesParser) []apimodels.Service {
+func getServices(parser *olsr.ServicesParser) []apimodels.Service {
 	svcs := parser.GetServices()
 	ret := []apimodels.Service{}
 	for _, svc := range svcs {

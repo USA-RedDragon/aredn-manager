@@ -1,12 +1,10 @@
 package cmd
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"syscall"
-	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db"
@@ -14,9 +12,11 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	"github.com/USA-RedDragon/aredn-manager/internal/ifacewatcher"
 	"github.com/USA-RedDragon/aredn-manager/internal/metrics"
-	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server"
-	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
+	"github.com/USA-RedDragon/aredn-manager/internal/services"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/babel"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/vtun"
 	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
@@ -47,10 +47,12 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	// Start the server
 	fmt.Println("starting server")
 
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
+	serviceRegistry := services.NewServiceRegistry()
+	serviceRegistry.Register(services.OLSRServiceName, olsr.NewService(config))
+	serviceRegistry.Register(services.BabelServiceName, babel.NewService(config))
+	serviceRegistry.Register(services.VTunServiceName, vtun.NewService(config))
 
-	olsrdExitedChan := olsrd.Run(ctx)
+	go serviceRegistry.StartAll()
 
 	// Start the metrics server
 	go metrics.CreateMetricsServer(config, cmd.Root().Version)
@@ -132,17 +134,6 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		errGrp.SetLimit(1)
 
 		errGrp.Go(func() error {
-			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-			defer cancel()
-			select {
-			case <-ctx.Done():
-				return fmt.Errorf("olsrd did not exit in time")
-			case <-olsrdExitedChan:
-				return nil
-			}
-		})
-
-		errGrp.Go(func() error {
 			return wireguardManager.Stop()
 		})
 
@@ -169,7 +160,9 @@ func runServer(cmd *cobra.Command, _ []string) error {
 			return nil
 		})
 
-		go cancel()
+		errGrp.Go(func() error {
+			return serviceRegistry.StopAll()
+		})
 
 		stopChan <- errGrp.Wait()
 	}

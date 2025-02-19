@@ -5,12 +5,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
+	"github.com/USA-RedDragon/aredn-manager/internal/services"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/gin-gonic/gin"
 )
 
 func GETOLSRHosts(c *gin.Context) {
-	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.HostsParser)
+	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
 	if !ok {
 		fmt.Println("POSTLogin: OLSRDHostParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -53,7 +54,7 @@ func GETOLSRHosts(c *gin.Context) {
 }
 
 func GETOLSRHostsCount(c *gin.Context) {
-	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.HostsParser)
+	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
 	if !ok {
 		fmt.Println("POSTLogin: OLSRDHostParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -64,5 +65,17 @@ func GETOLSRHostsCount(c *gin.Context) {
 }
 
 func GETOLSRRunning(c *gin.Context) {
-	c.JSON(http.StatusOK, gin.H{"running": olsrd.IsRunning()})
+	registry, ok := c.MustGet("registry").(*services.Registry)
+	if !ok {
+		fmt.Println("Error getting registry")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+	olsrService, ok := registry.Get(services.OLSRServiceName)
+	if !ok {
+		fmt.Println("Error getting VTun service")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"running": olsrService.IsRunning()})
 }

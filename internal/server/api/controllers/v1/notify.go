@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/dnsmasq"
-	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/gin-gonic/gin"
 )
 
@@ -24,7 +24,7 @@ func POSTNotify(c *gin.Context) {
 	}
 
 	go func() {
-		olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsrd.HostsParser)
+		olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
 		if !ok {
 			fmt.Println("POSTLogin: OLSRDHostParser not found in context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -37,7 +37,7 @@ func POSTNotify(c *gin.Context) {
 			return
 		}
 
-		olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsrd.ServicesParser)
+		olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsr.ServicesParser)
 		if !ok {
 			fmt.Println("POSTLogin: OLSRDServicesParser not found in context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})

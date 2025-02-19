@@ -1,7 +1,7 @@
 package middleware
 
 import (
-	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/vtun"
 	"github.com/gin-gonic/gin"
 )
 

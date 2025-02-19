@@ -1,4 +1,4 @@
-package olsrd
+package olsr
 
 type Parsers struct {
 	HostsParser    *HostsParser

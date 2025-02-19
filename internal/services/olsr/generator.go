@@ -1,4 +1,4 @@
-package olsrd
+package olsr
 
 import (
 	"fmt"

@@ -3,11 +3,11 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/babel"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db"
-	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
-	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/babel"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/vtun"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +27,7 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 	db := db.MakeDB(config)
 
 	fmt.Println("Generating olsrd config")
-	err := olsrd.GenerateAndSave(config, db)
+	err := olsr.GenerateAndSave(config, db)
 	if err != nil {
 		return err
 	}

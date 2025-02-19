@@ -171,3 +171,15 @@ func (v *ClientWatcher) runClient(ctx context.Context, tunnel models.Tunnel) err
 
 	return nil
 }
+
+func ReloadAllClients(db *gorm.DB, watcher *ClientWatcher) error {
+	tunnels, err := models.ListClientTunnels(db)
+	if err != nil {
+		return err
+	}
+
+	for _, tunnel := range tunnels {
+		watcher.ReloadTunnel(tunnel.ID)
+	}
+	return nil
+}

@@ -11,10 +11,10 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
-	"github.com/USA-RedDragon/aredn-manager/internal/olsrd"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
-	"github.com/USA-RedDragon/aredn-manager/internal/vtun"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/vtun"
 	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
@@ -129,8 +129,8 @@ func (s *Server) addMiddleware(r *gin.Engine, version string) {
 	// DBs
 	r.Use(middleware.ConfigProvider(s.config))
 	r.Use(middleware.DatabaseProvider(s.db))
-	r.Use(middleware.OLSRDProvider(olsrd.NewHostsParser()))
-	r.Use(middleware.OLSRDServicesProvider(olsrd.NewServicesParser()))
+	r.Use(middleware.OLSRDProvider(olsr.NewHostsParser()))
+	r.Use(middleware.OLSRDServicesProvider(olsr.NewServicesParser()))
 	if !s.config.DisableVTun {
 		r.Use(middleware.VTunClientWatcherProvider(s.vtunClientWatcher))
 	}
