@@ -708,7 +708,7 @@ func PATCHTunnel(c *gin.Context) {
 		tunnel.IP = json.IP
 		tunnel.Enabled = *json.Enabled
 
-		if tunnel.Wireguard != json.Wireguard {
+		if tunnel.Wireguard != *json.Wireguard {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Changing tunnel type not allowed"})
 			return
 		}
