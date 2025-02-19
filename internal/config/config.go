@@ -106,11 +106,15 @@ func loadConfig() Config {
 	}
 
 	if tmpConfig.VTUNStartingAddress == "" {
-		tmpConfig.VTUNStartingAddress = "172.31.180.12"
+		panic("VTUN_STARTING_ADDRESS not set")
 	}
 
 	if tmpConfig.WireguardStartingAddress == "" {
-		tmpConfig.WireguardStartingAddress = "172.31.190.12"
+		panic("WIREGUARD_STARTING_ADDRESS not set")
+	}
+
+	if net.ParseIP(tmpConfig.WireguardStartingAddress) == nil {
+		panic("WIREGUARD_STARTING_ADDRESS is not a valid IP address")
 	}
 
 	if net.ParseIP(tmpConfig.VTUNStartingAddress) == nil {
