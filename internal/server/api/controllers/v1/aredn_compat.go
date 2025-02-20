@@ -346,7 +346,7 @@ func getLinkInfo(ctx context.Context) map[string]apimodels.LinkInfo {
 			linkType = "DTD"
 		case strings.HasPrefix(link.OLSRInterface, "wg"):
 			linkType = "WIREGUARD"
-		case link.OLSRInterface == "br0":
+		case strings.HasPrefix(link.OLSRInterface, "br"):
 			linkType = "DTD"
 		default:
 			linkType = "UNKNOWN"

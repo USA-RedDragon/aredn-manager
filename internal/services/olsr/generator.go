@@ -152,7 +152,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 			ret += "\n\n"
 		}
 		snippet := snippetOlsrdConfInterfaceSupernode
-		utils.ShellReplace(&snippet, map[string]string{"IFACE": "br0"})
+		utils.ShellReplace(&snippet, map[string]string{"IFACE": "br-dtdlink"})
 		ret += snippet
 	} else {
 		for _, iface := range config.AdditionalOlsrdInterfaces {
@@ -165,7 +165,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 			ret += "\n\n"
 		}
 		snippet := snippetOlsrdConfInterfaceStandard
-		utils.ShellReplace(&snippet, map[string]string{"IFACE": "br0"})
+		utils.ShellReplace(&snippet, map[string]string{"IFACE": "br-dtdlink"})
 		ret += snippet
 	}
 	ret += "\n\n"

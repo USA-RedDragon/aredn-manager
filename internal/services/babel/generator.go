@@ -24,9 +24,9 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	// Yay this config format is much easier to generate.
 	var ret string
 	ret += "router-id " + config.BabelRouterID + "\n"
-	ret += "interface br0 type wired\n"
-	ret += "interface br0 rxcost 96\n"
-	ret += "interface br0 split-horizon true\n"
+	ret += "interface br-dtdlink type wired\n"
+	ret += "interface br-dtdlink rxcost 96\n"
+	ret += "interface br-dtdlink split-horizon true\n"
 
 	if config.Supernode {
 		ret += "import-table 21\n"
@@ -42,7 +42,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 		ret += "install ip 10.0.0.0/8 eq 8 deny\n"
 		ret += "install ip 44.0.0.0/9 eq 9 deny\n"
 		ret += "install ip 44.128.0.0/10 eq 10 deny\n"
-		ret += "out if br0 deny\n"
+		ret += "out if br-dtdlink deny\n"
 	} else {
 		ret += "redistribute ip 10.0.0.0/8 ge 24 allow\n"
 		ret += "redistribute ip 44.0.0.0/9 allow\n"
@@ -52,7 +52,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 		ret += "install ip 44.0.0.0/9 eq 9 allow table 21\n"
 		ret += "install ip 44.128.0.0/10 eq 10 allow table 21\n"
 	}
-	ret += "redistribute local if eth0 deny\n"
+	// ret += "redistribute local if br0 deny\n"
 	ret += "install ip 0.0.0.0/0 eq 0 allow table 22\n"
 	return ret
 }

@@ -36,20 +36,20 @@ options {
         ip "addr add ${IP_PLUS_2} peer ${IP_PLUS_1} dev %%";
         ip "link set dev %% up mtu 1450";
         ip "route add ${NET}/30 via ${IP_PLUS_1} mtu 1450";
-        firewall "-A FORWARD -i %% -o br0 -d 10.0.0.0/8 -j ACCEPT";
-        firewall "-A FORWARD -i %% -o br0 -j REJECT";
-        firewall "-A FORWARD -i br0 -o %% -s 10.0.0.0/8 -j ACCEPT";
-        firewall "-A FORWARD -i br0 -o %% -j REJECT";
+        firewall "-A FORWARD -i %% -o br-dtdlink -d 10.0.0.0/8 -j ACCEPT";
+        firewall "-A FORWARD -i %% -o br-dtdlink -j REJECT";
+        firewall "-A FORWARD -i br-dtdlink -o %% -s 10.0.0.0/8 -j ACCEPT";
+        firewall "-A FORWARD -i br-dtdlink -o %% -j REJECT";
         firewall "-A FORWARD -o %% -p tcp --tcp-flags SYN SYN -j TCPMSS --set-mss 1450";
         ${EXTRA_UP_RULES}
     };
     down {
         ${EXTRA_DOWN_RULES}
         firewall "-D FORWARD -o %% -p tcp --tcp-flags SYN SYN -j TCPMSS --set-mss 1450";
-        firewall "-D FORWARD -i %% -o br0 -d 10.0.0.0/8 -j ACCEPT";
-        firewall "-D FORWARD -i br0 -o %% -s 10.0.0.0/8 -j ACCEPT";
-        firewall "-D FORWARD -i %% -o br0 -j REJECT";
-        firewall "-D FORWARD -i br0 -o %% -j REJECT";
+        firewall "-D FORWARD -i %% -o br-dtdlink -d 10.0.0.0/8 -j ACCEPT";
+        firewall "-D FORWARD -i br-dtdlink -o %% -s 10.0.0.0/8 -j ACCEPT";
+        firewall "-D FORWARD -i %% -o br-dtdlink -j REJECT";
+        firewall "-D FORWARD -i br-dtdlink -o %% -j REJECT";
         ip "route del ${NET}/30 via ${IP_PLUS_1}";
         ip "link set dev %% down";
         ip "addr del ${IP_PLUS_2} dev %%";

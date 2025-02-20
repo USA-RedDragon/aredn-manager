@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
@@ -150,7 +151,7 @@ func OLSRWatcher(db *gorm.DB) {
 
 		go func() {
 			for _, iface := range foundInterfaces {
-				if iface != "br0" {
+				if !strings.HasPrefix(iface, "br") {
 					tunnel, err := models.FindTunnelByInterface(db, iface)
 					if err != nil {
 						fmt.Printf("OLSRWatcher: Unable to find tunnel by interface: %v\n", err)
