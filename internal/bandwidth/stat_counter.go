@@ -67,6 +67,7 @@ func (s *StatCounter) Start() error {
 			dev, err = netlink.LinkByName(s.iface)
 			if err != nil {
 				log.Printf("Error getting link %s by name: %v\n", s.iface, err)
+				return
 			}
 			rxBytes := dev.Attrs().Statistics.RxBytes
 			if rxBytes < s.lastRXBytes {
