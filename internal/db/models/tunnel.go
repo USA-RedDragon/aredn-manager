@@ -137,7 +137,7 @@ func GetNextVTunIP(db *gorm.DB, config *config.Config) (string, error) {
 	// Each tunnel is added with an ip starting from config.VTUNStartingAddress and incrementing by 4 for each tunnel
 	// We need to find the next available ip.
 	var tunnels []Tunnel
-	err := db.Not("wireguard = ?", true).Find(&tunnels).Error
+	err := db.Not("wireguard = ?", true).Where("client = ?", false).Find(&tunnels).Error
 	if err != nil {
 		return "", err
 	}
@@ -173,7 +173,7 @@ func GetNextWireguardIP(db *gorm.DB, config *config.Config) (string, error) {
 	// Each tunnel is added with an ip starting from config.WireguardStartingAddress and incrementing by 4 for each tunnel
 	// We need to find the next available ip.
 	var tunnels []Tunnel
-	err := db.Where("wireguard = ?", true).Find(&tunnels).Error
+	err := db.Where("wireguard = ?", true).Where("client = ?", false).Find(&tunnels).Error
 	if err != nil {
 		return "", err
 	}
