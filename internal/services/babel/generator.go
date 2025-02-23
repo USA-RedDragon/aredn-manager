@@ -5,6 +5,8 @@ import (
 	"os"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"gorm.io/gorm"
 )
 
@@ -42,7 +44,31 @@ func Generate(config *config.Config, db *gorm.DB) string {
 		ret += "redistribute ip 172.31.0.0/16 deny\n"
 		ret += "install ip 10.0.0.0/8 eq 8 allow table 21\n"
 	}
-	// ret += "redistribute local if br0 deny\n"
+	ret += "redistribute local if br0 deny\n"
 	ret += "install ip 0.0.0.0/0 eq 0 allow table 22\n"
+
+	tunnelInterfaces := make([]string, 0)
+	tunnels, err := models.ListWireguardTunnels(db)
+	if err != nil {
+		panic(err)
+	}
+
+	if len(tunnels) > 0 {
+		for _, tunnel := range tunnels {
+			if !tunnel.Enabled {
+				continue
+			}
+			tunnelInterfaces = append(tunnelInterfaces, wireguard.GenerateWireguardInterfaceName(tunnel))
+		}
+	}
+
+	for _, iface := range tunnelInterfaces {
+		ret += fmt.Sprintf("interface %s type tunnel\n", iface)
+		ret += fmt.Sprintf("interface %s enable-timestamps true\n", iface)
+		ret += fmt.Sprintf("interface %s rxcost 206\n", iface)
+		ret += fmt.Sprintf("interface %s max-rtt-penalty 150\n", iface)
+		ret += fmt.Sprintf("redistribute local if %s deny\n", iface)
+	}
+
 	return ret
 }
