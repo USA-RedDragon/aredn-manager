@@ -115,7 +115,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
 				// Check if the current message takes up the entire buffer
 				if n == int(currentMessage.Length) {
-					currentMessage.Payload = buf[8:]
+					currentMessage.Payload = buf[8:n]
 					s.handleMessage(*currentMessage)
 					currentMessage = nil
 					n = 0
@@ -125,18 +125,18 @@ func (s *Server) handleConnection(conn net.Conn) {
 				// Check if the current buffer is larger than the message
 				if n > int(currentMessage.Length) {
 					msgLen := int(currentMessage.Length)
-					currentMessage.Payload = buf[8 : msgLen-8]
+					currentMessage.Payload = buf[8:msgLen]
 					s.handleMessage(*currentMessage)
 					currentMessage = nil
 
-					buf = buf[msgLen:]
+					buf = buf[msgLen:n]
 					n -= int(msgLen)
 					continue
 				}
 
 				// If we're here, the message is larger than the buffer
 				// so we need to read the rest of the message in the next iteration
-				currentMessage.Payload = buf[8:]
+				currentMessage.Payload = buf[8:n]
 				n = 0
 			} else {
 				// Current message is already being parsed, so we need to append the new data to the payload
@@ -154,7 +154,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 					s.handleMessage(*currentMessage)
 					currentMessage = nil
 
-					buf = buf[bytesStillWanted:]
+					buf = buf[bytesStillWanted:n]
 					n -= bytesStillWanted
 					continue
 				}
