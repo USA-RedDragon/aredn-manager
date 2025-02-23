@@ -123,10 +123,9 @@ func (s *Server) handleConnection(conn net.Conn) {
 				}
 
 				// Check if the current buffer is larger than the message
-				// if so, we need to start a loop of reading the message in chunks
 				if n > int(currentMessage.Length) {
 					msgLen := int(currentMessage.Length)
-					currentMessage.Payload = buf[8:currentMessage.Length]
+					currentMessage.Payload = buf[8 : msgLen-8]
 					s.handleMessage(*currentMessage)
 					currentMessage = nil
 
@@ -143,7 +142,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 				// Current message is already being parsed, so we need to append the new data to the payload
 				bytesStillWanted := int(currentMessage.Length) - len(currentMessage.Payload) + 8
 				if n == bytesStillWanted {
-					currentMessage.Payload = append(currentMessage.Payload, buf[:n]...)
+					currentMessage.Payload = append(currentMessage.Payload, buf[:bytesStillWanted]...)
 					s.handleMessage(*currentMessage)
 					currentMessage = nil
 					n = 0
