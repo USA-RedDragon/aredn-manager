@@ -1,11 +1,13 @@
 package arednlink
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log/slog"
 	"net"
 	"sync"
+	"time"
 )
 
 type Server struct {
@@ -39,8 +41,14 @@ func (s *Server) Stop() {
 	slog.Debug("arednlink: stopping incoming connections to the server")
 	close(s.quit)
 	s.listener.Close()
-	slog.Debug("arednlink: waiting for all connections to close")
-	s.wg.Wait()
+	slog.Debug("arednlink: waiting up to 5 seconds for all connections to close")
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	go func() {
+		s.wg.Wait()
+		cancel()
+	}()
+	<-ctx.Done()
 	slog.Debug("arednlink: all connections closed")
 }
 
