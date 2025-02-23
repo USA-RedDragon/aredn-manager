@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/aredn-manager/internal/utils"
 	"github.com/phayes/freeport"
 	"github.com/vishvananda/netlink"
 	"golang.org/x/sync/errgroup"
@@ -184,9 +185,23 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 			}
 		}
 	}
+
 	err = netlink.AddrReplace(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: peerIP, Mask: net.CIDRMask(32, 32)}})
 	if err != nil {
 		log.Println("failed to add address to wireguard device", err)
+		return
+	}
+
+	// Add an IPv6 link-local address to the interface
+	peerIP6, err := utils.GenerateIPv6LinkLocalAddress()
+	if err != nil {
+		log.Println("failed to generate IPv6 link-local address", err)
+		return
+	}
+
+	err = netlink.AddrAdd(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: net.ParseIP(peerIP6), Mask: net.CIDRMask(64, 128)}})
+	if err != nil {
+		log.Println("failed to add IPv6 link-local address to wireguard device", err)
 		return
 	}
 
