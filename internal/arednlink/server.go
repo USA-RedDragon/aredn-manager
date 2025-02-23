@@ -15,7 +15,7 @@ type Server struct {
 }
 
 func NewServer() (*Server, error) {
-	listener, err := net.Listen("tcp6", ":9623")
+	listener, err := net.Listen("tcp6", "[::]:9623")
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on [::]:9623: %w", err)
 	}
