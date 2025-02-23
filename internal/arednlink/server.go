@@ -167,7 +167,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 }
 
 func (s *Server) handleMessage(m Message) {
-	slog.Info("arednlink: received message", "command", m.Command, "source", m.Source, "hops", m.Hops, "payload", string(m.Payload))
+	slog.Info("arednlink: received message", "length", m.Length-8, "command", m.Command, "source", m.Source, "hops", m.Hops, "payload", string(m.Payload))
 }
 
 func readMessageHeader(buf []byte) *Message {
