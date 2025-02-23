@@ -42,7 +42,7 @@ func (s *Service) Stop() error {
 			return fmt.Errorf("failed to kill process: %w", err)
 		}
 	}
-	return s.olsrCmd.Wait()
+	return nil
 }
 
 func (s *Service) Reload() error {
