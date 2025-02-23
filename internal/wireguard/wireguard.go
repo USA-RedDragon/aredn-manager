@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net"
 	"strconv"
 	"strings"
@@ -193,11 +194,12 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	}
 
 	// Add an IPv6 link-local address to the interface
-	peerIP6, err := utils.GenerateIPv6LinkLocalAddress()
+	peerIP6, err := utils.GenerateIPv6LinkLocalAddress(peerIP)
 	if err != nil {
 		log.Println("failed to generate IPv6 link-local address", err)
 		return
 	}
+	slog.Info("Generated IPv6 link-local address", "address", peerIP6)
 
 	err = netlink.AddrAdd(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: net.ParseIP(peerIP6), Mask: net.CIDRMask(64, 128)}})
 	if err != nil {
