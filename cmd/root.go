@@ -23,6 +23,7 @@ func NewCommand(version, commit string) *cobra.Command {
 	cmd.AddCommand(generateCmd)
 	cmd.AddCommand(notifyCmd)
 	cmd.AddCommand(serverCmd)
+	cmd.AddCommand(arednlinkCommand)
 	return cmd
 }
 
