@@ -36,12 +36,12 @@ func NewServer() (*Server, error) {
 }
 
 func (s *Server) Stop() {
-	slog.Info("arednlink: stopping incoming connections to the server")
+	slog.Debug("arednlink: stopping incoming connections to the server")
 	close(s.quit)
 	s.listener.Close()
-	slog.Info("arednlink: waiting for all connections to close")
+	slog.Debug("arednlink: waiting for all connections to close")
 	s.wg.Wait()
-	slog.Info("arednlink: all connections closed")
+	slog.Debug("arednlink: all connections closed")
 }
 
 func (s *Server) run() {

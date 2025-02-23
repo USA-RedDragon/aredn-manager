@@ -1,11 +1,14 @@
 package cmd
 
 import (
+	"fmt"
 	"log"
 	"os"
+	"sync"
 	"syscall"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/arednlink"
+	"github.com/USA-RedDragon/aredn-manager/internal/arednlink/pollers"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
 )
@@ -21,25 +24,46 @@ var (
 	}
 )
 
-func runArednlink(_ *cobra.Command, _ []string) error {
+func runArednlink(cmd *cobra.Command, _ []string) error {
 	arednlinkServer, err := arednlink.NewServer()
 	if err != nil {
 		return err
 	}
 
+	pollers := pollers.NewManager(cmd.Context())
+	pollers.Start()
+
 	stopChan := make(chan interface{})
 	stop := func(sig os.Signal) {
+		// Extra newline to clear potential terminal control character
+		fmt.Println()
 		switch sig {
 		case syscall.SIGINT:
-			log.Println("Received SIGINT, shutting down")
+			log.Println("arednlink: received SIGINT, shutting down")
 		case syscall.SIGKILL:
-			log.Println("Received SIGKILL, shutting down")
+			log.Println("arednlink: received SIGKILL, shutting down")
 		case syscall.SIGTERM:
-			log.Println("Received SIGTERM, shutting down")
+			log.Println("arednlink: received SIGTERM, shutting down")
 		case syscall.SIGQUIT:
-			log.Println("Received SIGQUIT, shutting down")
+			log.Println("arednlink: received SIGQUIT, shutting down")
 		}
-		arednlinkServer.Stop()
+
+		wg := sync.WaitGroup{}
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			arednlinkServer.Stop()
+		}()
+
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			pollers.Stop()
+		}()
+
+		wg.Wait()
+
 		close(stopChan)
 	}
 	shutdown.AddWithParam(stop)

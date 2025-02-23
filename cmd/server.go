@@ -122,6 +122,8 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	stopChan := make(chan error)
 	defer close(stopChan)
 	stop := func(sig os.Signal) {
+		// Extra newline to clear potential terminal control character
+		fmt.Println()
 		switch sig {
 		case syscall.SIGINT:
 			log.Println("Received SIGINT, shutting down")
