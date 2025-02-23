@@ -215,6 +215,12 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		return
 	}
 
+	_, ipv6netip, err := net.ParseCIDR("::/0")
+	if err != nil {
+		log.Println("failed to parse ::/0", err)
+		return
+	}
+
 	duration, err := time.ParseDuration("25s")
 	if err != nil {
 		log.Println("failed to parse duration", err)
@@ -240,7 +246,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		peers = []wgtypes.PeerConfig{
 			{
 				PublicKey:                   clientPubkey,
-				AllowedIPs:                  []net.IPNet{*netip},
+				AllowedIPs:                  []net.IPNet{*netip, *ipv6netip},
 				PersistentKeepaliveInterval: &duration,
 			},
 		}
@@ -294,7 +300,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		peers = []wgtypes.PeerConfig{
 			{
 				PublicKey:                   serverPubkey,
-				AllowedIPs:                  []net.IPNet{*netip},
+				AllowedIPs:                  []net.IPNet{*netip, *ipv6netip},
 				PersistentKeepaliveInterval: &duration,
 				Endpoint:                    &net.UDPAddr{IP: net.ParseIP(hostnameParts[0]), Port: port},
 			},
