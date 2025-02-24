@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net"
 	"sync"
+	"syscall"
 	"time"
 )
 
@@ -17,11 +18,19 @@ type Server struct {
 	listener    net.Listener
 	quit        chan interface{}
 	wg          sync.WaitGroup
-	connections []Connection
+	connections []*Connection
 }
 
 func NewServer() (*Server, error) {
-	listener, err := net.Listen("tcp6", "[::]:9623")
+	// Set SO_REUSEADDR
+	lc := net.ListenConfig{
+		Control: func(network, address string, c syscall.RawConn) error {
+			return c.Control(func(fd uintptr) {
+				syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1)
+			})
+		},
+	}
+	listener, err := lc.Listen(context.TODO(), "tcp6", "[::]:9623")
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on [::]:9623: %w", err)
 	}
@@ -31,7 +40,7 @@ func NewServer() (*Server, error) {
 		listener:    listener,
 		quit:        make(chan interface{}),
 		wg:          sync.WaitGroup{},
-		connections: make([]Connection, 0),
+		connections: make([]*Connection, 0),
 	}
 
 	s.wg.Add(1)
@@ -72,7 +81,7 @@ func (s *Server) run() {
 		s.wg.Add(1)
 		go func() {
 			newConn := NewConnection(conn, s)
-			s.connections = append(s.connections, *newConn)
+			s.connections = append(s.connections, newConn)
 			newConn.Start()
 			s.wg.Done()
 		}()
