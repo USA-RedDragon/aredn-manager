@@ -150,6 +150,20 @@ func (c *Connection) handleMessage(msg Message) bool {
 			return false
 		}
 	case CommandSync:
+		// Payload is a list of IPs
+		// Check that the length of the payload is a multiple of 4
+		if len(msg.Payload)%4 != 0 {
+			slog.Warn("arednlink: received invalid sync message", "peer", msg.Source)
+		}
+
+		for i := 0; i < len(msg.Payload); i += 4 {
+			ip := net.IP(msg.Payload[i : i+4])
+			if ip == nil {
+				slog.Warn("arednlink: received invalid IP in sync message", "peer", msg.Source)
+				continue
+			}
+			slog.Info("arednlink: received sync message", "peer", msg.Source, "ip", ip)
+		}
 		return false
 	case CommandKeepAlive:
 		return false
