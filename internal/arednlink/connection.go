@@ -72,7 +72,7 @@ func (c *Connection) Start() {
 					forward := c.handleMessage(*currentMessage)
 					if forward {
 						currentMessage.Hops--
-						c.server.SendAll(*currentMessage)
+						go c.server.SendAll(*currentMessage)
 					}
 					currentMessage = nil
 					n = 0
@@ -86,7 +86,7 @@ func (c *Connection) Start() {
 					forward := c.handleMessage(*currentMessage)
 					if forward {
 						currentMessage.Hops--
-						c.server.SendAll(*currentMessage)
+						go c.server.SendAll(*currentMessage)
 					}
 					currentMessage = nil
 
@@ -107,7 +107,7 @@ func (c *Connection) Start() {
 					forward := c.handleMessage(*currentMessage)
 					if forward {
 						currentMessage.Hops--
-						c.server.SendAll(*currentMessage)
+						go c.server.SendAll(*currentMessage)
 					}
 					currentMessage = nil
 					n = 0
@@ -119,7 +119,7 @@ func (c *Connection) Start() {
 					forward := c.handleMessage(*currentMessage)
 					if forward {
 						currentMessage.Hops--
-						c.server.SendAll(*currentMessage)
+						go c.server.SendAll(*currentMessage)
 					}
 					currentMessage = nil
 
