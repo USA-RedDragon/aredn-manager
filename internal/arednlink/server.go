@@ -3,17 +3,21 @@ package arednlink
 import (
 	"context"
 	"fmt"
-	"io"
 	"log/slog"
 	"net"
 	"sync"
 	"time"
 )
 
+const (
+	arednlinkVersion = "0.0.1"
+)
+
 type Server struct {
-	listener net.Listener
-	quit     chan interface{}
-	wg       sync.WaitGroup
+	listener    net.Listener
+	quit        chan interface{}
+	wg          sync.WaitGroup
+	connections []Connection
 }
 
 func NewServer() (*Server, error) {
@@ -24,9 +28,10 @@ func NewServer() (*Server, error) {
 	slog.Info("arednlink: listening on [::]:9623")
 
 	s := &Server{
-		listener: listener,
-		quit:     make(chan interface{}),
-		wg:       sync.WaitGroup{},
+		listener:    listener,
+		quit:        make(chan interface{}),
+		wg:          sync.WaitGroup{},
+		connections: make([]Connection, 0),
 	}
 
 	s.wg.Add(1)
@@ -66,128 +71,19 @@ func (s *Server) run() {
 		}
 		s.wg.Add(1)
 		go func() {
-			s.handleConnection(conn)
+			newConn := NewConnection(conn, s)
+			s.connections = append(s.connections, *newConn)
+			newConn.Start()
 			s.wg.Done()
 		}()
 	}
 }
 
-type Command byte
-
-func (c Command) String() string {
-	return string(c)
-}
-
-const (
-	CommandVersion        Command = 'V'
-	CommandUpdateNames    Command = 'N'
-	CommandUpdateServices Command = 'U'
-	CommandSync           Command = 'S'
-)
-
-type Message struct {
-	Length  uint16
-	Command Command
-	Payload []byte
-	Source  net.IP
-	Hops    uint8
-}
-
-func (s *Server) handleConnection(conn net.Conn) {
-	defer conn.Close()
-
-	buf := make([]byte, 2048)
-	var currentMessage *Message
-
-	for {
-		n, err := conn.Read(buf)
-		if err != nil && err != io.EOF {
-			slog.Error("arednlink: failed to read from connection", "error", err)
-			return
+func (s *Server) SendAll(m Message) {
+	for _, conn := range s.connections {
+		err := conn.SendMessage(m)
+		if err != nil {
+			slog.Error("failed to send message", "error", err)
 		}
-		if n == 0 {
-			return
-		}
-
-		slog.Debug("arednlink: received", "remote", conn.RemoteAddr(), "data", string(buf[:n]))
-
-		for n > 0 {
-			if currentMessage == nil {
-				// We're not parsing a message yet, so we need to start reading the header
-				if n < 8 {
-					slog.Error("arednlink: received message with less than 8 bytes")
-					return
-				}
-
-				currentMessage = readMessageHeader(buf[:8])
-
-				// Check if the current message takes up the entire buffer
-				if n == int(currentMessage.Length) {
-					currentMessage.Payload = buf[8:n]
-					s.handleMessage(*currentMessage)
-					currentMessage = nil
-					n = 0
-					continue
-				}
-
-				// Check if the current buffer is larger than the message
-				if n > int(currentMessage.Length) {
-					msgLen := int(currentMessage.Length)
-					currentMessage.Payload = buf[8:msgLen]
-					s.handleMessage(*currentMessage)
-					currentMessage = nil
-
-					buf = buf[msgLen:n]
-					n -= int(msgLen)
-					continue
-				}
-
-				// If we're here, the message is larger than the buffer
-				// so we need to read the rest of the message in the next iteration
-				currentMessage.Payload = buf[8:n]
-				n = 0
-			} else {
-				// Current message is already being parsed, so we need to append the new data to the payload
-				bytesStillWanted := int(currentMessage.Length) - len(currentMessage.Payload) + 8
-				if n == bytesStillWanted {
-					currentMessage.Payload = append(currentMessage.Payload, buf[:bytesStillWanted]...)
-					s.handleMessage(*currentMessage)
-					currentMessage = nil
-					n = 0
-					continue
-				}
-
-				if n > bytesStillWanted {
-					currentMessage.Payload = append(currentMessage.Payload, buf[:bytesStillWanted]...)
-					s.handleMessage(*currentMessage)
-					currentMessage = nil
-
-					buf = buf[bytesStillWanted:n]
-					n -= bytesStillWanted
-					continue
-				}
-
-				currentMessage.Payload = append(currentMessage.Payload, buf[:n]...)
-				n = 0
-			}
-		}
-	}
-}
-
-func (s *Server) handleMessage(m Message) {
-	slog.Info("arednlink: received message", "length", m.Length-8, "command", m.Command, "source", m.Source, "hops", m.Hops, "payload", string(m.Payload))
-}
-
-func readMessageHeader(buf []byte) *Message {
-	messageLength := int(buf[0])<<8 | int(buf[1])
-	command := Command(buf[2])
-	hopCount := buf[3]
-	ipv4 := net.IP(buf[4:8])
-
-	return &Message{
-		Length:  uint16(messageLength),
-		Command: command,
-		Source:  ipv4,
-		Hops:    uint8(hopCount),
 	}
 }
