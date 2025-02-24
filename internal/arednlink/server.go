@@ -8,6 +8,9 @@ import (
 	"sync"
 	"syscall"
 	"time"
+
+	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/puzpuzpuz/xsync/v3"
 )
 
 const (
@@ -19,9 +22,12 @@ type Server struct {
 	quit        chan interface{}
 	wg          sync.WaitGroup
 	connections []*Connection
+	config      *config.Config
+	Hosts       *xsync.MapOf[string, string]
+	Services    *xsync.MapOf[string, string]
 }
 
-func NewServer() (*Server, error) {
+func NewServer(config *config.Config) (*Server, error) {
 	// Set SO_REUSEADDR
 	lc := net.ListenConfig{
 		Control: func(network, address string, c syscall.RawConn) error {
@@ -41,6 +47,9 @@ func NewServer() (*Server, error) {
 		quit:        make(chan interface{}),
 		wg:          sync.WaitGroup{},
 		connections: make([]*Connection, 0),
+		config:      config,
+		Hosts:       xsync.NewMapOf[string, string](),
+		Services:    xsync.NewMapOf[string, string](),
 	}
 
 	s.wg.Add(1)
@@ -80,7 +89,7 @@ func (s *Server) run() {
 		}
 		s.wg.Add(1)
 		go func() {
-			newConn := NewConnection(conn, s)
+			newConn := NewConnection(s.config, conn, s)
 			s.connections = append(s.connections, newConn)
 			newConn.Start()
 			s.wg.Done()

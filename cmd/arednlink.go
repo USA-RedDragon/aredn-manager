@@ -9,6 +9,7 @@ import (
 
 	"github.com/USA-RedDragon/aredn-manager/internal/arednlink"
 	"github.com/USA-RedDragon/aredn-manager/internal/arednlink/pollers"
+	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
 )
@@ -25,7 +26,8 @@ var (
 )
 
 func runArednlink(cmd *cobra.Command, _ []string) error {
-	arednlinkServer, err := arednlink.NewServer()
+	config := config.GetConfig(cmd)
+	arednlinkServer, err := arednlink.NewServer(config)
 	if err != nil {
 		return err
 	}

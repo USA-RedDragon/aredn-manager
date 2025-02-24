@@ -5,19 +5,25 @@ import (
 	"log/slog"
 	"net"
 	"sync"
+
+	"github.com/USA-RedDragon/aredn-manager/internal/config"
 )
+
+const HopDefault = 64
 
 type Connection struct {
 	conn      net.Conn
 	server    *Server
 	writeLock sync.Mutex
+	config    *config.Config
 }
 
-func NewConnection(conn net.Conn, server *Server) *Connection {
+func NewConnection(config *config.Config, conn net.Conn, server *Server) *Connection {
 	return &Connection{
 		conn:      conn,
 		server:    server,
 		writeLock: sync.Mutex{},
+		config:    config,
 	}
 }
 
@@ -163,13 +169,59 @@ func (c *Connection) handleMessage(msg Message) bool {
 				continue
 			}
 			slog.Info("arednlink: received sync message", "peer", msg.Source, "ip", ip)
+			hosts, ok := c.server.Hosts.Load(ip.String())
+			if !ok {
+				slog.Warn("arednlink: received sync request for unknown ip", "peer", msg.Source, "ip", ip)
+				continue
+			}
+			services, ok := c.server.Services.Load(ip.String())
+			if !ok {
+				slog.Warn("arednlink: received sync request for unknown ip", "peer", msg.Source, "ip", ip)
+				continue
+			}
+
+			c.SendMessage(Message{
+				Length:  8 + uint16(len(hosts)),
+				Command: CommandUpdateHosts,
+				Source:  ip,
+				Hops:    HopDefault,
+				Payload: []byte(hosts),
+			})
+
+			c.SendMessage(Message{
+				Length:  8 + uint16(len(services)),
+				Command: CommandUpdateServices,
+				Source:  ip,
+				Hops:    HopDefault,
+				Payload: []byte(services),
+			})
 		}
 		return false
 	case CommandKeepAlive:
 		return false
 	case CommandUpdateHosts:
+		if msg.Source.Equal(net.ParseIP(c.config.NodeIP)) {
+			// Ignore messages from ourselves
+			return false
+		}
+		existing, loaded := c.server.Hosts.LoadAndStore(msg.Source.String(), string(msg.Payload))
+		if loaded {
+			if existing == string(msg.Payload) {
+				return false
+			}
+		}
 		return true
 	case CommandUpdateServices:
+		if msg.Source.Equal(net.ParseIP(c.config.NodeIP)) {
+			// Ignore messages from ourselves
+			return false
+		}
+		existing, loaded := c.server.Services.LoadAndStore(msg.Source.String(), string(msg.Payload))
+		if loaded {
+			if existing == string(msg.Payload) {
+				return false
+			}
+		}
 		return true
 	default:
 		slog.Warn("arednlink: received unknown command", "command", msg.Command)
