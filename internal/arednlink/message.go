@@ -32,10 +32,6 @@ func (m *Message) Bytes() []byte {
 	buf[1] = byte(m.Length)
 	buf[2] = byte(m.Command)
 	buf[3] = byte(m.Hops)
-	ip := m.Source.To4()
-	buf[4] = ip[0]
-	buf[5] = ip[1]
-	buf[6] = ip[2]
-	buf[7] = ip[3]
+	copy(buf[4:8], m.Source.To4())
 	return append(buf, m.Payload...)
 }
