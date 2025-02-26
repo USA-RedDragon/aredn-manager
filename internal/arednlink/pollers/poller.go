@@ -14,6 +14,7 @@ import (
 type Poller interface {
 	Poll() error
 	PollRate() time.Duration
+	Name() string
 }
 
 type Manager struct {
@@ -78,9 +79,22 @@ func (m *Manager) run() {
 			tick := time.NewTicker(poller.PollRate())
 			select {
 			case <-tick.C:
-				err := poller.Poll()
-				if err != nil {
-					slog.Error("failed to poll", "error", err)
+				ctx, cancel := context.WithTimeout(m.ctx, poller.PollRate())
+				defer cancel()
+
+				respChan := make(chan error, 1)
+				go func() {
+					slog.Info("poller is running", "poller", poller.Name())
+					respChan <- poller.Poll()
+				}()
+				defer close(respChan)
+				select {
+				case <-ctx.Done():
+					slog.Debug("poller timed out", "poller", poller.Name())
+				case err := <-respChan:
+					if err != nil {
+						slog.Error("poller failed", "poller", poller.Name(), "error", err)
+					}
 				}
 			case <-m.ctx.Done():
 				tick.Stop()

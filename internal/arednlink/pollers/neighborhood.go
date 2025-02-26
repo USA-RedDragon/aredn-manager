@@ -16,3 +16,7 @@ func (p *NeighborhoodPoller) Poll() error {
 func (p *NeighborhoodPoller) PollRate() time.Duration {
 	return 60 * time.Second
 }
+
+func (p *NeighborhoodPoller) Name() string {
+	return "Neighborhood"
+}

@@ -171,9 +171,15 @@ func (p *RoutePoller) Poll() error {
 		return true
 	})
 
+	slog.Info("Route poller finished")
+
 	return nil
 }
 
 func (p *RoutePoller) PollRate() time.Duration {
 	return 30 * time.Second
+}
+
+func (p *RoutePoller) Name() string {
+	return "Route"
 }
