@@ -206,6 +206,7 @@ func (c *Connection) start() {
 
 func (c *Connection) validNextHop(cmd Command, srcIP net.IP) bool {
 	route, hasRoute := (*c.routes).Load(srcIP.String())
+	slog.Info("arednlink: valid next hop", "command", cmd, "source", srcIP, "route", route, "hasRoute", hasRoute, "myiface", c.iface, "myip", net.ParseIP(c.config.NodeIP))
 	if srcIP != nil && !srcIP.Equal(net.ParseIP(c.config.NodeIP)) && (cmd == CommandSync || (hasRoute && route == c.iface)) {
 		return true
 	}
