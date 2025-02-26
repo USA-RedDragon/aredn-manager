@@ -142,6 +142,7 @@ func (p *RoutePoller) Poll() error {
 			newRoutes.Store(route.OutboundIface, existingIPs)
 		}
 	}
+	slog.Info("RoutePoller: re-pointing routes", "oldRoutes", p.routes, "newRoutes", &hostRoutes)
 	p.routes = &hostRoutes
 
 	oldRoutes.Range(func(ip string, _ string) bool {
