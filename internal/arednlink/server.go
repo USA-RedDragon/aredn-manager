@@ -56,7 +56,18 @@ func NewServer(
 		s.run()
 		s.wg.Done()
 	}()
+	go s.broadcastDrainer()
 	return s, nil
+}
+
+func (s *Server) broadcastDrainer() {
+	for {
+		select {
+		case <-s.quit:
+			return
+		case <-s.broadcastChan:
+		}
+	}
 }
 
 func (s *Server) Stop() {
