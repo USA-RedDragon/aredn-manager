@@ -154,7 +154,7 @@ func (c *Connection) start() {
 				// Check if the current buffer is larger than the message
 				if n > int(currentMessage.Length) {
 					msgLen := int(currentMessage.Length)
-					currentMessage.Payload = buf[8:msgLen]
+					currentMessage.Payload = buf[8 : msgLen-8]
 					forward := c.handleMessage(*currentMessage)
 					if forward {
 						c.broadcastMessage(*currentMessage)
@@ -172,7 +172,7 @@ func (c *Connection) start() {
 				n = 0
 			} else {
 				// Current message is already being parsed, so we need to append the new data to the payload
-				bytesStillWanted := int(currentMessage.Length) - len(currentMessage.Payload) + 8
+				bytesStillWanted := int(currentMessage.Length) - len(currentMessage.Payload) - 8
 				if n == bytesStillWanted {
 					currentMessage.Payload = append(currentMessage.Payload, buf[:bytesStillWanted]...)
 					forward := c.handleMessage(*currentMessage)
