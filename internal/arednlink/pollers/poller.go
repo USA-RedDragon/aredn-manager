@@ -21,7 +21,7 @@ type Manager struct {
 	ctx           context.Context
 	cancel        context.CancelFunc
 	wg            sync.WaitGroup
-	routes        **xsync.MapOf[string, string]
+	routes        ***xsync.MapOf[string, string]
 	hosts         *xsync.MapOf[string, string]
 	services      *xsync.MapOf[string, string]
 	config        *config.Config
@@ -31,7 +31,7 @@ type Manager struct {
 func NewManager(
 	ctx context.Context,
 	config *config.Config,
-	routes **xsync.MapOf[string, string],
+	routes ***xsync.MapOf[string, string],
 	hosts *xsync.MapOf[string, string],
 	services *xsync.MapOf[string, string],
 	broadcastChan chan arednlink.Message,

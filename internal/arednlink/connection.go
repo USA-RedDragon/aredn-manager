@@ -20,7 +20,7 @@ type Connection struct {
 	broadcastChan chan Message
 	hosts         *xsync.MapOf[string, string]
 	services      *xsync.MapOf[string, string]
-	routes        **xsync.MapOf[string, string]
+	routes        ***xsync.MapOf[string, string]
 	iface         string
 }
 
@@ -30,7 +30,7 @@ func HandleConnection(
 	broadcastChan chan Message,
 	hosts *xsync.MapOf[string, string],
 	services *xsync.MapOf[string, string],
-	routes **xsync.MapOf[string, string],
+	routes ***xsync.MapOf[string, string],
 ) {
 	// conn.RemoteAddr().String() should be in the format [fe80::ac1e:2c4%wgc32]:38428
 	// where wgc32 is the interface name
@@ -205,8 +205,8 @@ func (c *Connection) start() {
 }
 
 func (c *Connection) validNextHop(cmd Command, srcIP net.IP) bool {
-	route, hasRoute := (*c.routes).Load(srcIP.String())
-	slog.Info("routes", "routes", c.routes)
+	route, hasRoute := (**c.routes).Load(srcIP.String())
+	slog.Info("routes", "routes", *c.routes)
 	slog.Info("arednlink: valid next hop", "command", cmd, "source", srcIP, "route", route, "hasRoute", hasRoute, "myiface", c.iface, "myip", net.ParseIP(c.config.NodeIP))
 	if srcIP != nil && !srcIP.Equal(net.ParseIP(c.config.NodeIP)) && (cmd == CommandSync || (hasRoute && route == c.iface)) {
 		return true

@@ -17,7 +17,7 @@ const (
 )
 
 type RoutePoller struct {
-	routes        **xsync.MapOf[string, string]
+	routes        ***xsync.MapOf[string, string]
 	hosts         *xsync.MapOf[string, string]
 	services      *xsync.MapOf[string, string]
 	config        *config.Config
@@ -32,7 +32,7 @@ type Route struct {
 
 func NewRoutePoller(
 	config *config.Config,
-	routes **xsync.MapOf[string, string],
+	routes ***xsync.MapOf[string, string],
 	hosts *xsync.MapOf[string, string],
 	services *xsync.MapOf[string, string],
 	broadcastChan chan arednlink.Message,
@@ -78,7 +78,7 @@ func (p *RoutePoller) Poll() error {
 		}
 	}
 
-	oldRoutes := *p.routes
+	oldRoutes := **p.routes
 	newRoutes := xsync.NewMapOf[string, []net.IP]()
 	hostRoutes := xsync.NewMapOf[string, string]()
 	for _, route := range routes {
@@ -142,8 +142,9 @@ func (p *RoutePoller) Poll() error {
 			newRoutes.Store(route.OutboundIface, existingIPs)
 		}
 	}
-	slog.Info("RoutePoller: re-pointing routes", "oldRoutes", p.routes, "newRoutes", &hostRoutes)
-	p.routes = &hostRoutes
+	rts := &hostRoutes
+	slog.Info("RoutePoller: re-pointing routes", "oldRoutes", *p.routes, "newRoutes", rts)
+	p.routes = &rts
 
 	oldRoutes.Range(func(ip string, _ string) bool {
 		p.hosts.Delete(ip)

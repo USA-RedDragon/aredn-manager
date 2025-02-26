@@ -24,12 +24,12 @@ type Server struct {
 	hosts         *xsync.MapOf[string, string]
 	services      *xsync.MapOf[string, string]
 	broadcastChan chan Message
-	routes        **xsync.MapOf[string, string]
+	routes        ***xsync.MapOf[string, string]
 }
 
 func NewServer(
 	config *config.Config,
-	routes **xsync.MapOf[string, string],
+	routes ***xsync.MapOf[string, string],
 	hosts *xsync.MapOf[string, string],
 	services *xsync.MapOf[string, string],
 	broadcastChan chan Message,

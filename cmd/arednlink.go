@@ -28,7 +28,8 @@ var (
 
 func runArednlink(cmd *cobra.Command, _ []string) error {
 	config := config.GetConfig(cmd)
-	routes := xsync.NewMapOf[string, string]()
+	rts := xsync.NewMapOf[string, string]()
+	routes := &rts
 	services := xsync.NewMapOf[string, string]()
 	hosts := xsync.NewMapOf[string, string]()
 	broadcastChan := make(chan arednlink.Message, 1024)
