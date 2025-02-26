@@ -45,7 +45,6 @@ func (m *Manager) Stop() {
 func (m *Manager) run() {
 	pollers := []Poller{
 		&RoutePoller{},
-		&IdlePoller{},
 		&NeighborhoodPoller{},
 	}
 
