@@ -115,6 +115,10 @@ func GETTunnels(c *gin.Context) {
 		var tunnelsWithPass []apimodels.TunnelWithPass
 
 		for _, tunnel := range tunnels {
+			maybePassword := ""
+			if !tunnel.Client {
+				maybePassword = tunnel.Password
+			}
 			tunnelsWithPass = append(tunnelsWithPass, apimodels.TunnelWithPass{
 				Enabled:        tunnel.Enabled,
 				Wireguard:      tunnel.Wireguard,
@@ -122,7 +126,7 @@ func GETTunnels(c *gin.Context) {
 				ID:             tunnel.ID,
 				Hostname:       tunnel.Hostname,
 				IP:             tunnel.IP,
-				Password:       tunnel.Password,
+				Password:       maybePassword,
 				Client:         tunnel.Client,
 				Active:         tunnel.Active,
 				ConnectionTime: tunnel.ConnectionTime,

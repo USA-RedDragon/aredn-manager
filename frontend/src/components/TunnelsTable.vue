@@ -103,7 +103,12 @@
           </span>
         </span>
         <span v-else>
-          <ClickToCopy :copy="slotProps.data.password" text="Click to copy" />
+          <span v-if="slotProps.data.client">
+            Private
+          </span>
+          <span v-else>
+            <ClickToCopy :copy="slotProps.data.password" text="Click to copy" />
+          </span>
         </span>
       </template>
     </Column>
