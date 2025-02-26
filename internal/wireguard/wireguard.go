@@ -199,7 +199,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		log.Println("failed to generate IPv6 link-local address", err)
 		return
 	}
-	slog.Info("Generated IPv6 link-local address", "address", peerIP6)
+	slog.Debug("Generated IPv6 link-local address", "address", peerIP6)
 
 	err = netlink.AddrAdd(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: net.ParseIP(peerIP6), Mask: net.CIDRMask(64, 128)}})
 	if err != nil {
