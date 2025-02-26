@@ -156,9 +156,14 @@ func (p *RoutePoller) Poll() error {
 		for _, ip := range ips {
 			payload = append(payload, ip.To4()...)
 		}
+		myIP := net.ParseIP(p.config.NodeIP).To4()
+		if myIP == nil {
+			slog.Error("failed to parse node IP", "ip", p.config.NodeIP)
+			return false
+		}
 		msg := arednlink.Message{
 			Command:   arednlink.CommandSync,
-			Source:    net.ParseIP(p.config.NodeIP),
+			Source:    myIP,
 			Hops:      1,
 			Payload:   payload,
 			Length:    8 + uint16(len(payload)),
