@@ -144,7 +144,7 @@ func (p *RoutePoller) Poll() error {
 	}
 	rts := &hostRoutes
 	slog.Info("RoutePoller: re-pointing routes", "oldRoutes", *p.routes, "newRoutes", rts)
-	p.routes = &rts
+	*p.routes = rts
 
 	oldRoutes.Range(func(ip string, _ string) bool {
 		p.hosts.Delete(ip)
