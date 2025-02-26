@@ -4,7 +4,7 @@ import (
 	"io"
 	"log/slog"
 	"net"
-	"strings"
+	"regexp"
 	"sync"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
@@ -32,13 +32,21 @@ func HandleConnection(
 	services *xsync.MapOf[string, string],
 	routes **xsync.MapOf[string, string],
 ) {
-	// conn.RemoteAddr().String() should be an ipv6 address suffixed by %interface
-	splitAddr := strings.Split(conn.RemoteAddr().String(), "%")
-	if len(splitAddr) != 2 {
+	// conn.RemoteAddr().String() should be in the format [fe80::ac1e:2c4%wgc32]:38428
+	// where wgc32 is the interface name
+	interfaceRegex := regexp.MustCompile(`^\[[a-fA-F0-9:]+%(.*)\]`)
+	matches := interfaceRegex.FindStringSubmatch(conn.RemoteAddr().String())
+	if len(matches) != 2 {
 		slog.Error("arednlink: failed to parse remote address", "address", conn.RemoteAddr().String())
 		return
 	}
-	iface := splitAddr[1]
+
+	iface := matches[1]
+	if iface == "" {
+		slog.Error("arednlink: failed to parse remote address", "address", conn.RemoteAddr().String())
+		return
+	}
+
 	slog.Info("arednlink: new connection", "remote", conn.RemoteAddr().String(), "interface", iface)
 	connection := &Connection{
 		conn:          conn,
