@@ -126,14 +126,14 @@ func (p *RoutePoller) Poll() error {
 
 	newRoutes.Range(func(iface string, ips []net.IP) bool {
 		slog.Info("Route poller: want to request sync for", "ips", ips, "iface", iface)
-		payload := make([]byte, 0)
+		payload := []byte{}
 		for _, ip := range ips {
 			payload = append(payload, ip.To4()...)
 		}
 		msg := arednlink.Message{
 			Command:   arednlink.CommandSync,
 			Source:    net.ParseIP(p.config.NodeIP),
-			Hops:      0,
+			Hops:      1,
 			Payload:   payload,
 			Length:    8 + uint16(len(payload)),
 			DestIface: iface,
