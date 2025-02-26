@@ -84,7 +84,7 @@ func (c *Connection) broadcastMessage(msg Message) {
 }
 
 func (c *Connection) start() {
-	buf := make([]byte, 2048)
+	buf := make([]byte, 65535)
 	var currentMessage *Message
 
 	stopChan := make(chan interface{})
