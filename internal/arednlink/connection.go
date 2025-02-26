@@ -194,8 +194,21 @@ func (c *Connection) start() {
 	}
 }
 
+func (c *Connection) validNextHop(cmd Command, srcIP net.IP) bool {
+	route, hasRoute := (*c.routes).Load(srcIP.String())
+	if srcIP != nil && !srcIP.Equal(net.ParseIP(c.config.NodeIP)) && (cmd == CommandSync || (hasRoute && route == c.iface)) {
+		return true
+	}
+	return false
+}
+
 func (c *Connection) handleMessage(msg Message) bool {
 	slog.Info("arednlink: received message", "length", msg.Length-8, "command", msg.Command, "source", msg.Source, "hops", msg.Hops, "payload", string(msg.Payload))
+
+	if !c.validNextHop(msg.Command, msg.Source) {
+		slog.Warn("arednlink: invalid next hop", "command", msg.Command, "source", msg.Source, "hops", msg.Hops)
+		return false
+	}
 
 	switch msg.Command {
 	case CommandVersion:
