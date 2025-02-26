@@ -152,6 +152,7 @@ func (p *RoutePoller) Poll() error {
 	})
 
 	newRoutes.Range(func(iface string, ips []net.IP) bool {
+		slog.Info("Route poller: want to request sync for", "ips", ips, "iface", iface)
 		payload := []byte{}
 		for _, ip := range ips {
 			payload = append(payload, ip.To4()...)
