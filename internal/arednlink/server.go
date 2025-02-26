@@ -34,7 +34,6 @@ func NewServer(
 	services *xsync.MapOf[string, string],
 	broadcastChan chan Message,
 ) (*Server, error) {
-	slog.Info("broadcast channel passed to NewServer", "chan", broadcastChan)
 	listener, err := net.Listen("tcp6", "[::]:9623")
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on [::]:9623: %w", err)

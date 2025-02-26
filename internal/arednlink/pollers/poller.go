@@ -36,7 +36,6 @@ func NewManager(
 	services *xsync.MapOf[string, string],
 	broadcastChan chan arednlink.Message,
 ) *Manager {
-	slog.Info("broadcast channel passed to NewManager", "chan", broadcastChan)
 	subctx, cancel := context.WithCancel(ctx)
 	return &Manager{
 		ctx:           subctx,
@@ -77,28 +76,20 @@ func (m *Manager) run() {
 		go func(poller Poller) {
 			defer m.wg.Done()
 			tick := time.NewTicker(poller.PollRate())
-			select {
-			case <-tick.C:
-				ctx, cancel := context.WithTimeout(m.ctx, poller.PollRate())
-				defer cancel()
-
-				respChan := make(chan error, 1)
-				go func() {
-					slog.Info("poller is running", "poller", poller.Name())
-					respChan <- poller.Poll()
-				}()
-				defer close(respChan)
+			for {
 				select {
-				case <-ctx.Done():
-					slog.Debug("poller timed out", "poller", poller.Name())
-				case err := <-respChan:
+				case <-tick.C:
+					slog.Info("poller is running", "poller", poller.Name())
+					err := poller.Poll()
 					if err != nil {
 						slog.Error("poller failed", "poller", poller.Name(), "error", err)
+						continue
 					}
+					slog.Info("poller finished", "poller", poller.Name())
+				case <-m.ctx.Done():
+					tick.Stop()
+					return
 				}
-			case <-m.ctx.Done():
-				tick.Stop()
-				return
 			}
 		}(poller)
 	}

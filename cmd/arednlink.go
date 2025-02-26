@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"log"
-	"log/slog"
 	"os"
 	"sync"
 	"syscall"
@@ -33,7 +32,6 @@ func runArednlink(cmd *cobra.Command, _ []string) error {
 	services := xsync.NewMapOf[string, string]()
 	hosts := xsync.NewMapOf[string, string]()
 	broadcastChan := make(chan arednlink.Message, 1024)
-	slog.Info("broadcast channel created", "chan", broadcastChan)
 
 	arednlinkServer, err := arednlink.NewServer(config, &routes, hosts, services, broadcastChan)
 	if err != nil {
