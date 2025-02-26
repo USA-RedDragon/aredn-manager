@@ -143,8 +143,11 @@ func (p *RoutePoller) Poll() error {
 		slog.Info("Route poller: want to request sync for", "ips", ips, "iface", iface)
 		payload := []byte{}
 		for _, ip := range ips {
+			slog.Info("here1")
 			payload = append(payload, ip.To4()...)
+			slog.Info("here2")
 		}
+		slog.Info("here3")
 		msg := arednlink.Message{
 			Command:   arednlink.CommandSync,
 			Source:    net.ParseIP(p.config.NodeIP),
@@ -153,7 +156,9 @@ func (p *RoutePoller) Poll() error {
 			Length:    8 + uint16(len(payload)),
 			DestIface: iface,
 		}
+		slog.Info("here4")
 		p.broadcastChan <- msg
+		slog.Info("here5")
 		return true
 	})
 
