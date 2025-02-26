@@ -35,6 +35,7 @@ func NewManager(
 	services *xsync.MapOf[string, string],
 	broadcastChan chan arednlink.Message,
 ) *Manager {
+	slog.Info("broadcast channel passed to NewManager", "chan", broadcastChan)
 	subctx, cancel := context.WithCancel(ctx)
 	return &Manager{
 		ctx:           subctx,

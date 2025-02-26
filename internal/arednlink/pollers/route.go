@@ -37,6 +37,7 @@ func NewRoutePoller(
 	services *xsync.MapOf[string, string],
 	broadcastChan chan arednlink.Message,
 ) *RoutePoller {
+	slog.Info("broadcast channel passed to routePoller", "chan", broadcastChan)
 	return &RoutePoller{
 		routes:        routes,
 		hosts:         hosts,
@@ -152,7 +153,6 @@ func (p *RoutePoller) Poll() error {
 	})
 
 	newRoutes.Range(func(iface string, ips []net.IP) bool {
-		slog.Info("Route poller: want to request sync for", "ips", ips, "iface", iface)
 		payload := []byte{}
 		for _, ip := range ips {
 			payload = append(payload, ip.To4()...)
@@ -165,7 +165,9 @@ func (p *RoutePoller) Poll() error {
 			Length:    8 + uint16(len(payload)),
 			DestIface: iface,
 		}
+		slog.Info("sending route message", "message", msg, "channel", p.broadcastChan)
 		p.broadcastChan <- msg
+		slog.Info("sent route message", "message", msg, "channel", p.broadcastChan)
 		return true
 	})
 
