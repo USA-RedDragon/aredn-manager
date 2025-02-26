@@ -171,7 +171,7 @@ func (c *Connection) start() {
 				currentMessage.Payload = buf[8:n]
 				n = 0
 			} else {
-				// Current message is already being parsed, so we need to append the new data to the payload
+				// Current message is already being parsed
 				bytesStillWanted := int(currentMessage.Length) - len(currentMessage.Payload) - 8
 				if n == bytesStillWanted {
 					currentMessage.Payload = append(currentMessage.Payload, buf[:bytesStillWanted]...)
