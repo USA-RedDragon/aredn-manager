@@ -56,7 +56,10 @@ func (c *Connection) sendMessage(msg Message) error {
 
 func (c *Connection) broadcastMessage(msg Message) error {
 	msg.ConnID = c.conn.RemoteAddr().String()
-	c.broadcastChan <- msg
+	msg.Hops--
+	if msg.Hops > 0 {
+		c.broadcastChan <- msg
+	}
 	return nil
 }
 
@@ -77,7 +80,7 @@ func (c *Connection) start() {
 		for {
 			select {
 			case msg := <-c.broadcastChan:
-				if msg.ConnID == c.conn.RemoteAddr().String() || msg.Hops == 0 {
+				if msg.ConnID == c.conn.RemoteAddr().String() {
 					continue
 				}
 				err := c.sendMessage(msg)
@@ -118,7 +121,6 @@ func (c *Connection) start() {
 					currentMessage.Payload = buf[8:n]
 					forward := c.handleMessage(*currentMessage)
 					if forward {
-						currentMessage.Hops--
 						c.broadcastMessage(*currentMessage)
 					}
 					currentMessage = nil
@@ -132,7 +134,6 @@ func (c *Connection) start() {
 					currentMessage.Payload = buf[8:msgLen]
 					forward := c.handleMessage(*currentMessage)
 					if forward {
-						currentMessage.Hops--
 						c.broadcastMessage(*currentMessage)
 					}
 					currentMessage = nil
@@ -153,7 +154,6 @@ func (c *Connection) start() {
 					currentMessage.Payload = append(currentMessage.Payload, buf[:bytesStillWanted]...)
 					forward := c.handleMessage(*currentMessage)
 					if forward {
-						currentMessage.Hops--
 						c.broadcastMessage(*currentMessage)
 					}
 					currentMessage = nil
@@ -165,7 +165,6 @@ func (c *Connection) start() {
 					currentMessage.Payload = append(currentMessage.Payload, buf[:bytesStillWanted]...)
 					forward := c.handleMessage(*currentMessage)
 					if forward {
-						currentMessage.Hops--
 						c.broadcastMessage(*currentMessage)
 					}
 					currentMessage = nil
