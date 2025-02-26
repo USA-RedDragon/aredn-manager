@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/puzpuzpuz/xsync/v3"
 	"github.com/vishvananda/netlink"
 )
 
@@ -14,15 +15,20 @@ const (
 )
 
 type RoutePoller struct {
+	routes *xsync.MapOf[string, string]
 }
 
 type Route struct {
-	Destination   *net.IPNet
+	Destination   net.IPNet
 	Gateway       net.IP
-	OutboundIface *netlink.Link
+	OutboundIface string
 }
 
 func (p *RoutePoller) Poll() error {
+	if p.routes == nil {
+		p.routes = xsync.NewMapOf[string, string]()
+	}
+
 	slog.Info("Route poller is running")
 	netRoutes, err := netlink.RouteListFiltered(
 		netlink.FAMILY_V4,
@@ -42,14 +48,45 @@ func (p *RoutePoller) Poll() error {
 				slog.Error("failed to get link by index", "error", err)
 				continue
 			}
-			slog.Info("found route", "dst", route.Dst.String(), "gw", route.Gw.String(), "route", link.Attrs().Name)
+			linkAttrs := link.Attrs()
+			if linkAttrs == nil {
+				slog.Error("failed to get link attributes", "error", err)
+				continue
+			}
 			routes = append(routes, Route{
-				Destination:   route.Dst,
+				Destination:   *route.Dst,
 				Gateway:       route.Gw,
-				OutboundIface: &link,
+				OutboundIface: linkAttrs.Name,
 			})
 		}
 	}
+
+	oldRoutes := p.routes
+	newRoutes := xsync.NewMapOf[string, net.IP]()
+	hostRoutes := xsync.NewMapOf[string, string]()
+	for _, route := range routes {
+		hostRoutes.Store(route.Destination.IP.String(), route.OutboundIface)
+		link, ok := oldRoutes.Load(route.Destination.IP.String())
+		if ok {
+			oldRoutes.Delete(route.Destination.IP.String())
+			if link != route.OutboundIface {
+				newRoutes.Store(route.OutboundIface, route.Destination.IP)
+			}
+		}
+	}
+	p.routes = hostRoutes
+
+	oldRoutes.Range(func(ip string, _ string) bool {
+		// TODO: remove IPs from hosts and services
+		slog.Info("Route poller: removing for", "ip", ip)
+		return true
+	})
+
+	newRoutes.Range(func(iface string, ip net.IP) bool {
+		// TODO: send sync message to all neighbors
+		slog.Info("Route poller: want to request sync for", "ip", ip, "iface", iface)
+		return true
+	})
 
 	return nil
 }
