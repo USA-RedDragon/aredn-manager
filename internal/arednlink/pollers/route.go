@@ -76,7 +76,7 @@ func (p *RoutePoller) Poll() error {
 	hostRoutes := xsync.NewMapOf[string, string]()
 	for _, route := range routes {
 		hostRoutes.Store(route.Destination.IP.String(), route.OutboundIface)
-		link, ok := (*oldRoutes).Load(route.Destination.IP.String())
+		link, ok := oldRoutes.Load(route.Destination.IP.String())
 		if ok {
 			oldRoutes.Delete(route.Destination.IP.String())
 			if link != route.OutboundIface {
