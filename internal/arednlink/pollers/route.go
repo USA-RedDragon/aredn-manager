@@ -103,6 +103,18 @@ func (p *RoutePoller) Poll() error {
 			existingIPs = append(existingIPs, route.Destination.IP)
 			newRoutes.Store(route.OutboundIface, existingIPs)
 		}
+
+		// If we have a route and we don't have a host entry, add it
+		// to newRoutes
+		_, ok = p.hosts.Load(route.Destination.IP.String())
+		if !ok {
+			existingIPs, ok := newRoutes.Load(route.OutboundIface)
+			if !ok {
+				existingIPs = []net.IP{}
+			}
+			existingIPs = append(existingIPs, route.Destination.IP)
+			newRoutes.Store(route.OutboundIface, existingIPs)
+		}
 	}
 	p.routes = &hostRoutes
 
@@ -113,7 +125,6 @@ func (p *RoutePoller) Poll() error {
 	})
 
 	newRoutes.Range(func(iface string, ips []net.IP) bool {
-		// TODO: send sync message to neighbors based on interface
 		slog.Info("Route poller: want to request sync for", "ips", ips, "iface", iface)
 		payload := make([]byte, 0)
 		for _, ip := range ips {
