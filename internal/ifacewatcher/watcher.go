@@ -119,7 +119,6 @@ func (w *Watcher) watch() {
 		// Loop through w.interfaces and check if any are present but missing from net.Interfaces()
 		for _, iface := range w.interfaces {
 			if strings.HasPrefix(iface.Name, "wg") && iface.Name != WG0 && !w.wgInterfaceActive(iface) {
-				fmt.Printf("Interface %s is no longer present\n", iface.Name)
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelDisconnection,
 					Data: apimodels.WebsocketTunnelDisconnect{
@@ -134,7 +133,6 @@ func (w *Watcher) watch() {
 				w.interfaces = remove(w.interfaces, iface)
 				w.interfacesToMarkInactive = append(w.interfacesToMarkInactive, iface)
 			} else if strings.HasPrefix(iface.Name, "tun") && !netInterfaceContainsIface(interfaces, iface) {
-				fmt.Printf("Interface %s is no longer present\n", iface.Name)
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelDisconnection,
 					Data: apimodels.WebsocketTunnelDisconnect{
