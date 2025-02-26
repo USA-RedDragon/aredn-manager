@@ -24,7 +24,13 @@ type Route struct {
 
 func (p *RoutePoller) Poll() error {
 	slog.Info("Route poller is running")
-	netRoutes, err := netlink.RouteList(nil, netlink.FAMILY_V4)
+	netRoutes, err := netlink.RouteListFiltered(
+		netlink.FAMILY_V4,
+		&netlink.Route{
+			Table: routingTable,
+		},
+		netlink.RT_FILTER_TABLE,
+	)
 	if err != nil {
 		return err
 	}
