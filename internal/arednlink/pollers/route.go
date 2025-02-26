@@ -6,6 +6,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/arednlink"
+	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/puzpuzpuz/xsync/v3"
 	"github.com/vishvananda/netlink"
 )
@@ -15,9 +17,11 @@ const (
 )
 
 type RoutePoller struct {
-	routes   **xsync.MapOf[string, string]
-	hosts    *xsync.MapOf[string, string]
-	services *xsync.MapOf[string, string]
+	routes        **xsync.MapOf[string, string]
+	hosts         *xsync.MapOf[string, string]
+	services      *xsync.MapOf[string, string]
+	config        *config.Config
+	broadcastChan chan arednlink.Message
 }
 
 type Route struct {
@@ -27,14 +31,18 @@ type Route struct {
 }
 
 func NewRoutePoller(
+	config *config.Config,
 	routes **xsync.MapOf[string, string],
 	hosts *xsync.MapOf[string, string],
 	services *xsync.MapOf[string, string],
+	broadcastChan chan arednlink.Message,
 ) *RoutePoller {
 	return &RoutePoller{
-		routes:   routes,
-		hosts:    hosts,
-		services: services,
+		routes:        routes,
+		hosts:         hosts,
+		services:      services,
+		config:        config,
+		broadcastChan: broadcastChan,
 	}
 }
 
@@ -107,6 +115,19 @@ func (p *RoutePoller) Poll() error {
 	newRoutes.Range(func(iface string, ips []net.IP) bool {
 		// TODO: send sync message to neighbors based on interface
 		slog.Info("Route poller: want to request sync for", "ips", ips, "iface", iface)
+		payload := make([]byte, 0)
+		for _, ip := range ips {
+			payload = append(payload, ip.To4()...)
+		}
+		msg := arednlink.Message{
+			Command:   arednlink.CommandSync,
+			Source:    net.ParseIP(p.config.NodeIP),
+			Hops:      0,
+			Payload:   payload,
+			Length:    8 + uint16(len(payload)),
+			DestIface: iface,
+		}
+		p.broadcastChan <- msg
 		return true
 	})
 

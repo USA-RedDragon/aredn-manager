@@ -31,13 +31,14 @@ func runArednlink(cmd *cobra.Command, _ []string) error {
 	routes := xsync.NewMapOf[string, string]()
 	services := xsync.NewMapOf[string, string]()
 	hosts := xsync.NewMapOf[string, string]()
+	broadcastChan := make(chan arednlink.Message)
 
-	arednlinkServer, err := arednlink.NewServer(config, &routes, hosts, services)
+	arednlinkServer, err := arednlink.NewServer(config, &routes, hosts, services, broadcastChan)
 	if err != nil {
 		return err
 	}
 
-	pollers := pollers.NewManager(cmd.Context(), &routes, hosts, services)
+	pollers := pollers.NewManager(cmd.Context(), config, &routes, hosts, services, broadcastChan)
 	pollers.Start()
 
 	stopChan := make(chan interface{})

@@ -103,6 +103,9 @@ func (c *Connection) start() {
 				if msg.ConnID == c.conn.RemoteAddr().String() {
 					continue
 				}
+				if msg.DestIface != "" && msg.DestIface != c.iface {
+					continue
+				}
 				err := c.sendMessage(msg)
 				if err != nil {
 					slog.Error("arednlink: failed to send message", "error", err)

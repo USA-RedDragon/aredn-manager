@@ -6,6 +6,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/arednlink"
+	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/puzpuzpuz/xsync/v3"
 )
 
@@ -15,19 +17,23 @@ type Poller interface {
 }
 
 type Manager struct {
-	ctx      context.Context
-	cancel   context.CancelFunc
-	wg       sync.WaitGroup
-	routes   **xsync.MapOf[string, string]
-	hosts    *xsync.MapOf[string, string]
-	services *xsync.MapOf[string, string]
+	ctx           context.Context
+	cancel        context.CancelFunc
+	wg            sync.WaitGroup
+	routes        **xsync.MapOf[string, string]
+	hosts         *xsync.MapOf[string, string]
+	services      *xsync.MapOf[string, string]
+	config        *config.Config
+	broadcastChan chan arednlink.Message
 }
 
 func NewManager(
 	ctx context.Context,
+	config *config.Config,
 	routes **xsync.MapOf[string, string],
 	hosts *xsync.MapOf[string, string],
 	services *xsync.MapOf[string, string],
+	broadcastChan chan arednlink.Message,
 ) *Manager {
 	subctx, cancel := context.WithCancel(ctx)
 	return &Manager{
@@ -58,7 +64,7 @@ func (m *Manager) Stop() {
 
 func (m *Manager) run() {
 	pollers := []Poller{
-		NewRoutePoller(m.routes, m.hosts, m.services),
+		NewRoutePoller(m.config, m.routes, m.hosts, m.services, m.broadcastChan),
 		&NeighborhoodPoller{},
 	}
 

@@ -32,6 +32,7 @@ func NewServer(
 	routes **xsync.MapOf[string, string],
 	hosts *xsync.MapOf[string, string],
 	services *xsync.MapOf[string, string],
+	broadcastChan chan Message,
 ) (*Server, error) {
 	listener, err := net.Listen("tcp6", "[::]:9623")
 	if err != nil {
@@ -44,7 +45,7 @@ func NewServer(
 		quit:          make(chan interface{}),
 		wg:            sync.WaitGroup{},
 		config:        config,
-		broadcastChan: make(chan Message),
+		broadcastChan: broadcastChan,
 		routes:        routes,
 		hosts:         hosts,
 		services:      services,

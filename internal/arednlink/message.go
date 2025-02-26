@@ -17,12 +17,13 @@ const (
 )
 
 type Message struct {
-	Length  uint16
-	Command Command
-	Payload []byte
-	Source  net.IP
-	Hops    uint8
-	ConnID  string // Internal use for tracking connections
+	Length    uint16
+	Command   Command
+	Payload   []byte
+	Source    net.IP
+	Hops      uint8
+	ConnID    string // Internal use for tracking connections
+	DestIface string // Internal use for tracking interfaces
 }
 
 func (m *Message) Bytes() []byte {
