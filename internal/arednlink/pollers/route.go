@@ -92,6 +92,11 @@ func (p *RoutePoller) Poll() error {
 				if !ok {
 					existingIPs = []net.IP{}
 				}
+				for _, ip := range existingIPs {
+					if ip.Equal(route.Destination.IP) {
+						continue
+					}
+				}
 				existingIPs = append(existingIPs, route.Destination.IP)
 				newRoutes.Store(route.OutboundIface, existingIPs)
 			}
@@ -99,6 +104,11 @@ func (p *RoutePoller) Poll() error {
 			existingIPs, ok := newRoutes.Load(route.OutboundIface)
 			if !ok {
 				existingIPs = []net.IP{}
+			}
+			for _, ip := range existingIPs {
+				if ip.Equal(route.Destination.IP) {
+					continue
+				}
 			}
 			existingIPs = append(existingIPs, route.Destination.IP)
 			newRoutes.Store(route.OutboundIface, existingIPs)
@@ -111,6 +121,11 @@ func (p *RoutePoller) Poll() error {
 			existingIPs, ok := newRoutes.Load(route.OutboundIface)
 			if !ok {
 				existingIPs = []net.IP{}
+			}
+			for _, ip := range existingIPs {
+				if ip.Equal(route.Destination.IP) {
+					continue
+				}
 			}
 			existingIPs = append(existingIPs, route.Destination.IP)
 			newRoutes.Store(route.OutboundIface, existingIPs)
