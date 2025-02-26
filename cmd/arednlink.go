@@ -10,6 +10,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/arednlink"
 	"github.com/USA-RedDragon/aredn-manager/internal/arednlink/pollers"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/puzpuzpuz/xsync/v3"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
 )
@@ -27,12 +28,16 @@ var (
 
 func runArednlink(cmd *cobra.Command, _ []string) error {
 	config := config.GetConfig(cmd)
-	arednlinkServer, err := arednlink.NewServer(config)
+	routes := xsync.NewMapOf[string, string]()
+	services := xsync.NewMapOf[string, string]()
+	hosts := xsync.NewMapOf[string, string]()
+
+	arednlinkServer, err := arednlink.NewServer(config, &routes, hosts, services)
 	if err != nil {
 		return err
 	}
 
-	pollers := pollers.NewManager(cmd.Context())
+	pollers := pollers.NewManager(cmd.Context(), &routes, hosts, services)
 	pollers.Start()
 
 	stopChan := make(chan interface{})

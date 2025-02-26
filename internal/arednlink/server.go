@@ -21,12 +21,18 @@ type Server struct {
 	quit          chan interface{}
 	wg            sync.WaitGroup
 	config        *config.Config
-	Hosts         *xsync.MapOf[string, string]
-	Services      *xsync.MapOf[string, string]
+	hosts         *xsync.MapOf[string, string]
+	services      *xsync.MapOf[string, string]
 	broadcastChan chan Message
+	routes        **xsync.MapOf[string, string]
 }
 
-func NewServer(config *config.Config) (*Server, error) {
+func NewServer(
+	config *config.Config,
+	routes **xsync.MapOf[string, string],
+	hosts *xsync.MapOf[string, string],
+	services *xsync.MapOf[string, string],
+) (*Server, error) {
 	listener, err := net.Listen("tcp6", "[::]:9623")
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on [::]:9623: %w", err)
@@ -38,9 +44,10 @@ func NewServer(config *config.Config) (*Server, error) {
 		quit:          make(chan interface{}),
 		wg:            sync.WaitGroup{},
 		config:        config,
-		Hosts:         xsync.NewMapOf[string, string](),
-		Services:      xsync.NewMapOf[string, string](),
 		broadcastChan: make(chan Message),
+		routes:        routes,
+		hosts:         hosts,
+		services:      services,
 	}
 
 	s.wg.Add(1)
@@ -80,7 +87,7 @@ func (s *Server) run() {
 		}
 		s.wg.Add(1)
 		go func() {
-			HandleConnection(s.config, conn, s.broadcastChan, s.Hosts, s.Services)
+			HandleConnection(s.config, conn, s.broadcastChan, s.hosts, s.services, s.routes)
 			s.wg.Done()
 		}()
 	}

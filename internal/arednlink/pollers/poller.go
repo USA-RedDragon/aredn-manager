@@ -5,6 +5,8 @@ import (
 	"log/slog"
 	"sync"
 	"time"
+
+	"github.com/puzpuzpuz/xsync/v3"
 )
 
 type Poller interface {
@@ -13,16 +15,28 @@ type Poller interface {
 }
 
 type Manager struct {
-	ctx    context.Context
-	cancel context.CancelFunc
-	wg     sync.WaitGroup
+	ctx      context.Context
+	cancel   context.CancelFunc
+	wg       sync.WaitGroup
+	routes   **xsync.MapOf[string, string]
+	hosts    *xsync.MapOf[string, string]
+	services *xsync.MapOf[string, string]
 }
 
-func NewManager(ctx context.Context) *Manager {
+func NewManager(
+	ctx context.Context,
+	routes **xsync.MapOf[string, string],
+	hosts *xsync.MapOf[string, string],
+	services *xsync.MapOf[string, string],
+) *Manager {
 	subctx, cancel := context.WithCancel(ctx)
 	return &Manager{
-		ctx:    subctx,
-		cancel: cancel,
+		ctx:      subctx,
+		cancel:   cancel,
+		wg:       sync.WaitGroup{},
+		routes:   routes,
+		hosts:    hosts,
+		services: services,
 	}
 }
 
@@ -44,9 +58,12 @@ func (m *Manager) Stop() {
 
 func (m *Manager) run() {
 	pollers := []Poller{
-		&RoutePoller{},
+		NewRoutePoller(m.routes, m.hosts, m.services),
 		&NeighborhoodPoller{},
 	}
+
+	// Run the route poller to kick us off
+	pollers[0].Poll()
 
 	for _, poller := range pollers {
 		m.wg.Add(1)
@@ -55,7 +72,10 @@ func (m *Manager) run() {
 			tick := time.NewTicker(poller.PollRate())
 			select {
 			case <-tick.C:
-				poller.Poll()
+				err := poller.Poll()
+				if err != nil {
+					slog.Error("failed to poll", "error", err)
+				}
 			case <-m.ctx.Done():
 				tick.Stop()
 				return

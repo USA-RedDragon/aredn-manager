@@ -15,7 +15,9 @@ const (
 )
 
 type RoutePoller struct {
-	routes *xsync.MapOf[string, string]
+	routes   **xsync.MapOf[string, string]
+	hosts    *xsync.MapOf[string, string]
+	services *xsync.MapOf[string, string]
 }
 
 type Route struct {
@@ -24,11 +26,19 @@ type Route struct {
 	OutboundIface string
 }
 
-func (p *RoutePoller) Poll() error {
-	if p.routes == nil {
-		p.routes = xsync.NewMapOf[string, string]()
+func NewRoutePoller(
+	routes **xsync.MapOf[string, string],
+	hosts *xsync.MapOf[string, string],
+	services *xsync.MapOf[string, string],
+) *RoutePoller {
+	return &RoutePoller{
+		routes:   routes,
+		hosts:    hosts,
+		services: services,
 	}
+}
 
+func (p *RoutePoller) Poll() error {
 	slog.Info("Route poller is running")
 	netRoutes, err := netlink.RouteListFiltered(
 		netlink.FAMILY_V4,
@@ -61,12 +71,12 @@ func (p *RoutePoller) Poll() error {
 		}
 	}
 
-	oldRoutes := p.routes
+	oldRoutes := *p.routes
 	newRoutes := xsync.NewMapOf[string, net.IP]()
 	hostRoutes := xsync.NewMapOf[string, string]()
 	for _, route := range routes {
 		hostRoutes.Store(route.Destination.IP.String(), route.OutboundIface)
-		link, ok := oldRoutes.Load(route.Destination.IP.String())
+		link, ok := (*oldRoutes).Load(route.Destination.IP.String())
 		if ok {
 			oldRoutes.Delete(route.Destination.IP.String())
 			if link != route.OutboundIface {
@@ -74,16 +84,16 @@ func (p *RoutePoller) Poll() error {
 			}
 		}
 	}
-	p.routes = hostRoutes
+	p.routes = &hostRoutes
 
 	oldRoutes.Range(func(ip string, _ string) bool {
-		// TODO: remove IPs from hosts and services
-		slog.Info("Route poller: removing for", "ip", ip)
+		p.hosts.Delete(ip)
+		p.services.Delete(ip)
 		return true
 	})
 
 	newRoutes.Range(func(iface string, ip net.IP) bool {
-		// TODO: send sync message to all neighbors
+		// TODO: send sync message to neighbors based on interface
 		slog.Info("Route poller: want to request sync for", "ip", ip, "iface", iface)
 		return true
 	})
