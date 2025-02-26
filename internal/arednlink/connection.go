@@ -7,31 +7,39 @@ import (
 	"sync"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/puzpuzpuz/xsync/v3"
 )
 
 const HopDefault = 64
 
 type Connection struct {
-	conn      net.Conn
-	server    *Server
-	writeLock sync.Mutex
-	config    *config.Config
+	conn          net.Conn
+	writeLock     sync.Mutex
+	config        *config.Config
+	broadcastChan chan Message
+	hosts         *xsync.MapOf[string, string]
+	services      *xsync.MapOf[string, string]
 }
 
-func NewConnection(config *config.Config, conn net.Conn, server *Server) *Connection {
-	return &Connection{
-		conn:      conn,
-		server:    server,
-		writeLock: sync.Mutex{},
-		config:    config,
+func HandleConnection(
+	config *config.Config,
+	conn net.Conn,
+	broadcastChan chan Message,
+	hosts *xsync.MapOf[string, string],
+	services *xsync.MapOf[string, string],
+) {
+	connection := &Connection{
+		conn:          conn,
+		writeLock:     sync.Mutex{},
+		config:        config,
+		broadcastChan: broadcastChan,
+		hosts:         hosts,
+		services:      services,
 	}
+	connection.start()
 }
 
-func (c *Connection) Close() error {
-	return c.conn.Close()
-}
-
-func (c *Connection) SendMessage(msg Message) error {
+func (c *Connection) sendMessage(msg Message) error {
 	c.writeLock.Lock()
 	defer c.writeLock.Unlock()
 
@@ -46,9 +54,42 @@ func (c *Connection) SendMessage(msg Message) error {
 	return nil
 }
 
-func (c *Connection) Start() {
+func (c *Connection) broadcastMessage(msg Message) error {
+	msg.ConnID = c.conn.RemoteAddr().String()
+	c.broadcastChan <- msg
+	return nil
+}
+
+func (c *Connection) start() {
 	buf := make([]byte, 2048)
 	var currentMessage *Message
+
+	stopChan := make(chan interface{})
+	defer func() {
+		close(stopChan)
+		err := c.conn.Close()
+		if err != nil {
+			slog.Error("arednlink: failed to close connection", "error", err)
+		}
+	}()
+
+	go func() {
+		for {
+			select {
+			case msg := <-c.broadcastChan:
+				if msg.ConnID == c.conn.RemoteAddr().String() || msg.Hops == 0 {
+					continue
+				}
+				err := c.sendMessage(msg)
+				if err != nil {
+					slog.Error("arednlink: failed to send message", "error", err)
+					return
+				}
+			case <-stopChan:
+				return
+			}
+		}
+	}()
 
 	for {
 		n, err := c.conn.Read(buf)
@@ -78,7 +119,7 @@ func (c *Connection) Start() {
 					forward := c.handleMessage(*currentMessage)
 					if forward {
 						currentMessage.Hops--
-						go c.server.SendAll(*currentMessage)
+						c.broadcastMessage(*currentMessage)
 					}
 					currentMessage = nil
 					n = 0
@@ -92,7 +133,7 @@ func (c *Connection) Start() {
 					forward := c.handleMessage(*currentMessage)
 					if forward {
 						currentMessage.Hops--
-						go c.server.SendAll(*currentMessage)
+						c.broadcastMessage(*currentMessage)
 					}
 					currentMessage = nil
 
@@ -113,7 +154,7 @@ func (c *Connection) Start() {
 					forward := c.handleMessage(*currentMessage)
 					if forward {
 						currentMessage.Hops--
-						go c.server.SendAll(*currentMessage)
+						c.broadcastMessage(*currentMessage)
 					}
 					currentMessage = nil
 					n = 0
@@ -125,7 +166,7 @@ func (c *Connection) Start() {
 					forward := c.handleMessage(*currentMessage)
 					if forward {
 						currentMessage.Hops--
-						go c.server.SendAll(*currentMessage)
+						c.broadcastMessage(*currentMessage)
 					}
 					currentMessage = nil
 
@@ -169,18 +210,18 @@ func (c *Connection) handleMessage(msg Message) bool {
 				continue
 			}
 			slog.Info("arednlink: received sync message", "peer", msg.Source, "ip", ip)
-			hosts, ok := c.server.Hosts.Load(ip.String())
+			hosts, ok := c.hosts.Load(ip.String())
 			if !ok {
 				slog.Warn("arednlink: received sync request for unknown ip", "peer", msg.Source, "ip", ip)
 				continue
 			}
-			services, ok := c.server.Services.Load(ip.String())
+			services, ok := c.services.Load(ip.String())
 			if !ok {
 				slog.Warn("arednlink: received sync request for unknown ip", "peer", msg.Source, "ip", ip)
 				continue
 			}
 
-			c.SendMessage(Message{
+			c.sendMessage(Message{
 				Length:  8 + uint16(len(hosts)),
 				Command: CommandUpdateHosts,
 				Source:  ip,
@@ -188,7 +229,7 @@ func (c *Connection) handleMessage(msg Message) bool {
 				Payload: []byte(hosts),
 			})
 
-			c.SendMessage(Message{
+			c.sendMessage(Message{
 				Length:  8 + uint16(len(services)),
 				Command: CommandUpdateServices,
 				Source:  ip,
@@ -204,7 +245,7 @@ func (c *Connection) handleMessage(msg Message) bool {
 			// Ignore messages from ourselves
 			return false
 		}
-		existing, loaded := c.server.Hosts.LoadAndStore(msg.Source.String(), string(msg.Payload))
+		existing, loaded := c.hosts.LoadAndStore(msg.Source.String(), string(msg.Payload))
 		if loaded {
 			if existing == string(msg.Payload) {
 				return false
@@ -216,7 +257,7 @@ func (c *Connection) handleMessage(msg Message) bool {
 			// Ignore messages from ourselves
 			return false
 		}
-		existing, loaded := c.server.Services.LoadAndStore(msg.Source.String(), string(msg.Payload))
+		existing, loaded := c.services.LoadAndStore(msg.Source.String(), string(msg.Payload))
 		if loaded {
 			if existing == string(msg.Payload) {
 				return false

@@ -22,6 +22,7 @@ type Message struct {
 	Payload []byte
 	Source  net.IP
 	Hops    uint8
+	ConnID  string // Internal use for tracking connections
 }
 
 func (m *Message) Bytes() []byte {

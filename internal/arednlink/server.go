@@ -6,7 +6,6 @@ import (
 	"log/slog"
 	"net"
 	"sync"
-	"syscall"
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
@@ -18,38 +17,30 @@ const (
 )
 
 type Server struct {
-	listener    net.Listener
-	quit        chan interface{}
-	wg          sync.WaitGroup
-	connections []*Connection
-	config      *config.Config
-	Hosts       *xsync.MapOf[string, string]
-	Services    *xsync.MapOf[string, string]
+	listener      net.Listener
+	quit          chan interface{}
+	wg            sync.WaitGroup
+	config        *config.Config
+	Hosts         *xsync.MapOf[string, string]
+	Services      *xsync.MapOf[string, string]
+	broadcastChan chan Message
 }
 
 func NewServer(config *config.Config) (*Server, error) {
-	// Set SO_REUSEADDR
-	lc := net.ListenConfig{
-		Control: func(network, address string, c syscall.RawConn) error {
-			return c.Control(func(fd uintptr) {
-				syscall.SetsockoptInt(int(fd), syscall.SOL_SOCKET, syscall.SO_REUSEADDR, 1)
-			})
-		},
-	}
-	listener, err := lc.Listen(context.TODO(), "tcp6", "[::]:9623")
+	listener, err := net.Listen("tcp6", "[::]:9623")
 	if err != nil {
 		return nil, fmt.Errorf("failed to listen on [::]:9623: %w", err)
 	}
 	slog.Info("arednlink: listening on [::]:9623")
 
 	s := &Server{
-		listener:    listener,
-		quit:        make(chan interface{}),
-		wg:          sync.WaitGroup{},
-		connections: make([]*Connection, 0),
-		config:      config,
-		Hosts:       xsync.NewMapOf[string, string](),
-		Services:    xsync.NewMapOf[string, string](),
+		listener:      listener,
+		quit:          make(chan interface{}),
+		wg:            sync.WaitGroup{},
+		config:        config,
+		Hosts:         xsync.NewMapOf[string, string](),
+		Services:      xsync.NewMapOf[string, string](),
+		broadcastChan: make(chan Message),
 	}
 
 	s.wg.Add(1)
@@ -89,19 +80,8 @@ func (s *Server) run() {
 		}
 		s.wg.Add(1)
 		go func() {
-			newConn := NewConnection(s.config, conn, s)
-			s.connections = append(s.connections, newConn)
-			newConn.Start()
+			HandleConnection(s.config, conn, s.broadcastChan, s.Hosts, s.Services)
 			s.wg.Done()
 		}()
-	}
-}
-
-func (s *Server) SendAll(m Message) {
-	for _, conn := range s.connections {
-		err := conn.SendMessage(m)
-		if err != nil {
-			slog.Error("failed to send message", "error", err)
-		}
 	}
 }
