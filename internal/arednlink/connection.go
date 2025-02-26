@@ -213,6 +213,7 @@ func (c *Connection) validNextHop(cmd Command, srcIP net.IP) bool {
 }
 
 func (c *Connection) handleMessage(msg Message) bool {
+	slog.Info("arednlink: received message", "command", msg.Command, "source", msg.Source, "hops", msg.Hops, "payload", msg.Payload)
 	if !c.validNextHop(msg.Command, msg.Source) {
 		slog.Warn("arednlink: invalid next hop", "command", msg.Command, "source", msg.Source, "hops", msg.Hops)
 		return false
