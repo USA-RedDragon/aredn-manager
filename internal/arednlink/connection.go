@@ -54,13 +54,12 @@ func (c *Connection) sendMessage(msg Message) error {
 	return nil
 }
 
-func (c *Connection) broadcastMessage(msg Message) error {
+func (c *Connection) broadcastMessage(msg Message) {
 	msg.ConnID = c.conn.RemoteAddr().String()
 	msg.Hops--
 	if msg.Hops > 0 {
 		c.broadcastChan <- msg
 	}
-	return nil
 }
 
 func (c *Connection) start() {
