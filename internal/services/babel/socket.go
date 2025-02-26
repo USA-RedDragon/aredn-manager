@@ -61,7 +61,7 @@ func (c *Client) GetInterfaces() ([]Interface, error) {
 		}
 		ifacePuller := regexp.MustCompile(`interface\s([a-zA-Z0-9-]*)\s.*ipv6\s(.*)\sipv4\s(.*)`)
 		matches := ifacePuller.FindStringSubmatch(line)
-		if len(matches) != 3 {
+		if len(matches) != 4 {
 			slog.Warn("failed to parse interface line", "line", line)
 			continue
 		}
