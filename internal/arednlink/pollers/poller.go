@@ -70,9 +70,6 @@ func (m *Manager) run() {
 		&NeighborhoodPoller{},
 	}
 
-	// Run the route poller to kick us off
-	pollers[0].Poll()
-
 	for _, poller := range pollers {
 		m.wg.Add(1)
 		go func(poller Poller) {
