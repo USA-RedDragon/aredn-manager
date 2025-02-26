@@ -71,6 +71,11 @@ func (m *Manager) run() {
 		&NeighborhoodPoller{},
 	}
 
+	err := pollers[0].Poll()
+	if err != nil {
+		slog.Error("failed to poll routes", "error", err)
+	}
+
 	for _, poller := range pollers {
 		m.wg.Add(1)
 		go func(poller Poller) {
