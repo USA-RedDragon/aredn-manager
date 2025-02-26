@@ -72,7 +72,7 @@ func (p *RoutePoller) Poll() error {
 	}
 
 	oldRoutes := *p.routes
-	newRoutes := xsync.NewMapOf[string, net.IP]()
+	newRoutes := xsync.NewMapOf[string, []net.IP]()
 	hostRoutes := xsync.NewMapOf[string, string]()
 	for _, route := range routes {
 		hostRoutes.Store(route.Destination.IP.String(), route.OutboundIface)
@@ -80,8 +80,20 @@ func (p *RoutePoller) Poll() error {
 		if ok {
 			oldRoutes.Delete(route.Destination.IP.String())
 			if link != route.OutboundIface {
-				newRoutes.Store(route.OutboundIface, route.Destination.IP)
+				existingIPs, ok := newRoutes.Load(route.OutboundIface)
+				if !ok {
+					existingIPs = []net.IP{}
+				}
+				existingIPs = append(existingIPs, route.Destination.IP)
+				newRoutes.Store(route.OutboundIface, existingIPs)
 			}
+		} else {
+			existingIPs, ok := newRoutes.Load(route.OutboundIface)
+			if !ok {
+				existingIPs = []net.IP{}
+			}
+			existingIPs = append(existingIPs, route.Destination.IP)
+			newRoutes.Store(route.OutboundIface, existingIPs)
 		}
 	}
 	p.routes = &hostRoutes
@@ -92,9 +104,9 @@ func (p *RoutePoller) Poll() error {
 		return true
 	})
 
-	newRoutes.Range(func(iface string, ip net.IP) bool {
+	newRoutes.Range(func(iface string, ips []net.IP) bool {
 		// TODO: send sync message to neighbors based on interface
-		slog.Info("Route poller: want to request sync for", "ip", ip, "iface", iface)
+		slog.Info("Route poller: want to request sync for", "ips", ips, "iface", iface)
 		return true
 	})
 
