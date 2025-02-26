@@ -37,12 +37,14 @@ func NewManager(
 ) *Manager {
 	subctx, cancel := context.WithCancel(ctx)
 	return &Manager{
-		ctx:      subctx,
-		cancel:   cancel,
-		wg:       sync.WaitGroup{},
-		routes:   routes,
-		hosts:    hosts,
-		services: services,
+		ctx:           subctx,
+		cancel:        cancel,
+		wg:            sync.WaitGroup{},
+		routes:        routes,
+		hosts:         hosts,
+		services:      services,
+		config:        config,
+		broadcastChan: broadcastChan,
 	}
 }
 

@@ -92,12 +92,16 @@ func (p *RoutePoller) Poll() error {
 				if !ok {
 					existingIPs = []net.IP{}
 				}
+				var alreadyExists bool
 				for _, ip := range existingIPs {
 					if ip.Equal(route.Destination.IP) {
-						continue
+						alreadyExists = true
+						break
 					}
 				}
-				existingIPs = append(existingIPs, route.Destination.IP)
+				if !alreadyExists {
+					existingIPs = append(existingIPs, route.Destination.IP)
+				}
 				newRoutes.Store(route.OutboundIface, existingIPs)
 			}
 		} else {
@@ -105,12 +109,16 @@ func (p *RoutePoller) Poll() error {
 			if !ok {
 				existingIPs = []net.IP{}
 			}
+			var alreadyExists bool
 			for _, ip := range existingIPs {
 				if ip.Equal(route.Destination.IP) {
-					continue
+					alreadyExists = true
+					break
 				}
 			}
-			existingIPs = append(existingIPs, route.Destination.IP)
+			if !alreadyExists {
+				existingIPs = append(existingIPs, route.Destination.IP)
+			}
 			newRoutes.Store(route.OutboundIface, existingIPs)
 		}
 
@@ -122,12 +130,16 @@ func (p *RoutePoller) Poll() error {
 			if !ok {
 				existingIPs = []net.IP{}
 			}
+			var alreadyExists bool
 			for _, ip := range existingIPs {
 				if ip.Equal(route.Destination.IP) {
-					continue
+					alreadyExists = true
+					break
 				}
 			}
-			existingIPs = append(existingIPs, route.Destination.IP)
+			if !alreadyExists {
+				existingIPs = append(existingIPs, route.Destination.IP)
+			}
 			newRoutes.Store(route.OutboundIface, existingIPs)
 		}
 	}
@@ -143,11 +155,8 @@ func (p *RoutePoller) Poll() error {
 		slog.Info("Route poller: want to request sync for", "ips", ips, "iface", iface)
 		payload := []byte{}
 		for _, ip := range ips {
-			slog.Info("here1")
 			payload = append(payload, ip.To4()...)
-			slog.Info("here2")
 		}
-		slog.Info("here3")
 		msg := arednlink.Message{
 			Command:   arednlink.CommandSync,
 			Source:    net.ParseIP(p.config.NodeIP),
@@ -156,9 +165,7 @@ func (p *RoutePoller) Poll() error {
 			Length:    8 + uint16(len(payload)),
 			DestIface: iface,
 		}
-		slog.Info("here4")
 		p.broadcastChan <- msg
-		slog.Info("here5")
 		return true
 	})
 
