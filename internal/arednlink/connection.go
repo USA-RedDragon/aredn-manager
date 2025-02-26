@@ -47,7 +47,6 @@ func HandleConnection(
 		return
 	}
 
-	slog.Info("arednlink: new connection", "remote", conn.RemoteAddr().String(), "interface", iface)
 	connection := &Connection{
 		conn:          conn,
 		writeLock:     sync.Mutex{},
@@ -211,8 +210,6 @@ func (c *Connection) validNextHop(cmd Command, srcIP net.IP) bool {
 }
 
 func (c *Connection) handleMessage(msg Message) bool {
-	slog.Info("arednlink: received message", "length", msg.Length-8, "command", msg.Command, "source", msg.Source, "hops", msg.Hops, "payload", string(msg.Payload))
-
 	if !c.validNextHop(msg.Command, msg.Source) {
 		slog.Warn("arednlink: invalid next hop", "command", msg.Command, "source", msg.Source, "hops", msg.Hops)
 		return false
