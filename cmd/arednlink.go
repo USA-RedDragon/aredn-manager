@@ -10,7 +10,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/arednlink"
 	"github.com/USA-RedDragon/aredn-manager/internal/arednlink/pollers"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
-	"github.com/puzpuzpuz/xsync/v3"
+	"github.com/puzpuzpuz/xsync/v4"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
 )
