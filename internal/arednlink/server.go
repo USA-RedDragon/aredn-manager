@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
-	"github.com/puzpuzpuz/xsync/v3"
+	"github.com/puzpuzpuz/xsync/v4"
 )
 
 const (
