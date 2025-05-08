@@ -2,40 +2,53 @@
   <div>
     <span style="display: flex; justify-content: space-evenly">
       <Card style="width: 48%;">
-        <template #title>Daemon Status</template>
-        <template #content>
-          <h3 style="font-weight: bold;">VTun Daemon</h3>
-          <p>
-            <PVBadge v-if="vtundRunning" value="✔️" severity="success"></PVBadge>
-            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
-            {{ vtundRunning ? 'Running':'Stopped' }}
-          </p>
-          <br />
-          <h3 style="font-weight: bold;">Babel Daemon</h3>
-          <p>
-            <PVBadge v-if="babelRunning" value="✔️" severity="success"></PVBadge>
-            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
-            {{ babelRunning ? 'Running':'Stopped' }}
-          </p>
-          <br />
-          <h3 style="font-weight: bold;">OLSR Daemon</h3>
-          <p>
-            <PVBadge v-if="olsrdRunning" value="✔️" severity="success"></PVBadge>
-            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
-            {{ olsrdRunning ? 'Running':'Stopped' }}
-          </p>
-          <br />
-          <h3 style="font-weight: bold;">DNSMasq</h3>
-          <p>
-            <PVBadge v-if="dnsRunning" value="✔️" severity="success"></PVBadge>
-            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
-            {{ dnsRunning ? 'Running':'Stopped' }}
-          </p>
-        </template>
+        <CardHeader>
+          <CardTitle>Daemon Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <table>
+            <tbody>
+              <tr>
+                <td style="width: 7em;">
+                  <p style="font-weight: bold;">VTun Daemon</p>
+                </td>
+                <td>
+                  <StatusBadge :status="vtundRunning" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p style="font-weight: bold;">Babel Daemon</p>
+                </td>
+                <td>
+                  <StatusBadge :status="babelRunning" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p style="font-weight: bold;">OLSR Daemon</p>
+                </td>
+                <td>
+                  <StatusBadge :status="olsrdRunning" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p style="font-weight: bold;">DNSMasq</p>
+                </td>
+                <td>
+                  <StatusBadge :status="dnsRunning" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </CardContent>
       </Card>
       <Card style="width: 48%;">
-        <template #title>Network Statistics</template>
-        <template #content>
+        <CardHeader>
+          <CardTitle>Network Statistics</CardTitle>
+        </CardHeader>
+        <CardContent>
           <h3 style="font-weight: bold;">Tunnels Connected</h3>
           <p><span style="font-weight: bold;">VTun:</span> {{ vtunTunnelsConnected }}/{{ totalVtunTunnels }}</p>
           <p>
@@ -50,15 +63,21 @@
           <h3 style="font-weight: bold;">Total Traffic Since Restart</h3>
           <p><span style="font-weight: bold;">RX:</span> {{ prettyBytes(stats.total_rx_mb) }}</p>
           <p><span style="font-weight: bold;">TX:</span> {{ prettyBytes(stats.total_tx_mb) }}</p>
-        </template>
+        </CardContent>
       </Card>
     </span>
   </div>
 </template>
 
 <script>
-import Badge from 'primevue/badge';
-import Card from 'primevue/card';
+import { Badge } from '@/components/ui/badge';
+import StatusBadge from '@/components/StatusBadge.vue';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 import prettyBytes from 'pretty-bytes';
 
@@ -67,7 +86,11 @@ import API from '@/services/API';
 export default {
   components: {
     Card,
-    PVBadge: Badge,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    StatusBadge,
+    Badge,
   },
   created() {
     this.fetchData();
