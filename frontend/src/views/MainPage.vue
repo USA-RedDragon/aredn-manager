@@ -1,41 +1,54 @@
 <template>
   <div>
-    <span style="display: flex; justify-content: space-evenly">
-      <Card style="width: 48%;">
-        <template #title>Daemon Status</template>
-        <template #content>
-          <h3 style="font-weight: bold;">Babel Daemon</h3>
-          <p>
-            <PVBadge v-if="babelRunning" value="✔️" severity="success"></PVBadge>
-            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
-            {{ babelRunning ? 'Running':'Stopped' }}
-          </p>
-          <br />
-          <h3 style="font-weight: bold;">AREDNLink</h3>
-          <p>
-            <PVBadge v-if="arednLinkRunning" value="✔️" severity="success"></PVBadge>
-            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
-            {{ arednLinkRunning ? 'Running':'Stopped' }}
-          </p>
-          <br />
-          <h3 style="font-weight: bold;">OLSR Daemon</h3>
-          <p>
-            <PVBadge v-if="olsrdRunning" value="✔️" severity="success"></PVBadge>
-            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
-            {{ olsrdRunning ? 'Running':'Stopped' }}
-          </p>
-          <br />
-          <h3 style="font-weight: bold;">DNSMasq</h3>
-          <p>
-            <PVBadge v-if="dnsRunning" value="✔️" severity="success"></PVBadge>
-            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
-            {{ dnsRunning ? 'Running':'Stopped' }}
-          </p>
-        </template>
+    <div class="info">
+      <Card>
+        <CardHeader>
+          <CardTitle>Daemon Status</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <table>
+            <tbody>
+              <tr>
+                <td style="width: 10em;">
+                  <p style="font-weight: bold;">Babel Daemon</p>
+                </td>
+                <td>
+                  <StatusBadge :status="babelRunning" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p style="font-weight: bold;">AREDNLink</p>
+                </td>
+                <td>
+                  <StatusBadge :status="arednLinkRunning" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p style="font-weight: bold;">OLSR Daemon</p>
+                </td>
+                <td>
+                  <StatusBadge :status="olsrdRunning" />
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <p style="font-weight: bold;">DNSMasq</p>
+                </td>
+                <td>
+                  <StatusBadge :status="dnsRunning" />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </CardContent>
       </Card>
-      <Card style="width: 48%;">
-        <template #title>Network Statistics</template>
-        <template #content>
+      <Card>
+        <CardHeader>
+          <CardTitle>Network Statistics</CardTitle>
+        </CardHeader>
+        <CardContent>
           <h3 style="font-weight: bold;">Tunnels Connected</h3>
           <p>{{ wireguardTunnelsConnected }}/{{ totalWireguardTunnels }}</p>
           <br />
@@ -46,15 +59,21 @@
           <h3 style="font-weight: bold;">Total Traffic Since Restart</h3>
           <p><span style="font-weight: bold;">RX:</span> {{ prettyBytes(stats.total_rx_mb) }}</p>
           <p><span style="font-weight: bold;">TX:</span> {{ prettyBytes(stats.total_tx_mb) }}</p>
-        </template>
+        </CardContent>
       </Card>
-    </span>
+    </div>
   </div>
 </template>
 
 <script>
-import Badge from 'primevue/badge';
-import Card from 'primevue/card';
+import { Badge } from '@/components/ui/badge';
+import StatusBadge from '@/components/StatusBadge.vue';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 import prettyBytes from 'pretty-bytes';
 
@@ -63,7 +82,11 @@ import API from '@/services/API';
 export default {
   components: {
     Card,
-    PVBadge: Badge,
+    CardContent,
+    CardHeader,
+    CardTitle,
+    StatusBadge,
+    Badge,
   },
   created() {
     this.fetchData();
@@ -169,4 +192,47 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped>
+.info {
+  -webkit-column-count: 4;
+  -moz-column-count: 4;
+  column-count: 4;
+
+  padding: 2em;
+}
+
+.info > div {
+  break-inside: avoid;
+}
+
+.info > div:not(:first-child) {
+  margin-top: 1em;
+}
+
+.card-header {
+  font-size: 1.5em;
+  font-weight: bold;
+}
+
+@media (max-width: 2100px) {
+  .info {
+    -moz-column-count: 3;
+    -webkit-column-count: 3;
+    column-count: 3;
+  }
+}
+@media (max-width: 1200px) {
+  .info {
+    -moz-column-count: 2;
+    -webkit-column-count: 2;
+    column-count: 2;
+  }
+}
+@media (max-width: 600px) {
+  .info {
+    -moz-column-count: 1;
+    -webkit-column-count: 1;
+    column-count: 1;
+  }
+}
+</style>
