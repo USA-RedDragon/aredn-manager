@@ -29,6 +29,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	ret += "interface br-dtdlink type wired\n"
 	ret += "interface br-dtdlink rxcost 96\n"
 	ret += "interface br-dtdlink split-horizon true\n"
+	ret += "redistribute ip 192.168.0.0/16 deny\n"
 
 	if config.Supernode {
 		ret += "import-table 21\n"
