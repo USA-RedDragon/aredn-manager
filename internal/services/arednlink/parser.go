@@ -112,8 +112,7 @@ type AREDNService struct {
 }
 
 func (s *AREDNService) String() string {
-	ret := ""
-	ret += fmt.Sprintf("%s:\n\t", s.Name)
+	ret := fmt.Sprintf("%s:\n\t", s.Name)
 	ret += fmt.Sprintf("%s\t%s", s.Protocol, s.URL)
 	return ret
 }

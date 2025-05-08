@@ -37,20 +37,41 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  new-frontend:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - run: |
+          cd new-frontend
+          npm ci --ignore-scripts
+          npm run build
+          cd -
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: new-frontend
+          path: new-frontend/dist
+          if-no-files-found: error
+          retention-days: 1
+
   golangci:
     name: lint
-    needs: frontend
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Copy built frontend
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend
-          path: frontend/dist
       - run: go generate ./...
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8

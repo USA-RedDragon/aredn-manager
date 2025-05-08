@@ -32,10 +32,33 @@ jobs:
           if-no-files-found: error
           retention-days: 1
 
+  new-frontend:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - run: cd new-frontend && npm ci --ignore-scripts
+      - run: cd new-frontend && npm run build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: new-frontend
+          path: new-frontend/dist
+          if-no-files-found: error
+          retention-days: 1
+
   test-linux:
     name: Test Linux
     runs-on: ubuntu-24.04
-    needs: frontend
     strategy:
       fail-fast: false
       matrix:
@@ -50,12 +73,6 @@ jobs:
           go-version-file: go.mod
 
       - run: docker run --privileged --rm tonistiigi/binfmt --install all
-
-      - name: Copy built frontend
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend
-          path: frontend/dist
 
       - run: go generate ./...
 

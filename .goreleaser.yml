@@ -18,6 +18,7 @@ dockers:
     extra_files:
     - docker/rootfs
     - frontend
+    - new-frontend
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -38,6 +39,7 @@ dockers:
     extra_files:
     - docker/rootfs
     - frontend
+    - new-frontend
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
