@@ -17,7 +17,7 @@ require (
 	github.com/puzpuzpuz/xsync/v3 v3.5.1
 	github.com/spf13/cobra v1.8.1
 	github.com/uptrace/opentelemetry-go-extra/otelgorm v0.3.2
-	github.com/vishvananda/netlink v1.3.0
+	github.com/vishvananda/netlink v1.3.1
 	github.com/ztrue/shutdown v0.1.1
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.59.0
 	go.opentelemetry.io/otel v1.34.0
@@ -82,7 +82,7 @@ require (
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/uptrace/opentelemetry-go-extra/otelsql v0.3.2 // indirect
-	github.com/vishvananda/netns v0.0.4 // indirect
+	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/wader/gormstore/v2 v2.0.3 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect
