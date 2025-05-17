@@ -1,6 +1,8 @@
 module github.com/USA-RedDragon/aredn-manager
 
-go 1.23.6
+go 1.24
+
+toolchain go1.24.2
 
 require (
 	github.com/JGLTechnologies/gin-rate-limit v1.5.4
@@ -14,7 +16,7 @@ require (
 	github.com/mavjs/goPwned v0.0.2
 	github.com/phayes/freeport v0.0.0-20220201140144-74d24b5ae9f5
 	github.com/prometheus/client_golang v1.20.5
-	github.com/puzpuzpuz/xsync/v3 v3.5.1
+	github.com/puzpuzpuz/xsync/v4 v4.1.0
 	github.com/spf13/cobra v1.8.1
 	github.com/uptrace/opentelemetry-go-extra/otelgorm v0.3.2
 	github.com/vishvananda/netlink v1.3.0
