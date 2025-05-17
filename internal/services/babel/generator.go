@@ -30,23 +30,6 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	ret += "interface br-dtdlink rxcost 96\n"
 	ret += "interface br-dtdlink split-horizon true\n"
 
-	if config.Supernode {
-		ret += "import-table 21\n"
-		ret += "redistribute ip 10.0.0.0/8 allow\n"
-		ret += fmt.Sprintf("redistribute ip %s/32 eq 32 allow\n", config.NodeIP)
-		ret += fmt.Sprintf("out ip %s/32 eq 32 allow\n", config.NodeIP)
-		ret += "out ip 10.0.0.0/8 eq 8 allow\n"
-		ret += "redistribute ip 172.30.0.0/16 deny\n"
-		ret += "install ip 10.0.0.0/8 eq 8 deny\n"
-		ret += "out if br-dtdlink deny\n"
-	} else {
-		ret += "redistribute ip 10.0.0.0/8 ge 24 allow\n"
-		ret += "redistribute ip 172.31.0.0/16 deny\n"
-		ret += "install ip 10.0.0.0/8 eq 8 allow table 21\n"
-	}
-	ret += "redistribute local if br0 deny\n"
-	ret += "install ip 0.0.0.0/0 eq 0 allow table 22\n"
-
 	tunnelInterfaces := make([]string, 0)
 	tunnels, err := models.ListWireguardTunnels(db)
 	if err != nil {
@@ -64,12 +47,40 @@ func Generate(config *config.Config, db *gorm.DB) string {
 
 	for _, iface := range tunnelInterfaces {
 		ret += fmt.Sprintf("interface %s type tunnel\n", iface)
-		ret += fmt.Sprintf("interface %s enable-timestamps true\n", iface)
 		ret += fmt.Sprintf("interface %s rxcost 206\n", iface)
+		ret += fmt.Sprintf("interface %s enable-timestamps true\n", iface)
 		ret += fmt.Sprintf("interface %s max-rtt-penalty 150\n", iface)
-		ret += fmt.Sprintf("redistribute local if %s deny\n", iface)
+		ret += fmt.Sprintf("redistribute anyproto if %s deny\n", iface)
 	}
+
+	if config.Supernode {
+		ret += "import-table 21\n"
+		ret += "redistribute anyproto ip 10.0.0.0/8 allow\n"
+		ret += "out if br-dtdlink ip 10.0.0.0/8 eq 8 allow\n"
+		ret += "out ip 10.0.0.0/8 eq 8 deny\n"
+		ret += "out if br-dtdlink ip " + config.NodeIP + " allow\n"
+		ret += "out if br-dtdlink deny\n"
+
+		ret += "redistribute anyproto ip 172.30.0.0/16 eq 32 deny\n"
+	} else {
+		ret += "redistribute anyproto ip 10.0.0.0/8 ge 24 allow\n"
+		ret += "redistribute anyproto ip 44.0.0.0/8 ge 24 allow\n"
+		ret += "redistribute anyproto ip 172.31.0.0/16 eq 32 deny\n"
+	}
+	ret += "redistribute anyproto if br0 deny\n"
 	ret += "redistribute deny\n"
+
+	if config.Supernode {
+		ret += "install ip 10.0.0.0/8 eq 8 deny\n"
+	} else {
+		ret += "install ip 10.0.0.0/8 eq 8 allow table 21\n"
+		ret += "install ip 44.0.0.0/8 le 23 allow table 21\n"
+	}
+
+	ret += "install ip 0.0.0.0/0 eq 0 allow table 22\n"
+	ret += "install ip 10.0.0.0/8 ge 24 allow table 20\n"
+	ret += "install ip 44.0.0.0/8 ge 24 allow table 20\n"
+	ret += "install ip 0.0.0.0/0 ge 0 deny\n"
 
 	return ret
 }

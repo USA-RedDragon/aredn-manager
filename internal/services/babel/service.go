@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	pidFile = "/tmp/babeld.pid"
+	pidFile = "/var/run/babeld.pid"
 )
 
 type Service struct {
