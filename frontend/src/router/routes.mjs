@@ -40,11 +40,6 @@ export default [
     component: () => import('../views/admin/TunnelsPage.vue'),
   },
   {
-    path: '/admin/tunnels/create/vtun',
-    name: 'AdminTunnelsVTunCreate',
-    component: () => import('../views/admin/tunnels/VTunCreatePage.vue'),
-  },
-  {
     path: '/admin/tunnels/create/wireguard',
     name: 'AdminTunnelsWireguardCreate',
     component: () => import('../views/admin/tunnels/WireguardCreatePage.vue'),

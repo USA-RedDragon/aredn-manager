@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"syscall"
 
@@ -17,8 +18,8 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/services/babel"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/dnsmasq"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/vtun"
 	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
+	"github.com/USA-RedDragon/configulator"
 	"github.com/spf13/cobra"
 	"github.com/ztrue/shutdown"
 	"golang.org/x/sync/errgroup"
@@ -35,15 +36,23 @@ var (
 	}
 )
 
-//nolint:golint,gochecknoinits
-func init() {
-	serverCmd.Flags().String("pid-file", "/var/run/aredn-manager.pid", "file to write the daemon PID to")
-	serverCmd.Flags().IntP("port", "p", 3333, "port to listen on")
-	serverCmd.Flags().Bool("no-daemon", false, "do not daemonize the process")
-}
-
 func runServer(cmd *cobra.Command, _ []string) error {
-	config := config.GetConfig(cmd)
+	err := runRoot(cmd, nil)
+	if err != nil {
+		slog.Error("Encountered an error.", "error", err.Error())
+	}
+
+	ctx := cmd.Context()
+
+	c, err := configulator.FromContext[config.Config](ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get config from context")
+	}
+
+	config, err := c.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
 
 	// Start the server
 	fmt.Println("starting server")
@@ -51,7 +60,6 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	serviceRegistry := services.NewServiceRegistry()
 	serviceRegistry.Register(services.OLSRServiceName, olsr.NewService(config))
 	serviceRegistry.Register(services.BabelServiceName, babel.NewService(config))
-	serviceRegistry.Register(services.VTunServiceName, vtun.NewService(config))
 	serviceRegistry.Register(services.DNSMasqServiceName, dnsmasq.NewService(config))
 
 	go serviceRegistry.StartAll()
@@ -64,7 +72,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	log.Printf("DB connection established")
 
 	// Clear active status from all tunnels in the db
-	err := models.ClearActiveFromAllTunnels(db)
+	err = models.ClearActiveFromAllTunnels(db)
 	if err != nil {
 		return err
 	}
@@ -103,16 +111,8 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	}
 	log.Printf("Interface watcher started")
 
-	var vtunClientWatcher *vtun.ClientWatcher
-	if !config.DisableVTun {
-		// Start the vtun client watcher
-		vtunClientWatcher = vtun.NewVTunClientWatcher(db, config)
-		vtunClientWatcher.Run()
-		log.Printf("VTun client watcher started")
-	}
-
 	// Start the server
-	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), vtunClientWatcher, wireguardManager)
+	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), wireguardManager)
 	err = srv.Run(cmd.Root().Version, serviceRegistry)
 	if err != nil {
 		return err
@@ -144,12 +144,6 @@ func runServer(cmd *cobra.Command, _ []string) error {
 		errGrp.Go(func() error {
 			return srv.Stop()
 		})
-
-		if !config.DisableVTun {
-			errGrp.Go(func() error {
-				return vtunClientWatcher.Stop()
-			})
-		}
 
 		errGrp.Go(func() error {
 			return ifWatcher.Stop()

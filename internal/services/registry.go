@@ -14,7 +14,6 @@ type Registry struct {
 type ServiceName string
 
 const (
-	VTunServiceName    ServiceName = "vtun"
 	OLSRServiceName    ServiceName = "olsr"
 	BabelServiceName   ServiceName = "babel"
 	DNSMasqServiceName ServiceName = "dnsmasq"

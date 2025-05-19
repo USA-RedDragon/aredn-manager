@@ -45,5 +45,5 @@ func (s *Service) IsRunning() bool {
 }
 
 func (s *Service) IsEnabled() bool {
-	return s.config.EnableBabel
+	return s.config.Babel.Enabled
 }

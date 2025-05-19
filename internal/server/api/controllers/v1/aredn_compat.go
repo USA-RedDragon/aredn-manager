@@ -36,8 +36,8 @@ func GETMetrics(c *gin.Context) {
 		return
 	}
 
-	if config.MetricsPort == 0 {
-		c.JSON(http.StatusOK, gin.H{"error": "Metrics port is not configured"})
+	if !config.Metrics.Enabled {
+		c.JSON(http.StatusGone, gin.H{"error": "Metrics are not enabled"})
 		return
 	}
 
@@ -45,7 +45,7 @@ func GETMetrics(c *gin.Context) {
 		Timeout: 5 * time.Second,
 	}
 
-	hostPort := net.JoinHostPort(config.MetricsNodeExporterHost, "9100")
+	hostPort := net.JoinHostPort(config.Metrics.NodeExporterHost, "9100")
 
 	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, fmt.Sprintf("http://%s/metrics", hostPort), nil)
 	if err != nil {
@@ -69,7 +69,7 @@ func GETMetrics(c *gin.Context) {
 		n, err = nodeResp.Body.Read(buf)
 	}
 
-	hostPort = net.JoinHostPort("localhost", fmt.Sprintf("%d", config.MetricsPort))
+	hostPort = net.JoinHostPort("localhost", fmt.Sprintf("%d", config.Metrics.Port))
 
 	req, err = http.NewRequestWithContext(c.Request.Context(), http.MethodGet, fmt.Sprintf("http://%s/metrics", hostPort), nil)
 	if err != nil {

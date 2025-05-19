@@ -16,7 +16,7 @@
   >
     <template #header>
       <div class="table-header-container">
-        <RouterLink v-if="this.admin" :to="'/admin/tunnels/create/' + ($props.wireguard ? 'wireguard':'vtun')">
+        <RouterLink v-if="this.admin" to="/admin/tunnels/create/wireguard">
           <PVButton
             class="p-button-raised p-button-rounded p-button-success"
             icon="pi pi-plus"
@@ -186,14 +186,6 @@ export default {
       type: Boolean,
       default: false,
     },
-    wireguard: {
-      type: Boolean,
-      default: false,
-    },
-    vtun: {
-      type: Boolean,
-      default: false,
-    },
   },
   components: {
     PVButton: Button,
@@ -291,8 +283,7 @@ export default {
     },
     fetchData(page = 1, filter = null, limit = 10) {
       this.loading = true;
-      let url = `/tunnels?page=${page}&limit=${limit}&admin=${this.$props.admin}` +
-              `&type=${this.$props.wireguard ? 'wireguard' : 'vtun'}`;
+      let url = `/tunnels?page=${page}&limit=${limit}&admin=${this.$props.admin}&type=wireguard`;
       if (filter) {
         url += `&filter=${filter}`;
       }

@@ -1,14 +1,7 @@
 <template>
   <div>
     <Card>
-      <template #title>VTun Tunnels</template>
-      <template #content>
-        <TunnelsTable vtun />
-      </template>
-    </Card>
-    <br />
-    <Card>
-      <template #title>Wireguard Tunnels</template>
+      <template #title>Tunnels</template>
       <template #content>
         <TunnelsTable wireguard />
       </template>

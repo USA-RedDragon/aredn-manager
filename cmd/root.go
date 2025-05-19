@@ -2,8 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
+	"os"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/configulator"
+	"github.com/lmittmann/tint"
 	"github.com/spf13/cobra"
 )
 
@@ -19,7 +23,6 @@ func NewCommand(version, commit string) *cobra.Command {
 		SilenceErrors:     true,
 		DisableAutoGenTag: true,
 	}
-	cmd.PersistentFlags().BoolP("debug", "d", false, "enable debug logging")
 	cmd.AddCommand(generateCmd)
 	cmd.AddCommand(notifyCmd)
 	cmd.AddCommand(serverCmd)
@@ -27,11 +30,31 @@ func NewCommand(version, commit string) *cobra.Command {
 }
 
 func runRoot(cmd *cobra.Command, _ []string) error {
-	config := config.GetConfig(cmd)
+	ctx := cmd.Context()
+	fmt.Printf("aredn-manager - %s (%s)\n", cmd.Annotations["version"], cmd.Annotations["commit"])
 
-	if config.Debug {
-		fmt.Println("debug logging enabled")
+	c, err := configulator.FromContext[config.Config](ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get config from context")
 	}
+
+	cfg, err := c.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
+
+	var logger *slog.Logger
+	switch cfg.LogLevel {
+	case config.LogLevelDebug:
+		logger = slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: slog.LevelDebug}))
+	case config.LogLevelInfo:
+		logger = slog.New(tint.NewHandler(os.Stdout, &tint.Options{Level: slog.LevelInfo}))
+	case config.LogLevelWarn:
+		logger = slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelWarn}))
+	case config.LogLevelError:
+		logger = slog.New(tint.NewHandler(os.Stderr, &tint.Options{Level: slog.LevelError}))
+	}
+	slog.SetDefault(logger)
 
 	return nil
 }

@@ -25,7 +25,7 @@ func GenerateAndSave(config *config.Config, db *gorm.DB) error {
 func Generate(config *config.Config, db *gorm.DB) string {
 	// Yay this config format is much easier to generate.
 	var ret string
-	ret += "router-id " + config.BabelRouterID + "\n"
+	ret += "router-id " + config.Babel.RouterID + "\n"
 	ret += "interface br-dtdlink type wired\n"
 	ret += "interface br-dtdlink rxcost 96\n"
 	ret += "interface br-dtdlink split-horizon true\n"

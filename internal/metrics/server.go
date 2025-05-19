@@ -34,24 +34,23 @@ var (
 )
 
 func CreateMetricsServer(config *config.Config, version string) {
-	// We don't use RF, so we set it to 0
-	AREDNMeshRF.Set(0)
-	AREDNInfo.WithLabelValues(
-		"0x0000",
-		"AREDN Cloud Tunnel",
-		version,
-		config.Gridsquare,
-		config.Latitude,
-		config.Longitude,
-		"Virtual",
-		config.ServerName,
-		"",
-	).Set(1)
-	port := config.MetricsPort
-	if port != 0 {
+	if config.Metrics.Enabled {
+		// We don't use RF, so we set it to 0
+		AREDNMeshRF.Set(0)
+		AREDNInfo.WithLabelValues(
+			"0x0000",
+			"AREDN Cloud Tunnel",
+			version,
+			config.Gridsquare,
+			config.Latitude,
+			config.Longitude,
+			"Virtual",
+			config.ServerName,
+			"",
+		).Set(1)
 		http.Handle("/metrics", promhttp.Handler())
 		server := &http.Server{
-			Addr:              fmt.Sprintf(":%d", port),
+			Addr:              fmt.Sprintf(":%d", config.Metrics.Port),
 			ReadHeaderTimeout: 5 * time.Second,
 		}
 		err := server.ListenAndServe()

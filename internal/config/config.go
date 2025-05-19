@@ -1,225 +1,157 @@
 package config
 
 import (
-	"crypto/sha256"
-	"fmt"
+	"errors"
 	"net"
-	"os"
-	"strconv"
-	"strings"
-
-	"github.com/USA-RedDragon/aredn-manager/internal/utils"
-	"github.com/spf13/cobra"
-	"golang.org/x/crypto/pbkdf2"
 )
 
-// Config stores the application configuration.
+type LogLevel string
+
+const (
+	LogLevelDebug LogLevel = "debug"
+	LogLevelInfo  LogLevel = "info"
+	LogLevelWarn  LogLevel = "warn"
+	LogLevelError LogLevel = "error"
+)
+
+type PProf struct {
+	Enabled bool `name:"enabled" description:"Enable pprof debugging" default:"false"`
+}
+
+type Postgres struct {
+	Host     string `name:"host" description:"PostgreSQL host"`
+	Port     int    `name:"port" description:"PostgreSQL port" default:"5432"`
+	User     string `name:"user" description:"PostgreSQL user"`
+	Password string `name:"password" description:"PostgreSQL password"`
+	Database string `name:"database" description:"PostgreSQL database"`
+}
+
+type Babel struct {
+	Enabled  bool   `name:"enabled" description:"Enable Babel routing" default:"false"`
+	RouterID string `name:"router-id" description:"Babel router ID"`
+}
+
+type Metrics struct {
+	Enabled          bool   `name:"enabled" description:"Enable Prometheus metrics"`
+	NodeExporterHost string `name:"node-exporter-host" description:"Node exporter host for Prometheus metrics" default:"node-exporter"`
+	Port             int    `name:"port" description:"Port for Prometheus metrics" default:"9100"`
+}
+
+type Wireguard struct {
+	StartingAddress string `name:"starting-address" description:"Starting address for Wireguard"`
+	StartingPort    uint16 `name:"starting-port" description:"Starting port for Wireguard" default:"5527"`
+}
+
 type Config struct {
-	Debug                             bool
-	Port                              int
-	PasswordSalt                      string
-	OTLPEndpoint                      string
-	InitialAdminUserPassword          string
-	CORSHosts                         []string
-	TrustedProxies                    []string
-	HIBPAPIKey                        string
-	ServerName                        string
-	Supernode                         bool
-	Masquerade                        bool
-	WireguardTapAddress               string
-	NodeIP                            string
-	strSessionSecret                  string
-	SessionSecret                     []byte
-	VTUNStartingAddress               string
-	WireguardStartingAddress          string
-	WireguardStartingPort             uint16
-	PostgresDSN                       string
-	postgresUser                      string
-	postgresPassword                  string
-	postgresHost                      string
-	postgresPort                      int
-	postgresDatabase                  string
-	MetricsNodeExporterHost           string
-	MetricsPort                       int
-	Latitude                          string
-	Longitude                         string
-	Gridsquare                        string
-	DisableVTun                       bool
-	AdditionalOlsrdInterfaces         []string
-	AdditionalOlsrdInterfacesIsolated []string
-	BabelRouterID                     string
-	EnableBabel                       bool
+	LogLevel                 LogLevel  `name:"log-level" description:"Logging level for the application. One of debug, info, warn, or error" default:"info"`
+	Port                     int       `name:"port" description:"Port to listen on for HTTP requests" default:"3333"`
+	PasswordSalt             string    `name:"password-salt" description:"Salt used for password hashing"`
+	PProf                    PProf     `name:"pprof" description:"pprof debugging settings"`
+	Postgres                 Postgres  `name:"postgres" description:"PostgreSQL settings"`
+	InitialAdminUserPassword string    `name:"initial-admin-user-password" description:"Initial password for the admin user"`
+	Babel                    Babel     `name:"babel" description:"Babel routing settings"`
+	CORSHosts                []string  `name:"cors-hosts" description:"CORS hosts for the API"`
+	TrustedProxies           []string  `name:"trusted-proxies" description:"Trusted proxies for the API"`
+	HIBPAPIKey               string    `name:"hibp-api-key" description:"Have I Been Pwned API key"`
+	ServerName               string    `name:"server-name" description:"Server name"`
+	Supernode                bool      `name:"supernode" description:"Enable supernode mode"`
+	NodeIP                   string    `name:"node-ip" description:"Node IP address"`
+	Latitude                 string    `name:"latitude" description:"Server latitude"`
+	Longitude                string    `name:"longitude" description:"Server longitude"`
+	Gridsquare               string    `name:"gridsquare" description:"Server gridsquare"`
+	Metrics                  Metrics   `name:"metrics" description:"Metrics settings"`
+	Wireguard                Wireguard `name:"wireguard" description:"Wireguard settings"`
+	SessionSecret            string    `name:"session-secret" description:"Session secret"`
 }
 
-func loadConfig() Config {
-	portStr := os.Getenv("HTTP_PORT")
-	httpPort, err := strconv.ParseInt(portStr, 10, 0)
-	if err != nil {
-		httpPort = int64(3333)
+var (
+	ErrInvalidLogLevel                  = errors.New("invalid log level provided")
+	ErrBabelRouterIDRequired            = errors.New("Babel router ID is required when Babel is enabled")
+	ErrNodeIPRequired                   = errors.New("Node IP is required")
+	ErrNodeIPInvalid                    = errors.New("Node IP is invalid")
+	ErrNodeIPNot10_8                    = errors.New("Node IP is not in the 10.0.0.0/8 range")
+	ErrPasswordSaltRequired             = errors.New("Password salt is required")
+	ErrServerNameRequired               = errors.New("Server name is required")
+	ErrWireguardStartingAddressRequired = errors.New("Wireguard starting address is required")
+	ErrWireguardStartingAddressInvalid  = errors.New("Wireguard starting address is invalid")
+	ErrWireguardStartingPortRequired    = errors.New("Wireguard starting port is required")
+	ErrWireguardStartingPortInvalid     = errors.New("Wireguard starting port is invalid")
+	ErrMetricsPortRequired              = errors.New("Metrics port is required")
+	ErrMetricsPortInvalid               = errors.New("Metrics port is invalid")
+	ErrMetricsNodeExporterHostRequired  = errors.New("Node exporter host is required")
+)
+
+func (c Config) Validate() error {
+	if c.LogLevel != LogLevelDebug &&
+		c.LogLevel != LogLevelInfo &&
+		c.LogLevel != LogLevelWarn &&
+		c.LogLevel != LogLevelError {
+		return ErrInvalidLogLevel
 	}
 
-	portStr = os.Getenv("PG_PORT")
-	pgPort, err := strconv.ParseInt(portStr, 10, 0)
-	if err != nil {
-		pgPort = 0
+	if c.PasswordSalt == "" {
+		return ErrPasswordSaltRequired
 	}
 
-	portStr = os.Getenv("METRICS_PORT")
-	metricsPort, err := strconv.ParseInt(portStr, 10, 0)
-	if err != nil {
-		metricsPort = 0
+	if c.Babel.Enabled && c.Babel.RouterID == "" {
+		return ErrBabelRouterIDRequired
 	}
 
-	portStr = os.Getenv("WIREGUARD_STARTING_PORT")
-	wireguardStartingPort, err := strconv.ParseInt(portStr, 10, 0)
-	if err != nil {
-		wireguardStartingPort = 5527
-	}
-
-	tmpConfig := Config{
-		Debug:                             os.Getenv("DEBUG") != "",
-		Port:                              int(httpPort),
-		PasswordSalt:                      os.Getenv("PASSWORD_SALT"),
-		OTLPEndpoint:                      os.Getenv("OTLP_ENDPOINT"),
-		InitialAdminUserPassword:          os.Getenv("INIT_ADMIN_USER_PASSWORD"),
-		HIBPAPIKey:                        os.Getenv("HIBP_API_KEY"),
-		ServerName:                        strings.ToUpper(os.Getenv("SERVER_NAME")),
-		Supernode:                         os.Getenv("SUPERNODE") != "",
-		Masquerade:                        os.Getenv("MASQUERADE") != "",
-		WireguardTapAddress:               os.Getenv("WIREGUARD_TAP_ADDRESS"),
-		NodeIP:                            os.Getenv("NODE_IP"),
-		strSessionSecret:                  os.Getenv("SESSION_SECRET"),
-		VTUNStartingAddress:               os.Getenv("VTUN_STARTING_ADDRESS"),
-		WireguardStartingAddress:          os.Getenv("WIREGUARD_STARTING_ADDRESS"),
-		WireguardStartingPort:             uint16(wireguardStartingPort),
-		postgresUser:                      os.Getenv("PG_USER"),
-		postgresPassword:                  os.Getenv("PG_PASSWORD"),
-		postgresHost:                      os.Getenv("PG_HOST"),
-		postgresPort:                      int(pgPort),
-		postgresDatabase:                  os.Getenv("PG_DATABASE"),
-		MetricsNodeExporterHost:           os.Getenv("METRICS_NODE_EXPORTER_HOST"),
-		MetricsPort:                       int(metricsPort),
-		Latitude:                          os.Getenv("SERVER_LAT"),
-		Longitude:                         os.Getenv("SERVER_LON"),
-		Gridsquare:                        os.Getenv("SERVER_GRIDSQUARE"),
-		DisableVTun:                       os.Getenv("DISABLE_VTUN") != "",
-		AdditionalOlsrdInterfaces:         strings.Split(os.Getenv("ADDITIONAL_OLSRD_INTERFACES"), ","),
-		AdditionalOlsrdInterfacesIsolated: strings.Split(os.Getenv("ADDITIONAL_OLSRD_INTERFACES_ISOLATED"), ","),
-		EnableBabel:                       os.Getenv("ENABLE_BABEL") != "",
-		BabelRouterID:                     os.Getenv("BABEL_ROUTER_ID"),
-	}
-
-	if tmpConfig.VTUNStartingAddress == "" {
-		panic("VTUN_STARTING_ADDRESS not set")
-	}
-
-	if tmpConfig.WireguardStartingAddress == "" {
-		panic("WIREGUARD_STARTING_ADDRESS not set")
-	}
-
-	if net.ParseIP(tmpConfig.WireguardStartingAddress) == nil {
-		panic("WIREGUARD_STARTING_ADDRESS is not a valid IP address")
-	}
-
-	if net.ParseIP(tmpConfig.VTUNStartingAddress) == nil {
-		panic("VTUN starting address is not a valid IP address")
-	}
-
-	if tmpConfig.EnableBabel && tmpConfig.BabelRouterID == "" {
-		panic("BABEL_ROUTER_ID not set")
-	}
-
-	if tmpConfig.InitialAdminUserPassword == "" {
-		fmt.Println("Initial admin user password not set, using auto-generated password")
-		const randLen = 15
-		const randNums = 4
-		const randSpecial = 2
-		tmpConfig.InitialAdminUserPassword, err = utils.RandomPassword(randLen, randNums, randSpecial)
-		if err != nil {
-			fmt.Println("Password generation failed")
-			os.Exit(1)
+	if c.Metrics.Enabled {
+		if c.Metrics.Port == 0 {
+			return ErrMetricsPortRequired
+		}
+		if c.Metrics.Port < 1 || c.Metrics.Port > 65535 {
+			return ErrMetricsPortInvalid
+		}
+		if c.Metrics.NodeExporterHost == "" {
+			return ErrMetricsNodeExporterHostRequired
 		}
 	}
 
-	if tmpConfig.ServerName == "" {
-		panic("Server name not set")
+	if c.ServerName == "" {
+		return ErrServerNameRequired
 	}
 
-	if tmpConfig.NodeIP == "" {
-		panic("Node IP not set")
+	if c.NodeIP == "" {
+		return ErrNodeIPRequired
 	}
 
-	if tmpConfig.PasswordSalt == "" {
-		tmpConfig.PasswordSalt = "salt"
-		fmt.Println("Password salt not set, using INSECURE default")
+	if c.Wireguard.StartingAddress == "" {
+		return ErrWireguardStartingAddressRequired
 	}
 
-	if tmpConfig.postgresUser == "" {
-		tmpConfig.postgresUser = "postgres"
+	ip := net.ParseIP(c.Wireguard.StartingAddress)
+
+	if ip == nil {
+		return ErrWireguardStartingAddressInvalid
 	}
 
-	if tmpConfig.postgresPassword == "" {
-		tmpConfig.postgresPassword = "password"
+	if ip.To4() == nil {
+		return ErrWireguardStartingAddressInvalid
 	}
 
-	if tmpConfig.postgresHost == "" {
-		tmpConfig.postgresHost = "localhost"
+	if c.Wireguard.StartingPort == 0 {
+		return ErrWireguardStartingPortRequired
 	}
 
-	if tmpConfig.postgresPort == 0 {
-		tmpConfig.postgresPort = 5432
+	if c.Wireguard.StartingPort < 1024 || c.Wireguard.StartingPort > 65535 {
+		return ErrWireguardStartingPortInvalid
 	}
 
-	if tmpConfig.postgresDatabase == "" {
-		tmpConfig.postgresDatabase = "postgres"
+	ip = net.ParseIP(c.NodeIP)
+
+	if ip == nil {
+		return ErrNodeIPInvalid
 	}
 
-	if tmpConfig.MetricsNodeExporterHost == "" {
-		tmpConfig.MetricsNodeExporterHost = "node-exporter"
+	if ip.To4() == nil {
+		return ErrNodeIPInvalid
 	}
 
-	tmpConfig.PostgresDSN = "host=" + tmpConfig.postgresHost + " port=" + strconv.FormatInt(int64(tmpConfig.postgresPort), 10) + " user=" + tmpConfig.postgresUser + " dbname=" + tmpConfig.postgresDatabase + " password=" + tmpConfig.postgresPassword
-
-	// CORS_HOSTS is a comma separated list of hosts that are allowed to access the API
-	corsHosts := os.Getenv("CORS_HOSTS")
-	if corsHosts == "" {
-		tmpConfig.CORSHosts = []string{
-			fmt.Sprintf("http://localhost:%d", tmpConfig.Port),
-			fmt.Sprintf("http://127.0.0.1:%d", tmpConfig.Port),
-		}
-	} else {
-		tmpConfig.CORSHosts = strings.Split(corsHosts, ",")
-	}
-	trustedProxies := os.Getenv("TRUSTED_PROXIES")
-	if trustedProxies == "" {
-		tmpConfig.TrustedProxies = []string{}
-	} else {
-		tmpConfig.TrustedProxies = strings.Split(trustedProxies, ",")
+	if ip.To4()[0] != 10 {
+		return ErrNodeIPNot10_8
 	}
 
-	const iterations = 4096
-	const keyLen = 32
-	tmpConfig.SessionSecret = pbkdf2.Key([]byte(tmpConfig.strSessionSecret), []byte(tmpConfig.PasswordSalt), iterations, keyLen, sha256.New)
-
-	return tmpConfig
-}
-
-// GetConfig obtains the current configuration
-func GetConfig(cmd *cobra.Command) *Config {
-	currentConfig := loadConfig()
-
-	// Override with command line flags
-	if cmd != nil {
-		debug, err := cmd.Flags().GetBool("debug")
-		if err == nil && debug {
-			currentConfig.Debug = debug
-		}
-
-		port, err := cmd.Flags().GetInt("port")
-		if err == nil && port > 0 && port < 65535 {
-			currentConfig.Port = port
-		}
-	}
-
-	return &currentConfig
+	return nil
 }

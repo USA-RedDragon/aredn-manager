@@ -57,12 +57,6 @@ func FindTunnelByIP(db *gorm.DB, ip net.IP) (Tunnel, error) {
 	return tunnel, err
 }
 
-func ListVtunTunnels(db *gorm.DB) ([]Tunnel, error) {
-	var tunnels []Tunnel
-	err := db.Not("wireguard = ?", true).Order("id asc").Find(&tunnels).Error
-	return tunnels, err
-}
-
 func ListAllTunnels(db *gorm.DB) ([]Tunnel, error) {
 	var tunnels []Tunnel
 	err := db.Order("id asc").Find(&tunnels).Error
@@ -87,12 +81,6 @@ func ListServerTunnels(db *gorm.DB) ([]Tunnel, error) {
 	return tunnels, err
 }
 
-func CountVtunTunnels(db *gorm.DB) (int, error) {
-	var count int64
-	err := db.Model(&Tunnel{}).Not("wireguard = ?", true).Count(&count).Error
-	return int(count), err
-}
-
 func CountWireguardTunnels(db *gorm.DB) (int, error) {
 	var count int64
 	err := db.Model(&Tunnel{}).Where("wireguard = ?", true).Count(&count).Error
@@ -102,12 +90,6 @@ func CountWireguardTunnels(db *gorm.DB) (int, error) {
 func CountAllActiveTunnels(db *gorm.DB) (int, error) {
 	var count int64
 	err := db.Model(&Tunnel{}).Where("active = ?", true).Count(&count).Error
-	return int(count), err
-}
-
-func CountVTunActiveTunnels(db *gorm.DB) (int, error) {
-	var count int64
-	err := db.Model(&Tunnel{}).Where("active = ?", true).Not("wireguard = ?", true).Count(&count).Error
 	return int(count), err
 }
 
@@ -133,42 +115,6 @@ func ClearActiveFromAllTunnels(db *gorm.DB) error {
 	return db.Model(&Tunnel{}).Where("active = ?", true).Update("active", false).Error
 }
 
-func GetNextVTunIP(db *gorm.DB, config *config.Config) (string, error) {
-	// Each tunnel is added with an ip starting from config.VTUNStartingAddress and incrementing by 4 for each tunnel
-	// We need to find the next available ip.
-	var tunnels []Tunnel
-	err := db.Not("wireguard = ?", true).Where("client = ?", false).Find(&tunnels).Error
-	if err != nil {
-		return "", err
-	}
-	// We need to find the next available ip.
-	// We can do this by finding the highest ip, and adding 4 to it.
-	var highestIP = net.ParseIP(config.VTUNStartingAddress).To4() // Use 12 so the +4 later starts at 16
-	for _, tunnel := range tunnels {
-		ip := net.ParseIP(tunnel.IP)
-		ip = ip.To4()
-		if ip[2] > highestIP[2] {
-			highestIP = ip
-		} else if ip[2] == highestIP[2] {
-			if ip[3] > highestIP[3] {
-				highestIP = ip
-			}
-		}
-	}
-	// If the highest ip is 252, we need to start at highestIP[2]++ and set highestIP[3] to 0.
-	if highestIP[3] == 252 {
-		highestIP[2]++
-		if highestIP[2] >= 254 {
-			return "", fmt.Errorf("no more IPs available")
-		}
-		highestIP[3] = 0
-	} else {
-		highestIP[3] += 4
-	}
-
-	return highestIP.String(), nil
-}
-
 func GetNextWireguardIP(db *gorm.DB, config *config.Config) (string, error) {
 	// Each tunnel is added with an ip starting from config.WireguardStartingAddress and incrementing by 4 for each tunnel
 	// We need to find the next available ip.
@@ -179,7 +125,7 @@ func GetNextWireguardIP(db *gorm.DB, config *config.Config) (string, error) {
 	}
 	// We need to find the next available ip.
 	// We can do this by finding the highest ip, and adding 4 to it.
-	var highestIP = net.ParseIP(config.WireguardStartingAddress).To4() // Use 12 so the +4 later starts at 16
+	var highestIP = net.ParseIP(config.Wireguard.StartingAddress).To4() // Use 12 so the +4 later starts at 16
 	for _, tunnel := range tunnels {
 		ip := net.ParseIP(tunnel.IP)
 		ip = ip.To4()
@@ -215,7 +161,7 @@ func GetNextWireguardPort(db *gorm.DB, config *config.Config) (uint16, error) {
 	}
 	// We need to find the next available port.
 	// We can do this by finding the highest port, and adding 1 to it.
-	var highestPort uint16 = config.WireguardStartingPort - 1
+	var highestPort uint16 = config.Wireguard.StartingPort - 1
 	for _, tunnel := range tunnels {
 		if tunnel.WireguardPort > highestPort {
 			highestPort = tunnel.WireguardPort

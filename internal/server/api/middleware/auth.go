@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
@@ -28,9 +29,7 @@ func RequireLogin(config *config.Config) gin.HandlerFunc {
 		userID := session.Get("user_id")
 
 		if userID == nil {
-			if config.Debug {
-				fmt.Println("RequireLogin: Failed to get user_id from session")
-			}
+			slog.Debug("RequireLogin: user_id is nil")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 			return
 		}

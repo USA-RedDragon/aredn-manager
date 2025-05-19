@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"net/http"
@@ -15,14 +16,13 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/vtun"
 	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-contrib/sessions"
 	gormsessions "github.com/gin-contrib/sessions/gorm"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
+	"golang.org/x/crypto/pbkdf2"
 	"gorm.io/gorm"
 )
 
@@ -32,25 +32,23 @@ const rateLimitRate = time.Second
 const rateLimitLimit = 10
 
 type Server struct {
-	config            *config.Config
-	server            *http.Server
-	db                *gorm.DB
-	shutdownChannel   chan bool
-	stats             *bandwidth.StatCounterManager
-	eventsChannel     chan events.Event
-	vtunClientWatcher *vtun.ClientWatcher
-	wireguardManager  *wireguard.Manager
+	config           *config.Config
+	server           *http.Server
+	db               *gorm.DB
+	shutdownChannel  chan bool
+	stats            *bandwidth.StatCounterManager
+	eventsChannel    chan events.Event
+	wireguardManager *wireguard.Manager
 }
 
-func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager, eventsChannel chan events.Event, vtunClientWatcher *vtun.ClientWatcher, wireguardManager *wireguard.Manager) *Server {
+func NewServer(config *config.Config, db *gorm.DB, stats *bandwidth.StatCounterManager, eventsChannel chan events.Event, wireguardManager *wireguard.Manager) *Server {
 	return &Server{
-		config:            config,
-		db:                db,
-		shutdownChannel:   make(chan bool),
-		stats:             stats,
-		eventsChannel:     eventsChannel,
-		vtunClientWatcher: vtunClientWatcher,
-		wireguardManager:  wireguardManager,
+		config:           config,
+		db:               db,
+		shutdownChannel:  make(chan bool),
+		stats:            stats,
+		eventsChannel:    eventsChannel,
+		wireguardManager: wireguardManager,
 	}
 }
 
@@ -64,7 +62,7 @@ func (s *Server) Run(version string, registry *services.Registry) error {
 	api.ApplyRoutes(r, s.eventsChannel, s.config)
 
 	writeTimeout := defTimeout
-	if s.config.Debug {
+	if s.config.PProf.Enabled {
 		writeTimeout = debugWriteTimeout
 	}
 
@@ -117,14 +115,8 @@ func (s *Server) Stop() error {
 
 func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services.Registry) {
 	// Debug
-	if s.config.Debug {
+	if s.config.PProf.Enabled {
 		pprof.Register(r)
-	}
-
-	// Tracing
-	if s.config.OTLPEndpoint != "" {
-		r.Use(otelgin.Middleware("api"))
-		r.Use(middleware.TracingProvider(s.config))
 	}
 
 	// DBs
@@ -132,9 +124,6 @@ func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services
 	r.Use(middleware.DatabaseProvider(s.db))
 	r.Use(middleware.OLSRDProvider(olsr.NewHostsParser()))
 	r.Use(middleware.OLSRDServicesProvider(olsr.NewServicesParser()))
-	if !s.config.DisableVTun {
-		r.Use(middleware.VTunClientWatcherProvider(s.vtunClientWatcher))
-	}
 	r.Use(middleware.WireguardManagerProvider(s.wireguardManager))
 	r.Use(middleware.NetworkStats(s.stats))
 	r.Use(middleware.PaginatedDatabaseProvider(s.db, middleware.PaginationConfig{}))
@@ -163,6 +152,15 @@ func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services
 	r.Use(ratelimitMW)
 
 	// Sessions
-	sessionStore := gormsessions.NewStore(s.db, true, s.config.SessionSecret)
+	const iterations = 4096
+	const keyLen = 32
+
+	sessionStore := gormsessions.NewStore(s.db, true, pbkdf2.Key(
+		[]byte(s.config.SessionSecret),
+		[]byte(s.config.PasswordSalt),
+		iterations,
+		keyLen,
+		sha256.New,
+	))
 	r.Use(sessions.Sessions("sessions", sessionStore))
 }

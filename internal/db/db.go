@@ -2,6 +2,7 @@ package db
 
 import (
 	"fmt"
+	"log/slog"
 	"os"
 	"runtime"
 	"time"
@@ -10,7 +11,6 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/glebarez/sqlite"
 	gorm_seeder "github.com/kachit/gorm-seeder"
-	"github.com/uptrace/opentelemetry-go-extra/otelgorm"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -26,16 +26,19 @@ func MakeDB(config *config.Config) *gorm.DB {
 			os.Exit(1)
 		}
 	} else {
-		db, err = gorm.Open(postgres.Open(config.PostgresDSN), &gorm.Config{})
+		dsn := fmt.Sprintf(
+			"host=%s port=%d user=%s dbname=%s password=%s",
+			config.Postgres.Host,
+			config.Postgres.Port,
+			config.Postgres.User,
+			config.Postgres.Database,
+			config.Postgres.Password,
+		)
+
+		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 		if err != nil {
 			fmt.Printf("Could not open database: %v\n", err)
 			os.Exit(1)
-		}
-		if config.OTLPEndpoint != "" {
-			if err = db.Use(otelgorm.NewPlugin()); err != nil {
-				fmt.Printf("Could not trace database: %v\n", err)
-				os.Exit(1)
-			}
 		}
 	}
 
@@ -49,9 +52,7 @@ func MakeDB(config *config.Config) *gorm.DB {
 	var appSettings models.AppSettings
 	result := db.First(&appSettings)
 	if result.RowsAffected == 0 {
-		if config.Debug {
-			fmt.Println("App settings entry doesn't exist, creating it")
-		}
+		slog.Debug("App settings entry doesn't exist, creating it")
 		// The record doesn't exist, so create it
 		appSettings = models.AppSettings{
 			HasSeeded: false,
@@ -61,9 +62,7 @@ func MakeDB(config *config.Config) *gorm.DB {
 			fmt.Printf("Failed to create app settings: %v\n", err)
 			os.Exit(1)
 		}
-		if config.Debug {
-			fmt.Println("App settings saved")
-		}
+		slog.Debug("App settings entry created")
 	}
 
 	// If the record exists and HasSeeded is true, then we don't need to seed the database.

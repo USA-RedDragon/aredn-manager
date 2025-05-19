@@ -54,10 +54,7 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1OLSR.GET("/hosts/count", v1Controllers.GETOLSRHostsCount)
 	v1OLSR.GET("/running", v1Controllers.GETOLSRRunning)
 
-	v1VTun := group.Group("/vtun")
-	v1VTun.GET("/running", v1Controllers.GETVtunRunning)
-
-	if config.EnableBabel {
+	if config.Babel.Enabled {
 		v1Babel := group.Group("/babel")
 		v1Babel.GET("/running", v1Controllers.GETBabelRunning)
 	}
@@ -73,8 +70,6 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	// Paginated
 	v1Tunnels.GET("", v1Controllers.GETTunnels)
 	v1Tunnels.POST("", middleware.RequireLogin(config), v1Controllers.POSTTunnel)
-	v1Tunnels.GET("/vtun/count", v1Controllers.GETVTunTunnelsCount)
-	v1Tunnels.GET("/vtun/count/connected", v1Controllers.GETVTunTunnelsCountConnected)
 	v1Tunnels.GET("/wireguard/count", v1Controllers.GETWireguardTunnelsCount)
 	v1Tunnels.GET("/wireguard/count/connected", v1Controllers.GETWireguardTunnelsCountConnected)
 	// v1Tunnels.GET("/:id", v1Controllers.GETTunnel)

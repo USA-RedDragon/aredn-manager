@@ -65,14 +65,26 @@ func NewUsersSeeder(cfg gorm_seeder.SeederConfiguration, config *config.Config) 
 }
 
 func (s *UsersSeeder) Seed(db *gorm.DB) error {
+	pass := s.config.InitialAdminUserPassword
+	if pass == "" {
+		fmt.Println("Initial admin user password not set, using auto-generated password")
+		const randLen = 15
+		const randNums = 4
+		const randSpecial = 2
+		var err error
+		pass, err = utils.RandomPassword(randLen, randNums, randSpecial)
+		if err != nil {
+			return fmt.Errorf("password generation failed: %w", err)
+		}
+	}
 	var users = []User{
 		{
 			ID:       0,
 			Username: "admin",
-			Password: utils.HashPassword(s.config.InitialAdminUserPassword, s.config.PasswordSalt),
+			Password: utils.HashPassword(pass, s.config.PasswordSalt),
 		},
 	}
-	fmt.Printf("!#!#!#!#!# Initial admin user password: %s #!#!#!#!#!\n", s.config.InitialAdminUserPassword)
+	fmt.Printf("!#!#!#!#!# Initial admin user password: %s #!#!#!#!#!\n", pass)
 	return db.CreateInBatches(users, s.Configuration.Rows).Error
 }
 

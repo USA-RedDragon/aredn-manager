@@ -4,13 +4,6 @@
       <Card style="width: 48%;">
         <template #title>Daemon Status</template>
         <template #content>
-          <h3 style="font-weight: bold;">VTun Daemon</h3>
-          <p>
-            <PVBadge v-if="vtundRunning" value="✔️" severity="success"></PVBadge>
-            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
-            {{ vtundRunning ? 'Running':'Stopped' }}
-          </p>
-          <br />
           <h3 style="font-weight: bold;">Babel Daemon</h3>
           <p>
             <PVBadge v-if="babelRunning" value="✔️" severity="success"></PVBadge>
@@ -37,11 +30,7 @@
         <template #title>Network Statistics</template>
         <template #content>
           <h3 style="font-weight: bold;">Tunnels Connected</h3>
-          <p><span style="font-weight: bold;">VTun:</span> {{ vtunTunnelsConnected }}/{{ totalVtunTunnels }}</p>
-          <p>
-            <span style="font-weight: bold;">Wireguard:</span>
-            {{ wireguardTunnelsConnected }}/{{ totalWireguardTunnels }}
-          </p>
+          <p>{{ wireguardTunnelsConnected }}/{{ totalWireguardTunnels }}</p>
           <br />
           <h3 style="font-weight: bold;">Current Bandwidth</h3>
           <p><span style="font-weight: bold;">RX:</span> {{ prettyBytes(stats.total_rx_bytes_per_sec) }}/s</p>
@@ -87,11 +76,8 @@ export default {
   data: function() {
     return {
       babelRunning: true,
-      vtundRunning: true,
       olsrdRunning: true,
       dnsRunning: true,
-      vtunTunnelsConnected: 0,
-      totalVtunTunnels: 0,
       wireguardTunnelsConnected: 0,
       totalWireguardTunnels: 0,
       stats: {},
@@ -99,10 +85,10 @@ export default {
   },
   methods: {
     tunnelDisconnected(_) {
-      this.vtunTunnelsConnected--;
+      this.wireguardTunnelsConnected--;
     },
     tunnelConnected(_) {
-      this.vtunTunnelsConnected++;
+      this.wireguardTunnelsConnected++;
     },
     totalBandwidth(event) {
       if ('TX' in event) {
@@ -133,20 +119,11 @@ export default {
       API.get('/olsr/running').then((res) => {
         this.olsrdRunning = res.data.running;
       });
-      API.get('/vtun/running').then((res) => {
-        this.vtundRunning = res.data.running;
-      });
       API.get('/babel/running').then((res) => {
         this.babelRunning = res.data.running;
       });
       API.get('/dns/running').then((res) => {
         this.dnsRunning = res.data.running;
-      });
-      API.get('/tunnels/vtun/count/connected').then((res) => {
-        this.vtunTunnelsConnected = res.data.count;
-      });
-      API.get('/tunnels/vtun/count').then((res) => {
-        this.totalVtunTunnels = res.data.count;
       });
       API.get('/tunnels/wireguard/count/connected').then((res) => {
         this.wireguardTunnelsConnected = res.data.count;

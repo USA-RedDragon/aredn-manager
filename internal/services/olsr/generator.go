@@ -142,28 +142,10 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	)
 	ret += "\n\n"
 	if config.Supernode {
-		for _, iface := range config.AdditionalOlsrdInterfacesIsolated {
-			if iface == "" {
-				continue
-			}
-			snippet := snippetOlsrdConfInterfaceSupernode
-			utils.ShellReplace(&snippet, map[string]string{"IFACE": iface})
-			ret += snippet
-			ret += "\n\n"
-		}
 		snippet := snippetOlsrdConfInterfaceSupernode
 		utils.ShellReplace(&snippet, map[string]string{"IFACE": "br-dtdlink"})
 		ret += snippet
 	} else {
-		for _, iface := range config.AdditionalOlsrdInterfaces {
-			if iface == "" {
-				continue
-			}
-			snippet := snippetOlsrdConfInterfaceStandard
-			utils.ShellReplace(&snippet, map[string]string{"IFACE": iface})
-			ret += snippet
-			ret += "\n\n"
-		}
 		snippet := snippetOlsrdConfInterfaceStandard
 		utils.ShellReplace(&snippet, map[string]string{"IFACE": "br-dtdlink"})
 		ret += snippet
@@ -195,44 +177,7 @@ func Generate(config *config.Config, db *gorm.DB) string {
 		ret += snippetOlsrdConfSupernode
 	}
 
-	tunnels, err := models.ListVtunTunnels(db)
-	if err != nil {
-		panic(err)
-	}
-
-	if len(tunnels) > 0 {
-		serverTun := 50
-		clientTun := 100
-		tunnelString := ""
-		for tunnelNumber := 0; tunnelNumber < len(tunnels); tunnelNumber++ {
-			tunnel := tunnels[tunnelNumber]
-			if !tunnel.Enabled {
-				continue
-			}
-			if tunnel.Client {
-				tunnelString += "\"tun" + fmt.Sprintf("%d", clientTun) + "\""
-				clientTun++
-			} else {
-				tunnelString += "\"tun" + fmt.Sprintf("%d", serverTun) + "\""
-				serverTun++
-			}
-			if tunnelNumber != len(tunnels)-1 {
-				tunnelString += " "
-			}
-		}
-
-		ret += "\n\n"
-		cpSnippetOlsrdConfTunnel := snippetOlsrdConfTunnel
-		utils.ShellReplace(
-			&cpSnippetOlsrdConfTunnel,
-			map[string]string{
-				"IFACES": tunnelString,
-			},
-		)
-		ret += cpSnippetOlsrdConfTunnel
-	}
-
-	tunnels, err = models.ListWireguardTunnels(db)
+	tunnels, err := models.ListWireguardTunnels(db)
 	if err != nil {
 		panic(err)
 	}

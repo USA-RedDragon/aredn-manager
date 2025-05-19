@@ -2,10 +2,12 @@ package cmd
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/configulator"
 	"github.com/spf13/cobra"
 )
 
@@ -21,7 +23,22 @@ var (
 )
 
 func runNotify(cmd *cobra.Command, _ []string) error {
-	config := config.GetConfig(cmd)
+	err := runRoot(cmd, nil)
+	if err != nil {
+		slog.Error("Encountered an error.", "error", err.Error())
+	}
+
+	ctx := cmd.Context()
+
+	c, err := configulator.FromContext[config.Config](ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get config from context")
+	}
+
+	config, err := c.Load()
+	if err != nil {
+		return fmt.Errorf("failed to load config: %w", err)
+	}
 
 	req, err := http.NewRequestWithContext(cmd.Context(), http.MethodPost, fmt.Sprintf("http://0.0.0.0:%d/api/v1/notify", config.Port), nil)
 	if err != nil {
