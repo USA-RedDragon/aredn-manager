@@ -84,7 +84,7 @@
         <span v-else>{{slotProps.data.ip}}</span>
       </template>
     </Column>
-    <Column field="wireguard_port" header="Wireguard Port" v-if="$props.wireguard">
+    <Column field="wireguard_port" header="Wireguard Port">
       <template #body="slotProps">
         <span v-if="slotProps.data.wireguard">
           {{slotProps.data.wireguard_port}}

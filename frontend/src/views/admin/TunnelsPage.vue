@@ -5,7 +5,7 @@
     <Card>
       <template #title>Tunnels</template>
       <template #content>
-        <TunnelsTable admin wireguard />
+        <TunnelsTable admin />
       </template>
     </Card>
   </div>

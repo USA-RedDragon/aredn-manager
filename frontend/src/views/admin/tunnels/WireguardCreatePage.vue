@@ -132,13 +132,6 @@
                 }"
               />
               <label
-                v-if="!wireguard"
-                for="password"
-                :class="{ 'p-error': v$.password.$invalid && submitted }"
-                >Password</label
-              >
-              <label
-                v-else
                 for="password"
                 :class="{ 'p-error': v$.password.$invalid && submitted }"
                 >Key</label

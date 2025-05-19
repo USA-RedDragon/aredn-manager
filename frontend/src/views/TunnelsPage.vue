@@ -3,7 +3,7 @@
     <Card>
       <template #title>Tunnels</template>
       <template #content>
-        <TunnelsTable wireguard />
+        <TunnelsTable />
       </template>
     </Card>
   </div>
