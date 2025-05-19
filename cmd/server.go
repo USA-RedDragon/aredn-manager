@@ -25,16 +25,20 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-//nolint:golint,gochecknoglobals
-var (
-	serverCmd = &cobra.Command{
-		Use:               "server",
-		Short:             "Start the daemon server",
+func newServerCommand(version, commit string) *cobra.Command {
+	return &cobra.Command{
+		Use:     "server",
+		Version: fmt.Sprintf("%s - %s", version, commit),
+		Short:   "Start the daemon server",
+		Annotations: map[string]string{
+			"version": version,
+			"commit":  commit,
+		},
 		RunE:              runServer,
 		SilenceErrors:     true,
 		DisableAutoGenTag: true,
 	}
-)
+}
 
 func runServer(cmd *cobra.Command, _ []string) error {
 	err := runRoot(cmd, nil)

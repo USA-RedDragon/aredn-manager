@@ -12,16 +12,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//nolint:golint,gochecknoglobals
-var (
-	generateCmd = &cobra.Command{
-		Use:               "generate",
-		Short:             "Generate olsrd, babeld configs",
+func newGenerateCommand(version, commit string) *cobra.Command {
+	return &cobra.Command{
+		Use:     "generate",
+		Version: fmt.Sprintf("%s - %s", version, commit),
+		Short:   "Generate olsrd, babeld configs",
+		Annotations: map[string]string{
+			"version": version,
+			"commit":  commit,
+		},
 		RunE:              runGenerate,
 		SilenceErrors:     true,
 		DisableAutoGenTag: true,
 	}
-)
+}
 
 func runGenerate(cmd *cobra.Command, _ []string) error {
 	err := runRoot(cmd, nil)

@@ -23,9 +23,9 @@ func NewCommand(version, commit string) *cobra.Command {
 		SilenceErrors:     true,
 		DisableAutoGenTag: true,
 	}
-	cmd.AddCommand(generateCmd)
-	cmd.AddCommand(notifyCmd)
-	cmd.AddCommand(serverCmd)
+	cmd.AddCommand(newGenerateCommand(version, commit))
+	cmd.AddCommand(newNotifyCommand(version, commit))
+	cmd.AddCommand(newServerCommand(version, commit))
 	return cmd
 }
 

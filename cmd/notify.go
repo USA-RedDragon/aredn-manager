@@ -11,16 +11,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
-//nolint:golint,gochecknoglobals
-var (
-	notifyCmd = &cobra.Command{
-		Use:               "notify",
-		Short:             "notify the daemon of a change in the mesh",
+func newNotifyCommand(version, commit string) *cobra.Command {
+	return &cobra.Command{
+		Use:     "notify",
+		Version: fmt.Sprintf("%s - %s", version, commit),
+		Short:   "Notify the daemon of a change in the mesh",
+		Annotations: map[string]string{
+			"version": version,
+			"commit":  commit,
+		},
 		RunE:              runNotify,
 		SilenceErrors:     true,
 		DisableAutoGenTag: true,
 	}
-)
+}
 
 func runNotify(cmd *cobra.Command, _ []string) error {
 	err := runRoot(cmd, nil)
