@@ -1,11 +1,4 @@
-run:
-  timeout: 30m
-
-  skip-files:
-    - ".*\\_gen\\.go$"
-    - ".*\\_gen\\_test\\.go$"
-    - ".*\\_test\\.go$"
-
+version: "2"
 linters:
   enable:
     - asasalint
@@ -21,9 +14,7 @@ linters:
     - errname
     - errorlint
     - exhaustive
-    - exportloopref
     - forcetypeassert
-    - gci
     - gocheckcompilerdirectives
     - gochecknoglobals
     - gochecknoinits
@@ -31,7 +22,6 @@ linters:
     - gocritic
     - gocyclo
     - godox
-    - gofmt
     - goheader
     - gomoddirectives
     - gosec
@@ -42,15 +32,33 @@ linters:
     - nilnil
     - noctx
     - nosprintfhostport
-    - paralleltest
     - prealloc
     - predeclared
     - reassign
     - revive
-    - testpackage
-    - tparallel
     - unconvert
     - unparam
     - usestdlibvars
     - wastedassign
     - whitespace
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

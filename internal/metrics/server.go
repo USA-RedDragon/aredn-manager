@@ -11,7 +11,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
-//nolint:golint,gochecknoglobals
+//nolint:gochecknoglobals
 var (
 	AREDNMeshRF = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "node_details_meshrf",

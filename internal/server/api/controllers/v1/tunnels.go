@@ -160,7 +160,7 @@ func GETWireguardTunnelsCountConnected(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"count": count})
 }
 
-//nolint:golint,gocyclo
+//nolint:gocyclo
 func POSTTunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
@@ -461,7 +461,7 @@ func POSTTunnel(c *gin.Context) {
 	}
 }
 
-//nolint:golint,gocyclo
+//nolint:gocyclo
 func PATCHTunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {

@@ -15,7 +15,7 @@ import (
 	"gorm.io/gorm"
 )
 
-//nolint:golint,gochecknoglobals
+//nolint:gochecknoglobals
 var (
 	OLSRLinkAsymmetryTime = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "node_olsr_link_asymmetry_time",
