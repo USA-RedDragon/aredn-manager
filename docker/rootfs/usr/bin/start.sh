@@ -55,7 +55,7 @@ ip rule add pref 30220 lookup 20
 ip rule add pref 30230 lookup 30
 ip rule add pref 30240 lookup 21
 ip rule add pref 30260 lookup main
-ip rule add pref 30270 lookup 22
+# ip rule add pref 30270 lookup 22
 ip rule add pref 30280 lookup 28
 ip rule add pref 30290 lookup 31
 
