@@ -19,7 +19,7 @@ RUN apk add --no-cache \
     nginx \
     socat
 
-COPY --chown=root:root docker/rootfs /
+COPY --chown=root:root docker/rootfs/. /
 
 # AREDN Manager runs OLSRD on its own
 RUN rm -rf /etc/s6/olsrd
