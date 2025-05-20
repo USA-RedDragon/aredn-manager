@@ -3,12 +3,12 @@ package services
 import (
 	"log/slog"
 
-	"github.com/puzpuzpuz/xsync/v3"
+	"github.com/puzpuzpuz/xsync/v4"
 	"golang.org/x/sync/errgroup"
 )
 
 type Registry struct {
-	services *xsync.MapOf[string, Service]
+	services *xsync.Map[string, Service]
 }
 
 type ServiceName string
@@ -21,7 +21,7 @@ const (
 
 func NewServiceRegistry() *Registry {
 	return &Registry{
-		services: xsync.NewMapOf[string, Service](),
+		services: xsync.NewMap[string, Service](),
 	}
 }
 
