@@ -17,6 +17,7 @@ dockers:
     goarch: amd64
     extra_files:
     - docker/rootfs
+    - frontend
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -36,6 +37,7 @@ dockers:
     goarch: arm64
     extra_files:
     - docker/rootfs
+    - frontend
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
