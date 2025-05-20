@@ -11,6 +11,13 @@
             {{ babelRunning ? 'Running':'Stopped' }}
           </p>
           <br />
+          <h3 style="font-weight: bold;">AREDNLink</h3>
+          <p>
+            <PVBadge v-if="arednLinkRunning" value="✔️" severity="success"></PVBadge>
+            <PVBadge v-else value="✖️" severity="danger"></PVBadge>
+            {{ arednLinkRunning ? 'Running':'Stopped' }}
+          </p>
+          <br />
           <h3 style="font-weight: bold;">OLSR Daemon</h3>
           <p>
             <PVBadge v-if="olsrdRunning" value="✔️" severity="success"></PVBadge>
@@ -78,6 +85,7 @@ export default {
       babelRunning: true,
       olsrdRunning: true,
       dnsRunning: true,
+      arednLinkRunning: true,
       wireguardTunnelsConnected: 0,
       totalWireguardTunnels: 0,
       stats: {},
@@ -124,6 +132,9 @@ export default {
       });
       API.get('/dns/running').then((res) => {
         this.dnsRunning = res.data.running;
+      });
+      API.get('/arednlink/running').then((res) => {
+        this.arednLinkRunning = res.data.running;
       });
       API.get('/tunnels/wireguard/count/connected').then((res) => {
         this.wireguardTunnelsConnected = res.data.count;

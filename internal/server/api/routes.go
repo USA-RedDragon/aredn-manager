@@ -66,6 +66,9 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1DNS := group.Group("/dns")
 	v1DNS.GET("/running", v1Controllers.GETDNSRunning)
 
+	v1AREDNLink := group.Group("/arednlink")
+	v1AREDNLink.GET("/running", v1Controllers.GETAREDNLinkRunning)
+
 	v1Tunnels := group.Group("/tunnels")
 	// Paginated
 	v1Tunnels.GET("", v1Controllers.GETTunnels)

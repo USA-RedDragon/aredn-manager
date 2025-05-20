@@ -14,9 +14,10 @@ type Registry struct {
 type ServiceName string
 
 const (
-	OLSRServiceName    ServiceName = "olsr"
-	BabelServiceName   ServiceName = "babel"
-	DNSMasqServiceName ServiceName = "dnsmasq"
+	OLSRServiceName      ServiceName = "olsr"
+	BabelServiceName     ServiceName = "babel"
+	DNSMasqServiceName   ServiceName = "dnsmasq"
+	AREDNLinkServiceName ServiceName = "arednlink"
 )
 
 func NewServiceRegistry() *Registry {
