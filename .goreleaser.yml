@@ -2,11 +2,10 @@
 project_name: aredn-manager
 
 release:
-  extra_files:
-    - glob: ./LICENSE
   github:
     owner: USA-RedDragon
     name: aredn-manager
+  skip_upload: true
 
 dockers:
   - image_templates:
