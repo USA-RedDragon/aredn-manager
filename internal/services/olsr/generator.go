@@ -17,6 +17,8 @@ const (
 DebugLevel 0
 Pollrate 0.05
 AllowNoInt yes
+RtTable '30'
+RtTableDefault '31'
 IpVersion 4
 LinkQualityAlgorithm "etx_ffeth"
 Willingness 7
@@ -53,6 +55,8 @@ LoadPlugin "olsrd_watchdog.so.0.1"
 DebugLevel 0
 Pollrate 0.01
 AllowNoInt yes
+RtTable '30'
+RtTableDefault '31'
 IpVersion 4
 LinkQualityAlgorithm "etx_ffeth"
 Willingness 7
