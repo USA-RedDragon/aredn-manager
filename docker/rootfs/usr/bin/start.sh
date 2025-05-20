@@ -31,15 +31,33 @@ for IPV6_ADDR in $IPV6_ADDRS; do
     ip address add dev br-wan $IPV6_ADDR
 done
 
-ip route add default via $GW dev br-wan
+ip route add default via $GW dev br-wan table 28
 ip -6 route del default via $IP6_GW dev eth0
-ip -6 route add default via $IP6_GW dev br-wan
+ip -6 route add default via $IP6_GW dev br-wan table 28
 
 SUPERNODE=${SUPERNODE:-}
 if [ -n "$SUPERNODE" ]; then
     ip route add blackhole 10.0.0.0/8 table 21
 fi
 ip address add dev br-dtdlink $NODE_IP/8
+
+ip rule add pref 20010 iif br-dtdlink lookup 29
+ip rule add pref 20020 iif br-dtdlink lookup 20
+ip rule add pref 20030 iif br-dtdlink lookup 30
+ip rule add pref 20040 iif br-dtdlink lookup 21
+ip rule add pref 20050 iif br-dtdlink lookup 22
+ip rule add pref 20060 iif br-dtdlink lookup 28
+ip rule add pref 20070 iif br-dtdlink lookup 31
+ip rule add pref 20099 iif br-dtdlink unreachable
+
+ip rule add pref 30210 lookup 29
+ip rule add pref 30220 lookup 20
+ip rule add pref 30230 lookup 30
+ip rule add pref 30240 lookup 21
+ip rule add pref 30260 lookup main
+ip rule add pref 30270 lookup 22
+ip rule add pref 30280 lookup 28
+ip rule add pref 30290 lookup 31
 
 mkdir -p /etc/arednlink
 echo "${NODE_IP} ${SERVER_NAME}" >> /etc/arednlink/hosts
