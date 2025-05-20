@@ -16,6 +16,7 @@ import (
 	"github.com/phayes/freeport"
 	"github.com/vishvananda/netlink"
 	"golang.org/x/sync/errgroup"
+	"golang.org/x/sys/unix"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 	"gorm.io/gorm"
@@ -223,11 +224,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		return
 	}
 
-	duration, err := time.ParseDuration("25s")
-	if err != nil {
-		log.Println("failed to parse duration", err)
-		return
-	}
+	duration := time.Second * 25
 
 	if peer.WireguardServerKey != "" {
 		var err error
@@ -318,6 +315,86 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 
 	if err != nil {
 		log.Println("failed to configure wireguard device", iface, ":", err)
+		return
+	}
+
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:  iface,
+		Priority: 20010,
+		Table:    29,
+	})
+	if err != nil {
+		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		return
+	}
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:  iface,
+		Priority: 20020,
+		Table:    20,
+	})
+	if err != nil {
+		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		return
+	}
+
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:  iface,
+		Priority: 20030,
+		Table:    30,
+	})
+	if err != nil {
+		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		return
+	}
+
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:  iface,
+		Priority: 20040,
+		Table:    21,
+	})
+	if err != nil {
+		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		return
+	}
+
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:  iface,
+		Priority: 20050,
+		Table:    22,
+	})
+	if err != nil {
+		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		return
+	}
+
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:  iface,
+		Priority: 20060,
+		Table:    28,
+	})
+	if err != nil {
+		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		return
+	}
+
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:  iface,
+		Priority: 20070,
+		Table:    31,
+	})
+	if err != nil {
+		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		return
+	}
+
+	// ip rule add pref 20099 iif $iface unreachable
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:  iface,
+		Priority: 20099,
+		Type:     unix.RTN_UNREACHABLE,
+	})
+	if err != nil {
+		log.Println("failed to add unreachable rule for wireguard device", iface, ":", err)
 		return
 	}
 
