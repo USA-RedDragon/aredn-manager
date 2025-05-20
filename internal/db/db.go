@@ -35,11 +35,17 @@ func MakeDB(config *config.Config) *gorm.DB {
 			config.Postgres.Password,
 		)
 
-		db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+		slog.Info("Connecting to postgres", "dsn", dsn)
+		pg := postgres.Open(dsn)
+		slog.Info("Opening gorm database connection")
+
+		db, err = gorm.Open(pg, &gorm.Config{})
 		if err != nil {
 			fmt.Printf("Could not open database: %v\n", err)
 			os.Exit(1)
 		}
+
+		slog.Info("Gorm database connection opened")
 	}
 
 	err = db.AutoMigrate(&models.AppSettings{}, &models.User{}, &models.Tunnel{})
