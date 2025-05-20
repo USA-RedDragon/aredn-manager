@@ -319,38 +319,28 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	}
 
 	err = netlink.RuleAdd(&netlink.Rule{
-		IifName:  iface,
-		Priority: 20010,
-		Table:    29,
+		IifName:           iface,
+		Priority:          20010,
+		Table:             29,
+		Family:            netlink.FAMILY_ALL,
+		SuppressIfgroup:   -1,
+		SuppressPrefixlen: -1,
+		Goto:              -1,
+		Flow:              -1,
 	})
 	if err != nil {
 		log.Println("failed to add rule for wireguard device", iface, ":", err)
 		return
 	}
 	err = netlink.RuleAdd(&netlink.Rule{
-		IifName:  iface,
-		Priority: 20020,
-		Table:    20,
-	})
-	if err != nil {
-		log.Println("failed to add rule for wireguard device", iface, ":", err)
-		return
-	}
-
-	err = netlink.RuleAdd(&netlink.Rule{
-		IifName:  iface,
-		Priority: 20030,
-		Table:    30,
-	})
-	if err != nil {
-		log.Println("failed to add rule for wireguard device", iface, ":", err)
-		return
-	}
-
-	err = netlink.RuleAdd(&netlink.Rule{
-		IifName:  iface,
-		Priority: 20040,
-		Table:    21,
+		IifName:           iface,
+		Priority:          20020,
+		Table:             20,
+		Family:            netlink.FAMILY_ALL,
+		SuppressIfgroup:   -1,
+		SuppressPrefixlen: -1,
+		Goto:              -1,
+		Flow:              -1,
 	})
 	if err != nil {
 		log.Println("failed to add rule for wireguard device", iface, ":", err)
@@ -358,9 +348,14 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	}
 
 	err = netlink.RuleAdd(&netlink.Rule{
-		IifName:  iface,
-		Priority: 20050,
-		Table:    22,
+		IifName:           iface,
+		Priority:          20030,
+		Table:             30,
+		Family:            netlink.FAMILY_ALL,
+		SuppressIfgroup:   -1,
+		SuppressPrefixlen: -1,
+		Goto:              -1,
+		Flow:              -1,
 	})
 	if err != nil {
 		log.Println("failed to add rule for wireguard device", iface, ":", err)
@@ -368,9 +363,14 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	}
 
 	err = netlink.RuleAdd(&netlink.Rule{
-		IifName:  iface,
-		Priority: 20060,
-		Table:    28,
+		IifName:           iface,
+		Priority:          20040,
+		Table:             21,
+		Family:            netlink.FAMILY_ALL,
+		SuppressIfgroup:   -1,
+		SuppressPrefixlen: -1,
+		Goto:              -1,
+		Flow:              -1,
 	})
 	if err != nil {
 		log.Println("failed to add rule for wireguard device", iface, ":", err)
@@ -378,9 +378,44 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	}
 
 	err = netlink.RuleAdd(&netlink.Rule{
-		IifName:  iface,
-		Priority: 20070,
-		Table:    31,
+		IifName:           iface,
+		Priority:          20050,
+		Table:             22,
+		Family:            netlink.FAMILY_ALL,
+		SuppressIfgroup:   -1,
+		SuppressPrefixlen: -1,
+		Goto:              -1,
+		Flow:              -1,
+	})
+	if err != nil {
+		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		return
+	}
+
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:           iface,
+		Priority:          20060,
+		Table:             28,
+		Family:            netlink.FAMILY_ALL,
+		SuppressIfgroup:   -1,
+		SuppressPrefixlen: -1,
+		Goto:              -1,
+		Flow:              -1,
+	})
+	if err != nil {
+		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		return
+	}
+
+	err = netlink.RuleAdd(&netlink.Rule{
+		IifName:           iface,
+		Priority:          20070,
+		Table:             31,
+		Family:            netlink.FAMILY_ALL,
+		SuppressIfgroup:   -1,
+		SuppressPrefixlen: -1,
+		Goto:              -1,
+		Flow:              -1,
 	})
 	if err != nil {
 		log.Println("failed to add rule for wireguard device", iface, ":", err)
@@ -389,9 +424,14 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 
 	// ip rule add pref 20099 iif $iface unreachable
 	err = netlink.RuleAdd(&netlink.Rule{
-		IifName:  iface,
-		Priority: 20099,
-		Type:     unix.RTN_UNREACHABLE,
+		IifName:           iface,
+		Priority:          20099,
+		Type:              unix.RTN_UNREACHABLE,
+		Family:            netlink.FAMILY_ALL,
+		SuppressIfgroup:   -1,
+		SuppressPrefixlen: -1,
+		Goto:              -1,
+		Flow:              -1,
 	})
 	if err != nil {
 		log.Println("failed to add unreachable rule for wireguard device", iface, ":", err)
