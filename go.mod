@@ -24,7 +24,7 @@ require (
 	go.opentelemetry.io/otel/trace v1.34.0
 	golang.org/x/crypto v0.37.0
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
-	golang.org/x/sync v0.13.0
+	golang.org/x/sync v0.14.0
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
