@@ -50,7 +50,7 @@
     "prettier": "^3.5.3",
     "sass": "^1.89.0",
     "start-server-and-test": "^2.0.12",
-    "vite": "^5.4.19",
+    "vite": "^6.3.5",
     "vitest": "^3.1.4"
   }
 }
