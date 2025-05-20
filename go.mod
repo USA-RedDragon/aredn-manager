@@ -6,7 +6,7 @@ require (
 	github.com/JGLTechnologies/gin-rate-limit v1.5.4
 	github.com/USA-RedDragon/configulator v0.0.0-20250409213831-8d29f1f162be
 	github.com/gin-contrib/cors v1.7.5
-	github.com/gin-contrib/pprof v1.5.2
+	github.com/gin-contrib/pprof v1.5.3
 	github.com/gin-contrib/sessions v1.0.2
 	github.com/gin-gonic/gin v1.10.0
 	github.com/glebarez/sqlite v1.11.0
@@ -22,9 +22,9 @@ require (
 	github.com/ztrue/shutdown v0.1.1
 	go.opentelemetry.io/otel v1.34.0
 	go.opentelemetry.io/otel/trace v1.34.0
-	golang.org/x/crypto v0.36.0
+	golang.org/x/crypto v0.37.0
 	golang.org/x/exp v0.0.0-20240325151524-a685a6edb6d8
-	golang.org/x/sync v0.12.0
+	golang.org/x/sync v0.13.0
 	golang.zx2c4.com/wireguard/wgctrl v0.0.0-20230429144221-925a1e7659e6
 	gorm.io/driver/postgres v1.5.11
 	gorm.io/gorm v1.25.12
@@ -82,11 +82,11 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/vishvananda/netns v0.0.5 // indirect
 	github.com/wader/gormstore/v2 v2.0.3 // indirect
-	golang.org/x/arch v0.15.0 // indirect
+	golang.org/x/arch v0.16.0 // indirect
 	golang.org/x/mod v0.18.0 // indirect
 	golang.org/x/net v0.38.0 // indirect
-	golang.org/x/sys v0.31.0 // indirect
-	golang.org/x/text v0.23.0 // indirect
+	golang.org/x/sys v0.32.0 // indirect
+	golang.org/x/text v0.24.0 // indirect
 	golang.org/x/tools v0.22.0 // indirect
 	golang.zx2c4.com/wireguard v0.0.0-20230325221338-052af4a8072b // indirect
 	google.golang.org/protobuf v1.36.6 // indirect
