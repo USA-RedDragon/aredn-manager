@@ -15,6 +15,8 @@ dockers:
       - "ghcr.io/usa-reddragon/aredn-manager:latest-amd64"
     use: buildx
     goarch: amd64
+    extra_files:
+    - docker/rootfs
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -32,6 +34,8 @@ dockers:
       - "ghcr.io/usa-reddragon/aredn-manager:latest-arm64"
     use: buildx
     goarch: arm64
+    extra_files:
+    - docker/rootfs
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
