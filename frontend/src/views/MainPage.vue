@@ -3,14 +3,34 @@
     <div class="info">
       <Card>
         <CardHeader>
+          <CardTitle>Node Info</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <h3 style="font-weight: bold;">Hostname</h3>
+          <p>{{ hostname }}</p>
+          <br />
+          <h3 style="font-weight: bold;">IP</h3>
+          <p>{{ nodeIP }}</p>
+          <br />
+          <h3 style="font-weight: bold;">Version</h3>
+          <p>{{ version }}</p>
+          <span v-if="!!gridsquare">
+            <br />
+            <h3 style="font-weight: bold;">Location</h3>
+            <p>{{ gridsquare }}</p>
+          </span>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
           <CardTitle>Daemon Status</CardTitle>
         </CardHeader>
         <CardContent>
           <table>
             <tbody>
               <tr>
-                <td style="width: 10em;">
-                  <p style="font-weight: bold;">Babel Daemon</p>
+                <td style="width: 70%;">
+                  <p style="font-weight: bold;">babeld</p>
                 </td>
                 <td>
                   <StatusBadge :status="babelRunning" />
@@ -18,7 +38,7 @@
               </tr>
               <tr>
                 <td>
-                  <p style="font-weight: bold;">AREDNLink</p>
+                  <p style="font-weight: bold;">arednlink</p>
                 </td>
                 <td>
                   <StatusBadge :status="arednLinkRunning" />
@@ -26,7 +46,7 @@
               </tr>
               <tr>
                 <td>
-                  <p style="font-weight: bold;">OLSR Daemon</p>
+                  <p style="font-weight: bold;">olsrd</p>
                 </td>
                 <td>
                   <StatusBadge :status="olsrdRunning" />
@@ -34,7 +54,7 @@
               </tr>
               <tr>
                 <td>
-                  <p style="font-weight: bold;">DNSMasq</p>
+                  <p style="font-weight: bold;">dnsmasq</p>
                 </td>
                 <td>
                   <StatusBadge :status="dnsRunning" />
@@ -46,12 +66,24 @@
       </Card>
       <Card>
         <CardHeader>
-          <CardTitle>Network Statistics</CardTitle>
+          <CardTitle>Tunnels</CardTitle>
         </CardHeader>
         <CardContent>
-          <h3 style="font-weight: bold;">Tunnels Connected</h3>
-          <p>{{ wireguardTunnelsConnected }}/{{ totalWireguardTunnels }}</p>
+          <h3 style="font-weight: bold;">Total</h3>
+          <p>{{ wireguardTunnelsConnected }}/{{ totalWireguardTunnels }} connected</p>
           <br />
+          <h3 style="font-weight: bold;">Client</h3>
+          <p>{{ wireguardClientTunnelsConnected }}/{{ totalClientWireguardTunnels }} connected</p>
+          <br />
+          <h3 style="font-weight: bold;">Server</h3>
+          <p>{{ wireguardServerTunnelsConnected }}/{{ totalServerWireguardTunnels }} connected</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Network Stats</CardTitle>
+        </CardHeader>
+        <CardContent>
           <h3 style="font-weight: bold;">Current Bandwidth</h3>
           <p><span style="font-weight: bold;">RX:</span> {{ prettyBytes(stats.total_rx_bytes_per_sec) }}/s</p>
           <p><span style="font-weight: bold;">TX:</span> {{ prettyBytes(stats.total_tx_bytes_per_sec) }}/s</p>
@@ -59,6 +91,59 @@
           <h3 style="font-weight: bold;">Total Traffic Since Restart</h3>
           <p><span style="font-weight: bold;">RX:</span> {{ prettyBytes(stats.total_rx_mb) }}</p>
           <p><span style="font-weight: bold;">TX:</span> {{ prettyBytes(stats.total_tx_mb) }}</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>OLSR Mesh Stats</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <h3 style="font-weight: bold;">Nodes</h3>
+          <p>{{ olsrNodes }}</p>
+          <br />
+          <h3 style="font-weight: bold;">Devices</h3>
+          <p>{{ olsrDevices }}</p>
+          <br />
+          <h3 style="font-weight: bold;">Services</h3>
+          <p>{{ olsrServices }}</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Babel Mesh Stats</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <h3 style="font-weight: bold;">Nodes</h3>
+          <p>{{ babelNodes }}</p>
+          <br />
+          <h3 style="font-weight: bold;">Devices</h3>
+          <p>{{ babelDevices }}</p>
+          <br />
+          <h3 style="font-weight: bold;">Services</h3>
+          <p>{{ babelServices }}</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Load Average</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <h3 style="font-weight: bold;">1 minute</h3>
+          <p>{{ loadavg.one_min }}%</p>
+          <br />
+          <h3 style="font-weight: bold;">5 minutes</h3>
+          <p>{{ loadavg.five_min }}%</p>
+          <br />
+          <h3 style="font-weight: bold;">15 minutes</h3>
+          <p>{{ loadavg.fifteen_min }}%</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Uptime</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>{{ uptime }}</p>
         </CardContent>
       </Card>
     </div>
@@ -111,15 +196,48 @@ export default {
       arednLinkRunning: true,
       wireguardTunnelsConnected: 0,
       totalWireguardTunnels: 0,
+      wireguardClientTunnelsConnected: 0,
+      totalClientWireguardTunnels: 0,
+      wireguardServerTunnelsConnected: 0,
+      totalServerWireguardTunnels: 0,
+      hostname: '',
+      olsrNodes: 0,
+      olsrDevices: 0,
+      olsrServices: 0,
+      babelNodes: 0,
+      babelDevices: 0,
+      babelServices: 0,
+      loadavg: {
+        one_min: 0,
+        five_min: 0,
+        fifteen_min: 0,
+      },
+      version: '',
+      nodeIP: '10.0.0.0',
+      uptime: '',
+      gridsquare: '',
       stats: {},
     };
   },
   methods: {
-    tunnelDisconnected(_) {
+    tunnelDisconnected(event) {
       this.wireguardTunnelsConnected--;
+      if (event.client) {
+        this.wireguardClientTunnelsConnected--;
+      } else {
+        this.wireguardServerTunnelsConnected--;
+      }
+      if (this.wireguardTunnelsConnected < 0) {
+        this.wireguardTunnelsConnected = 0;
+      }
     },
-    tunnelConnected(_) {
+    tunnelConnected(event) {
       this.wireguardTunnelsConnected++;
+      if (event.client) {
+        this.wireguardClientTunnelsConnected++;
+      } else {
+        this.wireguardServerTunnelsConnected++;
+      }
     },
     totalBandwidth(event) {
       if ('TX' in event) {
@@ -147,6 +265,25 @@ export default {
       return prettyBytes(bytes);
     },
     fetchData() {
+      API.get('/version').then((response) => {
+        const longVersion = response.data;
+        this.version = longVersion.split(' ')[0];
+      });
+      API.get('/node-ip').then((response) => {
+        this.nodeIP = response.data.nodeIP;
+      });
+      API.get('/gridsquare').then((response) => {
+        this.gridsquare = response.data.gridsquare;
+      });
+      API.get('/loadavg').then((res) => {
+        this.loadavg = res.data.loadavg;
+      });
+      API.get('/uptime').then((res) => {
+        this.loadavg = res.data.uptime;
+      });
+      API.get('/hostname').then((res) => {
+        this.hostname = res.data.hostname;
+      });
       API.get('/olsr/running').then((res) => {
         this.olsrdRunning = res.data.running;
       });
@@ -164,6 +301,18 @@ export default {
       });
       API.get('/tunnels/wireguard/count').then((res) => {
         this.totalWireguardTunnels = res.data.count;
+      });
+      API.get('/tunnels/wireguard/client/count/connected').then((res) => {
+        this.wireguardClientTunnelsConnected = res.data.count;
+      });
+      API.get('/tunnels/wireguard/client/count').then((res) => {
+        this.totalClientWireguardTunnels = res.data.count;
+      });
+      API.get('/tunnels/wireguard/server/count/connected').then((res) => {
+        this.wireguardServerTunnelsConnected = res.data.count;
+      });
+      API.get('/tunnels/wireguard/server/count').then((res) => {
+        this.totalServerWireguardTunnels = res.data.count;
       });
       API.get('/stats').then((res) => {
         if (typeof res.data == 'string') {
@@ -216,23 +365,23 @@ export default {
 
 @media (max-width: 2100px) {
   .info {
+    -moz-column-count: 4;
+    -webkit-column-count: 4;
+    column-count: 4;
+  }
+}
+@media (max-width: 1200px) {
+  .info {
     -moz-column-count: 3;
     -webkit-column-count: 3;
     column-count: 3;
   }
 }
-@media (max-width: 1200px) {
+@media (max-width: 600px) {
   .info {
     -moz-column-count: 2;
     -webkit-column-count: 2;
     column-count: 2;
-  }
-}
-@media (max-width: 600px) {
-  .info {
-    -moz-column-count: 1;
-    -webkit-column-count: 1;
-    column-count: 1;
   }
 }
 </style>
