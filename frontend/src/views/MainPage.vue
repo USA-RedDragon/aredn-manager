@@ -269,6 +269,11 @@ export default {
         const longVersion = response.data;
         this.version = longVersion.split(' ')[0];
       });
+      API.get(`/olsr/hosts/count`).then((res) => {
+        this.olsrNodes = res.data.nodes;
+        this.olsrDevices = res.data.total;
+        this.olsrServices = res.data.services;
+      });
       API.get('/node-ip').then((response) => {
         this.nodeIP = response.data.nodeIP;
       });
