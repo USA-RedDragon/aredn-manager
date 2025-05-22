@@ -20,9 +20,14 @@ export default [
     component: () => import('../views/MeshMapPage.vue'),
   },
   {
-    path: '/nodes',
-    name: 'Nodes',
-    component: () => import('../views/NodesPage.vue'),
+    path: '/olsr',
+    name: 'OLSR',
+    component: () => import('../views/OLSRPage.vue'),
+  },
+  {
+    path: '/babel',
+    name: 'Babel',
+    component: () => import('../views/BabelPage.vue'),
   },
   {
     path: '/admin/users',

@@ -20,7 +20,7 @@ instance.interceptors.response.use(
       window.location.pathname.startsWith('/admin') &&
       (status === 401 || status === 403)
     ) {
-      window.location = '/login';
+      window.location.href = '/login';
     }
 
     return Promise.reject(error);

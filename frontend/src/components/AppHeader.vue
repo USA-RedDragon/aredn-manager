@@ -5,7 +5,8 @@
     </h1>
     <nav>
       <RouterLink to="/">Home</RouterLink>
-      <RouterLink to="/nodes">Nodes</RouterLink>
+      <RouterLink to="/olsr">OLSR</RouterLink>
+      <RouterLink to="/babel">Babel</RouterLink>
       <RouterLink to="/tunnels">Tunnels</RouterLink>
       <RouterLink v-if="hasMeshmap" to="/meshmap">Mesh Map</RouterLink>
 

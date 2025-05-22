@@ -1,21 +1,31 @@
 <template>
   <div>
     <Card>
-      <template #title>Nodes</template>
-      <template #content>
-        <NodesTable />
-      </template>
+      <CardHeader>
+        <CardTitle>Babel Mesh</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <NodesTable babel />
+      </CardContent>
     </Card>
   </div>
 </template>
 
 <script>
-import Card from 'primevue/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import NodesTable from '../components/NodesTable.vue';
 
 export default {
   components: {
     Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
     NodesTable,
   },
   created() {},
