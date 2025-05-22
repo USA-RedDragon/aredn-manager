@@ -1,4 +1,4 @@
-FROM node:22.15.1-alpine AS frontend-build
+FROM node:22.16.0-alpine AS frontend-build
 
 WORKDIR /app
 
