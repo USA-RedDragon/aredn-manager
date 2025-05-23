@@ -1,6 +1,6 @@
 <template>
   <AppHeader />
-  <RouterView />
+  <RouterView class="container mx-auto" />
   <AppFooter />
 </template>
 

@@ -6,7 +6,7 @@ import {
   getPaginationRowModel,
   useVueTable,
 } from '@tanstack/vue-table'
-import { toRefs } from 'vue'
+import { toRefs, onMounted } from 'vue'
 import DataTablePagination from './DataTablePagination.vue'
 
 import {
@@ -18,17 +18,13 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-const emit = defineEmits<{
-  (e: 'update:pageIndex', pageIndex: number): void
-  (e: 'update:pageSize', pageSize: number): void
-}>()
-
 const props = defineProps<{
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
   pagination?: boolean
   rowCount?: number
   pageCount?: number
+  fetchData: (pageIndex: number, pageSize: number) => Promise<void>
 }>()
 
 const { data, rowCount, pageCount } = toRefs(props)
@@ -41,22 +37,20 @@ const options: TableOptionsWithReactiveData<TData> = {
   getCoreRowModel: getCoreRowModel(),
   manualPagination: props.pagination,
   onPaginationChange: (updater) => {
-    if (props.pagination) {
-      if (typeof updater === 'function') {
-        const pag = table.getState().pagination
-        console.error('pag', pag)
-        const { pageIndex, pageSize } = updater(pag)
-        emit('update:pageIndex', pageIndex)
-        emit('update:pageSize', pageSize)
-      } else {
-        emit('update:pageIndex', updater.pageIndex)
-        emit('update:pageSize', updater.pageSize)
-      }
+    if (typeof updater === 'function') {
+      const newState = updater(table.getState().pagination)
+      props.fetchData(newState.pageIndex + 1, newState.pageSize)
+    } else {
+      props.fetchData(updater.pageIndex + 1, updater.pageSize)
     }
   },
 }
 
 const table = useVueTable(options)
+
+onMounted(() => {
+  props.fetchData(1, 10)
+})
 </script>
 
 <template>

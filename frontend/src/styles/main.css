@@ -134,3 +134,8 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.card-header {
+  font-size: 1.5em;
+  font-weight: bold;
+}

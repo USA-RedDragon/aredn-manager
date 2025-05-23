@@ -91,7 +91,7 @@ const props = defineProps<{
   babel?: boolean
 }>()
 
-function fetchData() {
+function fetchData(page=0, limit=10) {
   loading.value = true;
   const api = props.babel ? '/babel' : '/olsr';
   API.get(`${api}/hosts/count`)
@@ -102,7 +102,7 @@ function fetchData() {
     .catch((err: any) => {
       console.error(err);
     });
-  API.get(`${api}/hosts?page=${page.value}&limit=${limit.value}`)
+  API.get(`${api}/hosts?page=${page}&limit=${limit}`)
     .then((res: any) => {
       if (!res.data.nodes) {
         res.data.nodes = [];
@@ -159,16 +159,7 @@ onMounted(() => {
       pagination
       :rowCount="totalRecords"
       :pageCount="Math.ceil(totalRecords / limit)"
-      @update:pageIndex="(index) => {
-        console.log('Page index:', index)
-        page = index + 1
-        fetchData()
-      }"
-      @update:pageSize="(size) => {
-        console.log('Page size:', size)
-        limit = size
-        fetchData()
-      }"
+      :fetchData="fetchData"
     />
   </div>
 </template>

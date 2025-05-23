@@ -17,12 +17,13 @@ import {
 } from '@/components/ui/select'
 
 interface DataTablePaginationProps {
-  table: Table<Task>
+  table: Table<unknown>
 }
 defineProps<DataTablePaginationProps>()
 </script>
 
 <template>
+  <div>
     <div class="flex-1 text-sm text-muted-foreground">
       {{ table.getFilteredSelectedRowModel().rows.length }} of
       {{ table.getFilteredRowModel().rows.length }} row(s) selected.
@@ -89,4 +90,5 @@ defineProps<DataTablePaginationProps>()
         </Button>
       </div>
     </div>
+  </div>
 </template>

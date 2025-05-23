@@ -151,7 +151,6 @@
 </template>
 
 <script>
-import { Badge } from '@/components/ui/badge';
 import StatusBadge from '@/components/StatusBadge.vue';
 import {
   Card,
@@ -171,7 +170,6 @@ export default {
     CardHeader,
     CardTitle,
     StatusBadge,
-    Badge,
   },
   created() {
     this.fetchData();
@@ -213,7 +211,7 @@ export default {
         fifteen_min: 0,
       },
       version: '',
-      nodeIP: '10.0.0.0',
+      nodeIP: '',
       uptime: '',
       gridsquare: '',
       stats: {},
@@ -284,7 +282,7 @@ export default {
         this.loadavg = res.data.loadavg;
       });
       API.get('/uptime').then((res) => {
-        this.loadavg = res.data.uptime;
+        this.uptime = res.data.uptime;
       });
       API.get('/hostname').then((res) => {
         this.hostname = res.data.hostname;
@@ -361,11 +359,6 @@ export default {
 
 .info > div:not(:first-child) {
   margin-top: 1em;
-}
-
-.card-header {
-  font-size: 1.5em;
-  font-weight: bold;
 }
 
 @media (max-width: 2100px) {

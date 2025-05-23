@@ -1,24 +1,34 @@
 <template>
   <div>
     <Card>
-      <template #title>Mesh Map</template>
-      <template #content>
+      <CardHeader>
+        <CardTitle>Mesh Map</CardTitle>
+      </CardHeader>
+      <CardContent>
         <p>
           This mesh map is updated every hour on the 30 minute mark.
           The map is <a href="https://github.com/USA-RedDragon/MeshMap" target="_blank">open source</a>
         </p>
         <iframe src="https://meshmap.aredn.mcswain.dev/" title="Mesh Map"></iframe>
-      </template>
+      </CardContent>
     </Card>
   </div>
 </template>
 
 <script>
-import Card from 'primevue/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 
 export default {
   components: {
     Card,
+    CardContent,
+    CardHeader,
+    CardTitle,
   },
   created() {
   },
