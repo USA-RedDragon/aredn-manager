@@ -31,6 +31,10 @@ func NewServicesParser() *ServicesParser {
 	return &ServicesParser{}
 }
 
+func (p *ServicesParser) GetServicesCount() int {
+	return len(p.currentServices)
+}
+
 func (p *ServicesParser) Parse() (err error) {
 	services, err := parseServices()
 	if err != nil {

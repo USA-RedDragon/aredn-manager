@@ -56,12 +56,19 @@ func GETOLSRHosts(c *gin.Context) {
 func GETOLSRHostsCount(c *gin.Context) {
 	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
 	if !ok {
-		fmt.Println("POSTLogin: OLSRDHostParser not found in context")
+		fmt.Println("GETOLSRHostsCount: OLSRDHostParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"nodes": olsrdParser.GetAREDNHostsCount(), "total": olsrdParser.GetTotalHostsCount()})
+	servicesParser, ok := c.MustGet("OLSRDServiceParser").(*olsr.ServicesParser)
+	if !ok {
+		fmt.Println("GETOLSRHostsCount: OLSRDServiceParser not found in context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"nodes": olsrdParser.GetAREDNHostsCount(), "total": olsrdParser.GetTotalHostsCount(), "services": servicesParser.GetServicesCount()})
 }
 
 func GETOLSRRunning(c *gin.Context) {
