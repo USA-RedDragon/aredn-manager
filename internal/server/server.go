@@ -29,7 +29,7 @@ import (
 
 const defTimeout = 10 * time.Second
 const debugWriteTimeout = 60 * time.Second
-const rateLimitRate = time.Minute
+const rateLimitRate = 5 * time.Second
 const rateLimitLimit = 100
 
 type Server struct {
