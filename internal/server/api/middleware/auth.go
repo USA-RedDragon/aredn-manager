@@ -3,9 +3,9 @@ package middleware
 import (
 	"fmt"
 	"log/slog"
+	"math"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func RequireLogin(config *config.Config) gin.HandlerFunc {
+func RequireLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
 
@@ -36,6 +36,11 @@ func RequireLogin(config *config.Config) gin.HandlerFunc {
 		uid, ok := userID.(uint)
 		if !ok {
 			fmt.Println("RequireLogin: Unable to convert user_id to uint")
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
+			return
+		}
+		if uid > math.MaxInt32 {
+			fmt.Println("RequireLogin: user_id is out of range")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 			return
 		}

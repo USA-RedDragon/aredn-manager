@@ -40,7 +40,7 @@ func (r *Registry) StartAll() {
 			slog.Debug("service is disabled", "service", name)
 			return true
 		}
-		go func() error {
+		go func() {
 			for {
 				err := service.Start()
 				if err != nil {
@@ -54,7 +54,7 @@ func (r *Registry) StartAll() {
 
 func (r *Registry) StopAll() error {
 	errGrp := errgroup.Group{}
-	r.services.Range(func(name string, service Service) bool {
+	r.services.Range(func(_ string, service Service) bool {
 		errGrp.Go(func() error {
 			return service.Stop()
 		})

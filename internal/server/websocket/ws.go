@@ -34,7 +34,7 @@ func CreateHandler(ws Websocket, config *config.Config) func(*gin.Context) {
 			WriteBufferSize:  bufferSize,
 			WriteBufferPool:  nil,
 			Subprotocols:     []string{},
-			Error: func(w http.ResponseWriter, r *http.Request, status int, reason error) {
+			Error: func(_ http.ResponseWriter, _ *http.Request, _ int, _ error) {
 			},
 			CheckOrigin: func(r *http.Request) bool {
 				origin := r.Header.Get("Origin")

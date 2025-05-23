@@ -47,12 +47,12 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 
 	v1Users := group.Group("/users")
 	// Paginated
-	v1Users.GET("", middleware.RequireLogin(config), v1Controllers.GETUsers)
-	v1Users.POST("", middleware.RequireLogin(config), v1Controllers.POSTUser)
-	v1Users.GET("/me", middleware.RequireLogin(config), v1Controllers.GETUserSelf)
-	v1Users.GET("/:id", middleware.RequireLogin(config), v1Controllers.GETUser)
-	v1Users.PATCH("/:id", middleware.RequireLogin(config), v1Controllers.PATCHUser)
-	v1Users.DELETE("/:id", middleware.RequireLogin(config), v1Controllers.DELETEUser)
+	v1Users.GET("", middleware.RequireLogin(), v1Controllers.GETUsers)
+	v1Users.POST("", middleware.RequireLogin(), v1Controllers.POSTUser)
+	v1Users.GET("/me", middleware.RequireLogin(), v1Controllers.GETUserSelf)
+	v1Users.GET("/:id", middleware.RequireLogin(), v1Controllers.GETUser)
+	v1Users.PATCH("/:id", middleware.RequireLogin(), v1Controllers.PATCHUser)
+	v1Users.DELETE("/:id", middleware.RequireLogin(), v1Controllers.DELETEUser)
 
 	v1OLSR := group.Group("/olsr")
 	v1OLSR.GET("/hosts", v1Controllers.GETOLSRHosts)
@@ -77,7 +77,7 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1Tunnels := group.Group("/tunnels")
 	// Paginated
 	v1Tunnels.GET("", v1Controllers.GETTunnels)
-	v1Tunnels.POST("", middleware.RequireLogin(config), v1Controllers.POSTTunnel)
+	v1Tunnels.POST("", middleware.RequireLogin(), v1Controllers.POSTTunnel)
 	v1Tunnels.GET("/wireguard/count", v1Controllers.GETWireguardTunnelsCount)
 	v1Tunnels.GET("/wireguard/count/connected", v1Controllers.GETWireguardTunnelsCountConnected)
 	v1Tunnels.GET("/wireguard/client/count", v1Controllers.GETWireguardClientTunnelsCount)
@@ -85,6 +85,6 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1Tunnels.GET("/wireguard/client/count/connected", v1Controllers.GETWireguardClientTunnelsCountConnected)
 	v1Tunnels.GET("/wireguard/server/count/connected", v1Controllers.GETWireguardServerTunnelsCountConnected)
 	// v1Tunnels.GET("/:id", v1Controllers.GETTunnel)
-	v1Tunnels.PATCH("", middleware.RequireLogin(config), v1Controllers.PATCHTunnel)
-	v1Tunnels.DELETE("/:id", middleware.RequireLogin(config), v1Controllers.DELETETunnel)
+	v1Tunnels.PATCH("", middleware.RequireLogin(), v1Controllers.PATCHTunnel)
+	v1Tunnels.DELETE("/:id", middleware.RequireLogin(), v1Controllers.DELETETunnel)
 }

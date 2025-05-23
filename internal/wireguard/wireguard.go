@@ -139,6 +139,7 @@ func (wglink *WG) Type() string {
 	return "wireguard"
 }
 
+//nolint:gocyclo
 func (m *Manager) addPeer(peer models.Tunnel) {
 	// Create a new wireguard interface listening on the port from the peer tunnel
 	// If the peer is a client, then the password is the public key of the client

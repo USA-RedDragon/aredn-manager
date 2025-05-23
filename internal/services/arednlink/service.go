@@ -37,7 +37,7 @@ func (s *Service) Reload() error {
 	if err != nil {
 		return err
 	}
-	return syscall.Kill(int(pid), syscall.SIGHUP)
+	return syscall.Kill(pid, syscall.SIGHUP)
 }
 
 func (s *Service) IsRunning() bool {

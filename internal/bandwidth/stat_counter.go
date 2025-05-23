@@ -227,7 +227,7 @@ func (s *StatCounterManager) Get(iface string) *StatCounter {
 
 func (s *StatCounterManager) GetAll() []*StatCounter {
 	var counters []*StatCounter
-	s.counters.Range(func(key, value interface{}) bool {
+	s.counters.Range(func(_, value interface{}) bool {
 		sc, ok := value.(*StatCounter)
 		if !ok {
 			return true
@@ -241,7 +241,7 @@ func (s *StatCounterManager) GetAll() []*StatCounter {
 func (s *StatCounterManager) Stop() error {
 	s.running = false
 	errGrp := errgroup.Group{}
-	s.counters.Range(func(key, value interface{}) bool {
+	s.counters.Range(func(_, value interface{}) bool {
 		sc, ok := value.(*StatCounter)
 		if !ok {
 			return true

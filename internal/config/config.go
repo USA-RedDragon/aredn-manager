@@ -135,7 +135,7 @@ func (c Config) Validate() error {
 		return ErrWireguardStartingPortRequired
 	}
 
-	if c.Wireguard.StartingPort < 1024 || c.Wireguard.StartingPort > 65535 {
+	if c.Wireguard.StartingPort < 1024 {
 		return ErrWireguardStartingPortInvalid
 	}
 
