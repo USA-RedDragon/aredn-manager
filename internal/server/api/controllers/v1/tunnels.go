@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -23,13 +23,13 @@ import (
 func GETTunnels(c *gin.Context) {
 	db, ok := c.MustGet("PaginatedDB").(*gorm.DB)
 	if !ok {
-		fmt.Println("DB cast failed")
+		slog.Error("GETTunnels: Unable to get PaginatedDB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 	cDb, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("GETTunnels: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -51,13 +51,13 @@ func GETTunnels(c *gin.Context) {
 		var err error
 		unfilteredTunnels, err = models.ListWireguardTunnels(db)
 		if err != nil {
-			fmt.Printf("GETTunnels: Error getting tunnels: %v\n", err)
+			slog.Error("GETTunnels: Error getting tunnels", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnels"})
 			return
 		}
 		total, err = models.CountWireguardTunnels(cDb)
 		if err != nil {
-			fmt.Printf("GETTunnels: Error getting tunnel count: %v\n", err)
+			slog.Error("GETTunnels: Error getting tunnel count", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 			return
 		}
@@ -72,7 +72,7 @@ func GETTunnels(c *gin.Context) {
 	}
 	admin, err := strconv.ParseBool(adminStr)
 	if err != nil {
-		fmt.Printf("GETTunnels: Error parsing admin query: %v\n", err)
+		slog.Error("GETTunnels: Error parsing admin query", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Error parsing admin query"})
 		return
 	}
@@ -127,14 +127,14 @@ func GETTunnels(c *gin.Context) {
 func GETWireguardTunnelsCount(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("GETWireguardTunnelsCount: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	count, err := models.CountWireguardTunnels(db)
 	if err != nil {
-		fmt.Printf("GETWireguardTunnelsCount: Error getting tunnel count: %v\n", err)
+		slog.Error("GETWireguardTunnelsCount: Error getting tunnel count", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 		return
 	}
@@ -145,14 +145,14 @@ func GETWireguardTunnelsCount(c *gin.Context) {
 func GETWireguardTunnelsCountConnected(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("GETWireguardTunnelsCountConnected: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	count, err := models.CountWireguardActiveTunnels(db)
 	if err != nil {
-		fmt.Printf("GETTunnelsCountConnected: Error getting tunnel count: %v\n", err)
+		slog.Error("GETWireguardTunnelsCountConnected: Error getting tunnel count", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 		return
 	}
@@ -163,14 +163,14 @@ func GETWireguardTunnelsCountConnected(c *gin.Context) {
 func GETWireguardClientTunnelsCountConnected(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("GETWireguardClientTunnelsCountConnected: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	count, err := models.CountWireguardActiveClientTunnels(db)
 	if err != nil {
-		fmt.Printf("GETWireguardClientTunnelsCountConnected: Error getting tunnel count: %v\n", err)
+		slog.Error("GETWireguardClientTunnelsCountConnected: Error getting tunnel count", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 		return
 	}
@@ -181,14 +181,14 @@ func GETWireguardClientTunnelsCountConnected(c *gin.Context) {
 func GETWireguardServerTunnelsCountConnected(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("GETWireguardServerTunnelsCountConnected: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	count, err := models.CountWireguardActiveServerTunnels(db)
 	if err != nil {
-		fmt.Printf("GETWireguardServerTunnelsCountConnected: Error getting tunnel count: %v\n", err)
+		slog.Error("GETWireguardServerTunnelsCountConnected: Error getting tunnel count", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 		return
 	}
@@ -199,14 +199,14 @@ func GETWireguardServerTunnelsCountConnected(c *gin.Context) {
 func GETWireguardClientTunnelsCount(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("GETWireguardClientTunnelsCount: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	count, err := models.CountWireguardClientTunnels(db)
 	if err != nil {
-		fmt.Printf("GETWireguardClientTunnelsCount: Error getting tunnel count: %v\n", err)
+		slog.Error("GETWireguardClientTunnelsCount: Error getting tunnel count", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 		return
 	}
@@ -217,14 +217,14 @@ func GETWireguardClientTunnelsCount(c *gin.Context) {
 func GETWireguardServerTunnelsCount(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("GETWireguardServerTunnelsCount: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	count, err := models.CountWireguardServerTunnels(db)
 	if err != nil {
-		fmt.Printf("GETWireguardServerTunnelsCount: Error getting tunnel count: %v\n", err)
+		slog.Error("GETWireguardServerTunnelsCount: Error getting tunnel count", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
 		return
 	}
@@ -236,21 +236,21 @@ func GETWireguardServerTunnelsCount(c *gin.Context) {
 func POSTTunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("POSTTunnel: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("POSTTunnel: Unable to get Config from context")
+		slog.Error("POSTTunnel: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	wireguardManager, ok := c.MustGet("WireguardManager").(*wireguard.Manager)
 	if !ok {
-		fmt.Println("POSTTunnel: Unable to get WireguardManager from context")
+		slog.Error("POSTTunnel: Unable to get WireguardManager from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -258,7 +258,7 @@ func POSTTunnel(c *gin.Context) {
 	var json apimodels.CreateTunnel
 	err := c.ShouldBindJSON(&json)
 	if err != nil {
-		fmt.Printf("POSTTunnel: JSON data is invalid: %v\n", err)
+		slog.Error("POSTTunnel: JSON data is invalid", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON data is invalid"})
 	} else {
 		if (!json.Wireguard || json.Client) && json.Password == "" {
@@ -283,7 +283,7 @@ func POSTTunnel(c *gin.Context) {
 			var tunnel models.Tunnel
 			err := db.Find(&tunnel, "hostname = ? AND wireguard = ?", json.Hostname, json.Wireguard).Error
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error getting tunnel: %v\n", err)
+				slog.Error("POSTTunnel: Error getting tunnel", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
 				return
 			} else if tunnel.ID != 0 {
@@ -301,14 +301,14 @@ func POSTTunnel(c *gin.Context) {
 
 			tunnel.IP, err = models.GetNextWireguardIP(db, config)
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error getting next IP: %v\n", err)
+				slog.Error("POSTTunnel: Error getting next IP", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next IP"})
 				return
 			}
 
 			tunnel.WireguardPort, err = models.GetNextWireguardPort(db, config)
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error getting next port: %v\n", err)
+				slog.Error("POSTTunnel: Error getting next port", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting next port"})
 				return
 			}
@@ -316,13 +316,13 @@ func POSTTunnel(c *gin.Context) {
 			// Generate a server and client key pair
 			serverKey, err := wgtypes.GeneratePrivateKey()
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error generating server key: %v\n", err)
+				slog.Error("POSTTunnel: Error generating server key", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating server key"})
 				return
 			}
 			clientKey, err := wgtypes.GeneratePrivateKey()
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error generating client key: %v\n", err)
+				slog.Error("POSTTunnel: Error generating client key", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating client key"})
 				return
 			}
@@ -332,14 +332,14 @@ func POSTTunnel(c *gin.Context) {
 
 			err = db.Create(&tunnel).Error
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error creating tunnel: %v\n", err)
+				slog.Error("POSTTunnel: Error creating tunnel", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating tunnel"})
 				return
 			}
 
 			err = wireguardManager.AddPeer(tunnel)
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error adding wireguard peer: %v\n", err)
+				slog.Error("POSTTunnel: Error adding wireguard peer", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding wireguard peer"})
 				return
 			}
@@ -374,7 +374,7 @@ func POSTTunnel(c *gin.Context) {
 			}
 			_, cidr, err := net.ParseCIDR("172.16.0.0/12")
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error parsing CIDR: %v\n", err)
+				slog.Error("POSTTunnel: Error parsing CIDR", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing CIDR"})
 				return
 			}
@@ -430,7 +430,7 @@ func POSTTunnel(c *gin.Context) {
 			var tunnel models.Tunnel
 			err = db.Find(&tunnel, "ip = ?", json.IP).Error
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error getting tunnel: %v\n", err)
+				slog.Error("POSTTunnel: Error getting tunnel", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
 				return
 			} else if tunnel.ID != 0 {
@@ -475,14 +475,14 @@ func POSTTunnel(c *gin.Context) {
 
 			err = db.Create(&tunnel).Error
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error creating tunnel: %v\n", err)
+				slog.Error("POSTTunnel: Error creating tunnel", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating tunnel"})
 				return
 			}
 
 			err = wireguardManager.AddPeer(tunnel)
 			if err != nil {
-				fmt.Printf("POSTTunnel: Error adding wireguard peer: %v\n", err)
+				slog.Error("POSTTunnel: Error adding wireguard peer", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding wireguard peer"})
 				return
 			}
@@ -490,41 +490,41 @@ func POSTTunnel(c *gin.Context) {
 
 		err = olsr.GenerateAndSave(config, db)
 		if err != nil {
-			fmt.Printf("POSTTunnel: Error generating olsrd config: %v\n", err)
+			slog.Error("POSTTunnel: Error generating olsrd config", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
 			return
 		}
 
 		registry, ok := c.MustGet("registry").(*services.Registry)
 		if !ok {
-			fmt.Println("Error getting registry")
+			slog.Error("POSTTunnel: Error getting registry")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
 		olsrService, ok := registry.Get(services.OLSRServiceName)
 		if !ok {
-			fmt.Println("Error getting OLSR service")
+			slog.Error("POSTTunnel: Error getting olsrd service")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
 
 		err = olsrService.Reload()
 		if err != nil {
-			fmt.Printf("POSTTunnel: Error reloading olsrd: %v\n", err)
+			slog.Error("POSTTunnel: Error reloading olsrd", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
 			return
 		}
 
 		dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
 		if !ok {
-			fmt.Println("Error getting DNSMasq service")
+			slog.Error("POSTTunnel: Error getting DNSMasq service")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
 
 		err = dnsmasqService.Reload()
 		if err != nil {
-			fmt.Printf("Error reloading DNS: %v\n", err)
+			slog.Error("POSTTunnel: Error reloading DNS", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading DNS"})
 			return
 		}
@@ -537,21 +537,21 @@ func POSTTunnel(c *gin.Context) {
 func PATCHTunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Println("DB cast failed")
+		slog.Error("PATCHTunnel: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("PATCHTunnel: Unable to get Config from context")
+		slog.Error("PATCHTunnel: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	wireguardManager, ok := c.MustGet("WireguardManager").(*wireguard.Manager)
 	if !ok {
-		fmt.Println("POSTTunnel: Unable to get WireguardManager from context")
+		slog.Error("PATCHTunnel: Unable to get WireguardManager from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -559,12 +559,12 @@ func PATCHTunnel(c *gin.Context) {
 	var json apimodels.EditTunnel
 	err := c.ShouldBindJSON(&json)
 	if err != nil {
-		fmt.Printf("PATCHTunnel: JSON data is invalid: %v\n", err)
+		slog.Error("PATCHTunnel: JSON data is invalid", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON data is invalid"})
 	} else {
 		exists, err := models.TunnelIDExists(db, json.ID)
 		if err != nil {
-			fmt.Printf("Error checking if tunnel exists: %v\n", err)
+			slog.Error("Error checking if tunnel exists", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking if tunnel exists"})
 			return
 		}
@@ -587,7 +587,7 @@ func PATCHTunnel(c *gin.Context) {
 		ip := net.ParseIP(json.IP)
 		_, cidr, err := net.ParseCIDR("172.16.0.0/12")
 		if err != nil {
-			fmt.Printf("PATCHTunnel: Error parsing CIDR: %v\n", err)
+			slog.Error("Error parsing CIDR", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing CIDR"})
 			return
 		}
@@ -645,7 +645,7 @@ func PATCHTunnel(c *gin.Context) {
 		var tunnel models.Tunnel
 		err = db.Find(&tunnel, "ip = ?", json.IP).Error
 		if err != nil {
-			fmt.Printf("PATCHTunnel: Error getting tunnel: %v\n", err)
+			slog.Error("Error getting tunnel", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
 			return
 		} else if tunnel.ID != 0 && tunnel.ID != json.ID {
@@ -663,7 +663,7 @@ func PATCHTunnel(c *gin.Context) {
 			tunnel.Enabled = *json.Enabled
 			err = db.Model(&tunnel).Updates(models.Tunnel{Enabled: *json.Enabled}).Error
 			if err != nil {
-				fmt.Printf("PATCHTunnel: Error updating tunnel: %v\n", err)
+				slog.Error("Error updating tunnel", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating tunnel"})
 				return
 			}
@@ -676,62 +676,62 @@ func PATCHTunnel(c *gin.Context) {
 
 		err = db.Save(&tunnel).Error
 		if err != nil {
-			fmt.Printf("PATCHTunnel: Error saving tunnel: %v\n", err)
+			slog.Error("Error saving tunnel", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving tunnel"})
 			return
 		}
 
 		err = wireguardManager.RemovePeer(origTunnel)
 		if err != nil {
-			fmt.Printf("PATCHTunnel: Error adding wireguard peer: %v\n", err)
+			slog.Error("Error removing wireguard peer", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding wireguard peer"})
 			return
 		}
 
 		err = wireguardManager.AddPeer(tunnel)
 		if err != nil {
-			fmt.Printf("PATCHTunnel: Error adding wireguard peer: %v\n", err)
+			slog.Error("Error adding wireguard peer", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding wireguard peer"})
 			return
 		}
 
 		err = olsr.GenerateAndSave(config, db)
 		if err != nil {
-			fmt.Printf("PATCHTunnel: Error generating olsrd config: %v\n", err)
+			slog.Error("Error generating olsrd config", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
 			return
 		}
 
 		registry, ok := c.MustGet("registry").(*services.Registry)
 		if !ok {
-			fmt.Println("Error getting registry")
+			slog.Error("Error getting registry")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
 		olsrService, ok := registry.Get(services.OLSRServiceName)
 		if !ok {
-			fmt.Println("Error getting OLSR service")
+			slog.Error("Error getting OLSR service")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
 
 		err = olsrService.Reload()
 		if err != nil {
-			fmt.Printf("PATCHTunnel: Error reloading olsrd: %v\n", err)
+			slog.Error("Error reloading olsrd", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
 			return
 		}
 
 		dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
 		if !ok {
-			fmt.Println("Error getting DNSMasq service")
+			slog.Error("Error getting DNSMasq service")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
 
 		err = dnsmasqService.Reload()
 		if err != nil {
-			fmt.Printf("Error reloading DNS: %v\n", err)
+			slog.Error("Error reloading DNS", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading DNS"})
 			return
 		}
@@ -743,20 +743,20 @@ func PATCHTunnel(c *gin.Context) {
 func DELETETunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Println("DB cast failed")
+		slog.Error("DELETETunnel: DB cast failed")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("DELETETunnel: Unable to get Config from context")
+		slog.Error("DELETETunnel: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	wireguardManager, ok := c.MustGet("WireguardManager").(*wireguard.Manager)
 	if !ok {
-		fmt.Println("DELETETunnel: Unable to get WireguardManager from context")
+		slog.Error("DELETETunnel: Unable to get WireguardManager from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -769,7 +769,7 @@ func DELETETunnel(c *gin.Context) {
 
 	exists, err := models.TunnelIDExists(db, uint(idUint64))
 	if err != nil {
-		fmt.Printf("Error checking if tunnel exists: %v\n", err)
+		slog.Error("Error checking if tunnel exists", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking if tunnel exists"})
 		return
 	}
@@ -780,62 +780,62 @@ func DELETETunnel(c *gin.Context) {
 
 	tunnel, err := models.FindTunnelByID(db, uint(idUint64))
 	if err != nil {
-		fmt.Printf("Error getting tunnel: %v\n", err)
+		slog.Error("Error getting tunnel", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel"})
 		return
 	}
 
 	err = models.DeleteTunnel(db, uint(idUint64))
 	if err != nil {
-		fmt.Printf("Error deleting tunnel: %v\n", err)
+		slog.Error("Error deleting tunnel", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting tunnel"})
 		return
 	}
 
 	err = wireguardManager.RemovePeer(tunnel)
 	if err != nil {
-		fmt.Printf("DELETETunnel: Error removing wireguard peer: %v\n", err)
+		slog.Error("Error removing wireguard peer", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error removing wireguard peer"})
 		return
 	}
 
 	err = olsr.GenerateAndSave(config, db)
 	if err != nil {
-		fmt.Printf("Error generating olsrd config: %v\n", err)
+		slog.Error("Error generating olsrd config", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
 		return
 	}
 
 	registry, ok := c.MustGet("registry").(*services.Registry)
 	if !ok {
-		fmt.Println("Error getting registry")
+		slog.Error("Error getting registry")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 	olsrService, ok := registry.Get(services.OLSRServiceName)
 	if !ok {
-		fmt.Println("Error getting OLSR service")
+		slog.Error("Error getting OLSR service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	err = olsrService.Reload()
 	if err != nil {
-		fmt.Printf("Error reloading olsrd: %v\n", err)
+		slog.Error("Error reloading olsrd", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
 		return
 	}
 
 	dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
 	if !ok {
-		fmt.Println("Error getting DNSMasq service")
+		slog.Error("Error getting DNSMasq service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	err = dnsmasqService.Reload()
 	if err != nil {
-		fmt.Printf("Error reloading DNS: %v\n", err)
+		slog.Error("Error reloading DNS", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading DNS"})
 		return
 	}

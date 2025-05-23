@@ -2,6 +2,7 @@ package metrics
 
 import (
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -55,7 +56,7 @@ func CreateMetricsServer(config *config.Config, version string) {
 		}
 		err := server.ListenAndServe()
 		if err != nil {
-			fmt.Println("Error starting metrics server:", err)
+			slog.Error("Error starting metrics server", "error", err)
 		}
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -32,7 +33,7 @@ func GetAMesh(c *gin.Context) {
 func GETMetrics(c *gin.Context) {
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("GETMetrics: Unable to get Config from context")
+		slog.Error("GETMetrics: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -50,14 +51,14 @@ func GETMetrics(c *gin.Context) {
 
 	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, fmt.Sprintf("http://%s/metrics", hostPort), nil)
 	if err != nil {
-		fmt.Printf("GETMetrics: Unable to create request: %v\n", err)
+		slog.Error("GETMetrics: Unable to create request", "hostPort", hostPort, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	nodeResp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("GETMetrics: Unable to get node-exporter metrics: %v\n", err)
+		slog.Error("GETMetrics: Unable to get node-exporter metrics", "hostPort", hostPort, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -74,14 +75,14 @@ func GETMetrics(c *gin.Context) {
 
 	req, err = http.NewRequestWithContext(c.Request.Context(), http.MethodGet, fmt.Sprintf("http://%s/metrics", hostPort), nil)
 	if err != nil {
-		fmt.Printf("GETMetrics: Unable to create request: %v\n", err)
+		slog.Error("GETMetrics: Unable to create request", "hostPort", hostPort, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	metricsResp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("GETMetrics: Unable to get metrics: %v\n", err)
+		slog.Error("GETMetrics: Unable to get metrics", "hostPort", hostPort, "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -101,28 +102,28 @@ func GETMetrics(c *gin.Context) {
 func GETSysinfo(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Println("POSTLogin: Unable to get DB from context")
+		slog.Error("GETSysinfo: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	version, ok := c.MustGet("Version").(string)
 	if !ok {
-		fmt.Println("POSTLogin: Unable to get version from context")
+		slog.Error("GETSysinfo: Unable to get version from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("GETSysinfo: Unable to get Config from context")
+		slog.Error("GETSysinfo: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	activeTunnels, err := models.CountAllActiveTunnels(db)
 	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to get active tunnels: %v", err)
+		slog.Error("GETSysinfo: Unable to get active tunnels", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -130,7 +131,7 @@ func GETSysinfo(c *gin.Context) {
 	var info syscall.Sysinfo_t
 	err = syscall.Sysinfo(&info)
 	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to get system info: %v", err)
+		slog.Error("GETSysinfo: Unable to get system info", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -191,7 +192,7 @@ func GETSysinfo(c *gin.Context) {
 	if doHosts {
 		olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
 		if !ok {
-			fmt.Println("GETSysinfo: OLSRDHostParser not found in context")
+			slog.Error("GETSysinfo: OLSRDHostParser not found in context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
@@ -201,7 +202,7 @@ func GETSysinfo(c *gin.Context) {
 	if doServices {
 		olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsr.ServicesParser)
 		if !ok {
-			fmt.Println("GETSysinfo: OLSRDServicesParser not found in context")
+			slog.Error("GETSysinfo: OLSRDServicesParser not found in context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
@@ -220,14 +221,14 @@ func getInterfaces() []apimodels.Interface {
 
 	ifaces, err := net.Interfaces()
 	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to get interfaces: %v", err)
+		slog.Error("GETSysinfo: Unable to get interfaces", "error", err)
 		return nil
 	}
 
 	for _, iface := range ifaces {
 		addrs, err := iface.Addrs()
 		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to get addresses for interface %s: %v", iface.Name, err)
+			slog.Error("GETSysinfo: Unable to get addresses for interface", "interface", iface.Name, "error", err)
 			continue
 		}
 		if iface.Name == "lo" || iface.Name == "wg0" {
@@ -236,7 +237,7 @@ func getInterfaces() []apimodels.Interface {
 		for _, addr := range addrs {
 			ip, _, err := net.ParseCIDR(addr.String())
 			if err != nil {
-				fmt.Printf("GETSysinfo: Unable to parse address %s: %v", addr.String(), err)
+				slog.Error("GETSysinfo: Unable to parse address", "address", addr.String(), "error", err)
 				continue
 			}
 			ret = append(ret, apimodels.Interface{
@@ -284,12 +285,12 @@ func getLinkInfo(ctx context.Context) map[string]apimodels.LinkInfo {
 	// http request http://localhost:9090/links
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, "http://localhost:9090/links", nil)
 	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to create request: %v\n", err)
+		slog.Error("GETSysinfo: Unable to create request", "error", err)
 		return nil
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to get links: %v\n", err)
+		slog.Error("GETSysinfo: Unable to get links", "error", err)
 		return nil
 	}
 	defer resp.Body.Close()
@@ -297,7 +298,7 @@ func getLinkInfo(ctx context.Context) map[string]apimodels.LinkInfo {
 	var links apimodels.OlsrdLinks
 	err = json.NewDecoder(resp.Body).Decode(&links)
 	if err != nil {
-		fmt.Printf("GETSysinfo: Unable to decode links: %v\n", err)
+		slog.Error("GETSysinfo: Unable to decode links", "error", err)
 		return nil
 	}
 
@@ -389,7 +390,7 @@ func getServices(parser *olsr.ServicesParser) []apimodels.Service {
 		// we need to take the hostname from the URL and resolve it to an IP
 		url, err := url.Parse(svc.URL)
 		if err != nil {
-			fmt.Printf("GETSysinfo: Unable to parse URL: %v\n", err)
+			slog.Error("GETSysinfo: Unable to parse URL", "url", svc.URL, "error", err)
 			continue
 		}
 		ips, err := net.LookupIP(url.Hostname())

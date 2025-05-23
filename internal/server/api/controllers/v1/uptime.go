@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
 	"syscall"
 
@@ -13,13 +13,13 @@ func GETUptime(c *gin.Context) {
 	var info syscall.Sysinfo_t
 	err := syscall.Sysinfo(&info)
 	if err != nil {
-		fmt.Printf("GETUptime: Unable to get system info: %v\n", err)
+		slog.Error("GETUptime: Unable to get system info", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to get system info"})
 		return
 	}
 	uptime := utils.SecondsToClock(info.Uptime)
 	if uptime == "" {
-		fmt.Println("GETUptime: Unable to convert uptime to string")
+		slog.Error("GETUptime: Unable to convert uptime to string")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to convert uptime to string"})
 		return
 	}

@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 
@@ -18,14 +18,14 @@ import (
 func POSTLogin(c *gin.Context) {
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("POSTLogin: Unable to get Config from context")
+		slog.Error("POSTLogin: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	// If the IP is from the private ip ranges, reject the login. We cannot encrypt traffic over the mesh
 	if net.ParseIP(c.ClientIP()).IsPrivate() && !slices.Contains(config.TrustedProxies, c.ClientIP()) {
-		fmt.Println("POSTLogin: Login from private IP")
+		slog.Error("POSTLogin: Login from private IP")
 		c.JSON(http.StatusUnavailableForLegalReasons, gin.H{"error": "Cannot encrypt traffic over the mesh. Please use the site via the internet."})
 		return
 	}
@@ -33,7 +33,7 @@ func POSTLogin(c *gin.Context) {
 	session := sessions.Default(c)
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Println("POSTLogin: Unable to get DB from context")
+		slog.Error("POSTLogin: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -41,7 +41,7 @@ func POSTLogin(c *gin.Context) {
 	var json apimodels.AuthLogin
 	err := c.ShouldBindJSON(&json)
 	if err != nil {
-		fmt.Printf("POSTLogin: JSON data is invalid: %v\n", err)
+		slog.Error("POSTLogin: JSON data is invalid", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON data is invalid"})
 	} else {
 		// Check that one of username is not blank
@@ -56,25 +56,27 @@ func POSTLogin(c *gin.Context) {
 		}
 		var user models.User
 		db.Find(&user, "username = ?", json.Username)
+		if db.Error != nil {
+			slog.Error("POSTLogin: Error finding user", "error", db.Error)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
 
-		fmt.Printf("POSTLogin: User found %v\n", user)
-
-		fmt.Printf("POSTLogin: %v\n", utils.HashPassword(json.Password, config.PasswordSalt))
+		slog.Debug("POSTLogin: User found", "user", user)
 
 		verified, err := utils.VerifyPassword(json.Password, user.Password, config.PasswordSalt)
-		fmt.Printf("POSTLogin: Password verified %v\n", verified)
 		if verified && err == nil {
 			session.Set("user_id", user.ID)
 			err = session.Save()
 			if err != nil {
-				fmt.Printf("POSTLogin: %v\n", err)
+				slog.Error("POSTLogin: Error saving session", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving session"})
 				return
 			}
 			c.JSON(http.StatusOK, gin.H{"message": "Logged in"})
 			return
 		}
-		fmt.Printf("POSTLogin: %v\n", err)
+		slog.Error("POSTLogin: Invalid username or password", "username", json.Username)
 	}
 
 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
@@ -85,7 +87,7 @@ func GETLogout(c *gin.Context) {
 	session.Clear()
 	err := session.Save()
 	if err != nil {
-		fmt.Printf("GETLogout: %v\n", err)
+		slog.Error("GETLogout: Error saving session", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error saving session"})
 		return
 	}

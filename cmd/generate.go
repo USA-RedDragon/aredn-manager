@@ -45,16 +45,19 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	db := db.MakeDB(config)
+	db, err := db.MakeDB(config)
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
 
-	fmt.Println("Generating olsrd config")
+	slog.Info("Generating olsrd config")
 	err = olsr.GenerateAndSave(config, db)
 	if err != nil {
 		return err
 	}
 
 	if config.Babel.Enabled {
-		fmt.Println("Generating babeld config")
+		slog.Info("Generating babeld config")
 		err = babel.GenerateAndSave(config, db)
 		if err != nil {
 			return err

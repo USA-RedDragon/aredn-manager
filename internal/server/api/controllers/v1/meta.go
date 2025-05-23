@@ -3,6 +3,7 @@ package v1
 import (
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 func GETVersion(c *gin.Context) {
 	version, ok := c.MustGet("Version").(string)
 	if !ok {
-		fmt.Println("POSTLogin: Unable to get version from context")
+		slog.Error("GETVersion: Unable to get version from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}

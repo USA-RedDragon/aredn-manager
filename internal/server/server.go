@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"time"
 
@@ -68,7 +69,7 @@ func (s *Server) Run(version string, registry *services.Registry) error {
 
 	err := r.SetTrustedProxies(s.config.TrustedProxies)
 	if err != nil {
-		fmt.Printf("%v\n", err)
+		slog.Error("Failed to set trusted proxies", "error", err)
 	}
 	r.TrustedPlatform = "X-Real-IP"
 
@@ -96,7 +97,7 @@ func (s *Server) run() {
 				s.shutdownChannel <- true
 				return
 			default:
-				fmt.Printf("Failed to start HTTP server: %s", err)
+				slog.Error("Failed to start HTTP server", "error", err)
 			}
 		}
 	}()

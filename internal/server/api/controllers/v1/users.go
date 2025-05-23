@@ -4,6 +4,7 @@ import (
 	//nolint:golint,gosec
 	"crypto/sha1"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,26 +22,26 @@ import (
 func GETUsers(c *gin.Context) {
 	db, ok := c.MustGet("PaginatedDB").(*gorm.DB)
 	if !ok {
-		fmt.Println("DB cast failed")
+		slog.Error("GETUsers: Unable to get PaginatedDB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 	cDb, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("GETUsers: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 	users, err := models.ListUsers(db)
 	if err != nil {
-		fmt.Printf("GETUsers: Error getting users: %v\n", err)
+		slog.Error("GETUsers: Error getting users", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting users"})
 		return
 	}
 
 	total, err := models.CountUsers(cDb)
 	if err != nil {
-		fmt.Printf("GETUsers: Error getting user count: %v\n", err)
+		slog.Error("GETUsers: Error getting user count", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting user count"})
 		return
 	}
@@ -50,14 +51,14 @@ func GETUsers(c *gin.Context) {
 func POSTUser(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Printf("DB cast failed")
+		slog.Error("POSTUser: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("POSTUser: Unable to get Config from context")
+		slog.Error("POSTUser: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -65,7 +66,7 @@ func POSTUser(c *gin.Context) {
 	var json apimodels.UserRegistration
 	err := c.ShouldBindJSON(&json)
 	if err != nil {
-		fmt.Printf("POSTUser: JSON data is invalid: %v\n", err)
+		slog.Error("POSTUser: JSON data is invalid", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON data is invalid"})
 	} else {
 		isValid, errString := json.IsValidUsername()
@@ -84,7 +85,7 @@ func POSTUser(c *gin.Context) {
 		var user models.User
 		err := db.Find(&user, "username = ?", json.Username).Error
 		if err != nil {
-			fmt.Printf("POSTUser: Error getting user: %v\n", err)
+			slog.Error("POSTUser: Error getting user", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting user"})
 			return
 		} else if user.ID != 0 {
@@ -106,7 +107,7 @@ func POSTUser(c *gin.Context) {
 					c.JSON(http.StatusTooManyRequests, gin.H{"error": "Too many requests. Please try again in one minute"})
 					return
 				}
-				fmt.Printf("POSTUser: Error getting pwned passwords: %v\n", err)
+				slog.Error("POSTUser: Error getting pwned passwords", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting pwned passwords"})
 				return
 			}
@@ -120,7 +121,7 @@ func POSTUser(c *gin.Context) {
 
 				count, err := strconv.ParseInt(strArray[1], 0, 32)
 				if err != nil {
-					fmt.Printf("POSTUser: Error parsing pwned password count: %v\n", err)
+					slog.Error("POSTUser: Error parsing pwned password count", "error", err)
 					c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing pwned password count"})
 					return
 				}
@@ -143,7 +144,7 @@ func POSTUser(c *gin.Context) {
 		}
 		err = db.Create(&user).Error
 		if err != nil {
-			fmt.Printf("POSTUser: Error creating user: %v\n", err)
+			slog.Error("POSTUser: Error creating user", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error creating user"})
 			return
 		}
@@ -154,7 +155,7 @@ func POSTUser(c *gin.Context) {
 func GETUser(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Println("DB cast failed")
+		slog.Error("GETUser: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -167,7 +168,7 @@ func GETUser(c *gin.Context) {
 	}
 	user, err := models.FindUserByID(db, uint(userID))
 	if err != nil {
-		fmt.Printf("Error finding user: %v\n", err)
+		slog.Error("Error finding user", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "User does not exist"})
 	}
 	c.JSON(http.StatusOK, user)
@@ -176,14 +177,14 @@ func GETUser(c *gin.Context) {
 func PATCHUser(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Println("DB cast failed")
+		slog.Error("PATCHUser: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	config, ok := c.MustGet("Config").(*config.Config)
 	if !ok {
-		fmt.Println("POSTLogin: Unable to get Config from context")
+		slog.Error("PATCHUser: Unable to get Config from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -197,12 +198,12 @@ func PATCHUser(c *gin.Context) {
 	var json apimodels.UserPatch
 	err = c.ShouldBindJSON(&json)
 	if err != nil {
-		fmt.Printf("PATCHUser: JSON data is invalid: %v\n", err)
+		slog.Error("PATCHUser: JSON data is invalid", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "JSON data is invalid"})
 	} else {
 		user, err := models.FindUserByID(db, uint(idInt))
 		if err != nil {
-			fmt.Printf("Error finding user: %v\n", err)
+			slog.Error("Error finding user", "error", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "User does not exist"})
 			return
 		}
@@ -212,7 +213,7 @@ func PATCHUser(c *gin.Context) {
 			var existingUser models.User
 			err := db.Find(&existingUser, "username = ?", json.Username).Error
 			if err != nil {
-				fmt.Printf("Error finding user: %v\n", err)
+				slog.Error("Error finding user", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finding user"})
 				return
 			} else if existingUser.ID != 0 {
@@ -228,7 +229,7 @@ func PATCHUser(c *gin.Context) {
 
 		err = db.Save(&user).Error
 		if err != nil {
-			fmt.Printf("Error updating user: %v\n", err)
+			slog.Error("Error updating user", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error updating user"})
 			return
 		}
@@ -239,7 +240,7 @@ func PATCHUser(c *gin.Context) {
 func DELETEUser(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Println("DB cast failed")
+		slog.Error("DELETEUser: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -251,7 +252,7 @@ func DELETEUser(c *gin.Context) {
 
 	exists, err := models.UserIDExists(db, uint(idUint64))
 	if err != nil {
-		fmt.Printf("Error checking if user exists: %v\n", err)
+		slog.Error("Error checking if user exists", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error checking if user exists"})
 		return
 	}
@@ -262,7 +263,7 @@ func DELETEUser(c *gin.Context) {
 
 	err = models.DeleteUser(db, uint(idUint64))
 	if err != nil {
-		fmt.Printf("Error deleting user: %v\n", err)
+		slog.Error("Error deleting user", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error deleting user"})
 		return
 	}
@@ -272,7 +273,7 @@ func DELETEUser(c *gin.Context) {
 func GETUserSelf(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
 	if !ok {
-		fmt.Println("DB cast failed")
+		slog.Error("GETUserSelf: Unable to get DB from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -280,21 +281,21 @@ func GETUserSelf(c *gin.Context) {
 
 	userID := session.Get("user_id")
 	if userID == nil {
-		fmt.Println("userID not found")
+		slog.Debug("GETUserSelf: user_id is nil")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 		return
 	}
 
 	uid, ok := userID.(uint)
 	if !ok {
-		fmt.Println("userID cast failed")
+		slog.Error("GETUserSelf: Unable to convert user_id to uint", "user_id", userID)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	user, err := models.FindUserByID(db, uid)
 	if err != nil {
-		fmt.Printf("Error finding user: %v\n", err)
+		slog.Error("GETUserSelf: Error finding user", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error finding user"})
 		return
 	}

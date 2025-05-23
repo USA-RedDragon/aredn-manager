@@ -2,6 +2,7 @@ package ifacewatcher
 
 import (
 	"fmt"
+	"log/slog"
 	"net"
 	"strings"
 	"time"
@@ -114,7 +115,7 @@ func (w *Watcher) watch() {
 	w.interfacesToMarkInactive = []_iface{}
 	interfaces, err := net.Interfaces()
 	if err != nil {
-		fmt.Println(err)
+		slog.Error("Error getting interfaces", "error", err)
 	} else {
 		// Loop through w.interfaces and check if any are present but missing from net.Interfaces()
 		for _, iface := range w.interfaces {
@@ -128,7 +129,7 @@ func (w *Watcher) watch() {
 				}
 				err = w.Stats.Remove(iface.Name)
 				if err != nil {
-					fmt.Println(err)
+					slog.Error("Error removing interface from stats", "error", err)
 					continue
 				}
 				w.interfaces = remove(w.interfaces, iface)
@@ -143,7 +144,7 @@ func (w *Watcher) watch() {
 				}
 				err = w.Stats.Remove(iface.Name)
 				if err != nil {
-					fmt.Println(err)
+					slog.Error("Error removing interface from stats", "error", err)
 					continue
 				}
 				w.interfaces = remove(w.interfaces, iface)
@@ -156,12 +157,12 @@ func (w *Watcher) watch() {
 			if strings.HasPrefix(iface.Name, "wg") && iface.Name != WG0 && w.wgInterfaceActive(_iface{iface, nil}) && !ifaceContainsNetInterface(w.interfaces, iface) {
 				tunnel := w.findTunnel(iface)
 				if tunnel == nil {
-					fmt.Printf("No tunnel found for interface %s\n", iface.Name)
+					slog.Error("No tunnel found for interface", "interface", iface.Name)
 					continue
 				}
 				err = w.Stats.Add(iface.Name)
 				if err != nil {
-					fmt.Println(err)
+					slog.Error("Error adding interface to stats", "error", err)
 					continue
 				}
 				w.interfaces = append(w.interfaces, _iface{
@@ -171,12 +172,12 @@ func (w *Watcher) watch() {
 			} else if strings.HasPrefix(iface.Name, "tun") && !ifaceContainsNetInterface(w.interfaces, iface) {
 				tunnel := w.findTunnel(iface)
 				if tunnel == nil {
-					fmt.Printf("No tunnel found for interface %s\n", iface.Name)
+					slog.Error("No tunnel found for interface", "interface", iface.Name)
 					continue
 				}
 				err = w.Stats.Add(iface.Name)
 				if err != nil {
-					fmt.Println(err)
+					slog.Error("Error adding interface to stats", "error", err)
 					continue
 				}
 				w.interfaces = append(w.interfaces, _iface{
@@ -193,13 +194,13 @@ func (w *Watcher) watch() {
 func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 	addrs, err := iface.Addrs()
 	if err != nil {
-		fmt.Println(err)
+		slog.Error("Error getting addresses for interface", "interface", iface.Name, "error", err)
 		return nil
 	}
 	for _, addr := range addrs {
 		ip, _, err := net.ParseCIDR(addr.String())
 		if err != nil {
-			fmt.Println(err)
+			slog.Error("Error parsing CIDR", "addr", addr.String(), "error", err)
 			continue
 		}
 		ip = ip.To4()
@@ -209,14 +210,14 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 			if strings.HasPrefix(iface.Name, "wgs") {
 				tun, err = models.FindTunnelByIP(w.db, ip)
 				if err != nil {
-					fmt.Println(err)
+					slog.Error("Error finding tunnel by IP", "ip", ip.String(), "error", err)
 					continue
 				}
 			} else if strings.HasPrefix(iface.Name, "wgc") {
 				ip[3]--
 				tun, err = models.FindTunnelByIP(w.db, ip)
 				if err != nil {
-					fmt.Println(err)
+					slog.Error("Error finding tunnel by IP", "ip", ip.String(), "error", err)
 					continue
 				}
 			}
@@ -228,7 +229,7 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 				ip[3]++ // AREDN tunnel IPs are always the interface IP - 1 if a server
 				tun, err = models.FindTunnelByIP(w.db, ip)
 				if err != nil {
-					fmt.Println(err)
+					slog.Error("Error finding tunnel by IP", "ip", ip.String(), "error", err)
 					continue
 				}
 			}
@@ -242,7 +243,7 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 func (w *Watcher) reconcileDB() {
 	for _, iface := range w.interfacesToMarkInactive {
 		if iface.AssociatedTunnel != nil {
-			fmt.Printf("Marking tunnel %s as inactive\n", iface.AssociatedTunnel.Hostname)
+			slog.Info("Marking tunnel as inactive", "tunnel", iface.AssociatedTunnel.Hostname)
 			iface.AssociatedTunnel.Active = false
 			iface.AssociatedTunnel.TunnelInterface = ""
 			iface.AssociatedTunnel.RXBytesPerSec = 0
@@ -279,7 +280,7 @@ func (w *Watcher) reconcileDB() {
 	for _, iface := range w.interfaces {
 		if iface.AssociatedTunnel != nil {
 			if !iface.AssociatedTunnel.Active {
-				fmt.Printf("Marking tunnel %s as active\n", iface.AssociatedTunnel.Hostname)
+				slog.Info("Marking tunnel as active", "tunnel", iface.AssociatedTunnel.Hostname)
 				iface.AssociatedTunnel.Active = true
 				iface.AssociatedTunnel.TunnelInterface = iface.Name
 				iface.AssociatedTunnel.ConnectionTime = time.Now()

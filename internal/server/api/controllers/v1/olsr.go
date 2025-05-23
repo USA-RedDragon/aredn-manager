@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -13,7 +13,7 @@ import (
 func GETOLSRHosts(c *gin.Context) {
 	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
 	if !ok {
-		fmt.Println("POSTLogin: OLSRDHostParser not found in context")
+		slog.Error("GETOLSRHosts: OLSRDHostParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -24,7 +24,7 @@ func GETOLSRHosts(c *gin.Context) {
 	}
 	pageInt, err := strconv.ParseInt(pageStr, 10, 64)
 	if err != nil {
-		fmt.Println("Error parsing page:", err)
+		slog.Error("Error parsing page:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page"})
 		return
 	}
@@ -36,7 +36,7 @@ func GETOLSRHosts(c *gin.Context) {
 	}
 	limitInt, err := strconv.ParseInt(limitStr, 10, 64)
 	if err != nil {
-		fmt.Println("Error parsing limit:", err)
+		slog.Error("Error parsing limit:", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit"})
 		return
 	}
@@ -56,14 +56,14 @@ func GETOLSRHosts(c *gin.Context) {
 func GETOLSRHostsCount(c *gin.Context) {
 	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
 	if !ok {
-		fmt.Println("GETOLSRHostsCount: OLSRDHostParser not found in context")
+		slog.Error("GETOLSRHostsCount: OLSRDHostParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
 	servicesParser, ok := c.MustGet("OLSRDServiceParser").(*olsr.ServicesParser)
 	if !ok {
-		fmt.Println("GETOLSRHostsCount: OLSRDServiceParser not found in context")
+		slog.Error("GETOLSRHostsCount: OLSRDServiceParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -74,13 +74,13 @@ func GETOLSRHostsCount(c *gin.Context) {
 func GETOLSRRunning(c *gin.Context) {
 	registry, ok := c.MustGet("registry").(*services.Registry)
 	if !ok {
-		fmt.Println("Error getting registry")
+		slog.Error("Error getting registry")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 	olsrService, ok := registry.Get(services.OLSRServiceName)
 	if !ok {
-		fmt.Println("Error getting OLSR service")
+		slog.Error("Error getting OLSR service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}

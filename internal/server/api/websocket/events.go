@@ -3,7 +3,7 @@ package websocket
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
@@ -61,7 +61,7 @@ func (c *EventsWebsocket) OnConnect(ctx context.Context, _ *http.Request, w webs
 			case event := <-c.websocketChannel:
 				eventDataJSON, err := json.Marshal(event)
 				if err != nil {
-					fmt.Println("Error marshalling event data:", err)
+					slog.Error("Error marshalling event data", "error", err)
 					continue
 				}
 				w.WriteMessage(websocket.Message{

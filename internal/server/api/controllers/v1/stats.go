@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
@@ -11,7 +11,7 @@ import (
 func GETStats(c *gin.Context) {
 	stats, ok := c.MustGet("NetworkStats").(*bandwidth.StatCounterManager)
 	if !ok {
-		fmt.Println("GETStats: Unable to get stats manager from context")
+		slog.Error("GETStats: Unable to get stats manager from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}

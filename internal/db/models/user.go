@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
@@ -67,7 +68,7 @@ func NewUsersSeeder(cfg gorm_seeder.SeederConfiguration, config *config.Config) 
 func (s *UsersSeeder) Seed(db *gorm.DB) error {
 	pass := s.config.InitialAdminUserPassword
 	if pass == "" {
-		fmt.Println("Initial admin user password not set, using auto-generated password")
+		slog.Error("Initial admin user password not set, using auto-generated password")
 		const randLen = 15
 		const randNums = 4
 		const randSpecial = 2
@@ -84,7 +85,7 @@ func (s *UsersSeeder) Seed(db *gorm.DB) error {
 			Password: utils.HashPassword(pass, s.config.PasswordSalt),
 		},
 	}
-	fmt.Printf("!#!#!#!#!# Initial admin user password: %s #!#!#!#!#!\n", pass)
+	slog.Error("!#!#!#!#!# Initial admin user password #!#!#!#!#!", "password", pass)
 	return db.CreateInBatches(users, s.Configuration.Rows).Error
 }
 
@@ -98,8 +99,7 @@ func DeleteUser(db *gorm.DB, id uint) error {
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("Error deleting user: %v\n", err)
-		return err
+		return fmt.Errorf("error deleting user: %w", err)
 	}
 	return nil
 }

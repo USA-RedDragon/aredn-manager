@@ -3,6 +3,7 @@ package bandwidth
 import (
 	"fmt"
 	"log"
+	"log/slog"
 	"sync"
 	"time"
 
@@ -58,7 +59,7 @@ func (s *StatCounter) Start() error {
 			time.Sleep(500 * time.Millisecond)
 			tunnel, err := models.FindTunnelByInterface(s.db, s.iface)
 			if err != nil {
-				fmt.Println("Error finding tunnel:", err)
+				slog.Error("Error finding tunnel by interface", "iface", s.iface, "error", err)
 				return
 			}
 			if !tunnel.Active {
@@ -98,7 +99,7 @@ func (s *StatCounter) Start() error {
 				}
 				tunnel.TXBytesPerSec = s.lastNewTXBytes + newBytes
 				if err = s.db.Save(tunnel).Error; err != nil {
-					fmt.Println("Error saving tunnel:", err)
+					slog.Error("Error saving tunnel", "error", err)
 					continue
 				}
 			}

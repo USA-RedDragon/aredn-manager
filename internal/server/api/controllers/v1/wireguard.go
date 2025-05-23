@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
@@ -12,8 +12,8 @@ import (
 func GETWireguardGenkey(c *gin.Context) {
 	key, err := wgtypes.GeneratePrivateKey()
 	if err != nil {
+		slog.Error("Error generating key", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating key"})
-		fmt.Println("Error generating key:", err)
 		return
 	}
 
@@ -24,14 +24,14 @@ func POSTWireguardPubkey(c *gin.Context) {
 	var req apimodels.WireguardPubkeyRequest
 	err := c.BindJSON(&req)
 	if err != nil {
-		fmt.Println("Error binding json:", err)
+		slog.Error("Error binding json", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request"})
 		return
 	}
 
 	private, err := wgtypes.ParseKey(req.Privkey)
 	if err != nil {
-		fmt.Println("Error parsing key:", err)
+		slog.Error("Error parsing key", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid key"})
 		return
 	}

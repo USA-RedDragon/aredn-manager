@@ -2,7 +2,7 @@ package websocket
 
 import (
 	"context"
-	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 
@@ -65,7 +65,7 @@ func CreateHandler(ws Websocket, config *config.Config) func(*gin.Context) {
 		session := sessions.Default(c)
 		conn, err := handler.wsUpgrader.Upgrade(c.Writer, c.Request, nil)
 		if err != nil {
-			fmt.Printf("Failed to set websocket upgrade: %v\n", err)
+			slog.Error("Failed to set websocket upgrade", "error", err)
 			return
 		}
 		handler.conn = conn
@@ -74,7 +74,7 @@ func CreateHandler(ws Websocket, config *config.Config) func(*gin.Context) {
 			handler.handler.OnDisconnect(c, c.Request, session)
 			err := handler.conn.Close()
 			if err != nil {
-				fmt.Printf("Failed to close websocket: %v\n", err)
+				slog.Error("Failed to close websocket", "error", err)
 			}
 		}()
 		handler.handle(c.Request.Context(), session, c.Request)

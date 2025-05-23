@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log/slog"
 	"math"
 	"math/big"
 	"strings"
@@ -48,7 +49,7 @@ func HashPassword(password string, salt string) string {
 	// Fill the salt with cryptographically secure random bytes.
 	_, err := rand.Read(params.salt)
 	if err != nil {
-		fmt.Printf("HashPassword: %v\n", err)
+		slog.Error("HashPassword: Unable to read random bytes", "error", err)
 	}
 
 	bytes := argon2.IDKey([]byte(password+salt), params.salt, params.iterations, params.memory, params.parallelism, params.keyLength)

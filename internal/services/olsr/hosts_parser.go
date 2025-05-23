@@ -2,6 +2,7 @@ package olsr
 
 import (
 	"fmt"
+	"log/slog"
 	"net"
 	"net/url"
 	"os"
@@ -129,7 +130,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 			if splt[1] == "myself" {
 				split2 := strings.Fields(line)
 				if len(split2) != 2 {
-					fmt.Printf("Invalid line in hosts file: %s\n", line)
+					slog.Warn("Invalid line in hosts file", "line", line)
 					continue
 				}
 				split2[0] = strings.TrimSpace(split2[0])
@@ -148,7 +149,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 		// Note that the separator may be any amount of whitespace or tabs
 		split := strings.Fields(line)
 		if len(split) != 2 {
-			fmt.Printf("Invalid line in hosts file: %s\n", line)
+			slog.Warn("Invalid line in hosts file", "line", line)
 			continue
 		}
 
@@ -167,13 +168,13 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 		}
 
 		if split[1] == "" {
-			fmt.Printf("Invalid hostname in hosts file: %s\n", line)
+			slog.Warn("Invalid hostname in hosts file", "line", line)
 			continue
 		}
 
 		ip := net.ParseIP(split[0])
 		if ip == nil {
-			fmt.Printf("Invalid IP in hosts file: %s\n", line)
+			slog.Warn("Invalid IP in hosts file", "ip", split[0])
 			continue
 		}
 
@@ -233,7 +234,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 	svcs := NewServicesParser()
 	err = svcs.Parse()
 	if err != nil {
-		fmt.Printf("Error parsing services: %v\n", err)
+		slog.Error("Error parsing services", "error", err)
 		return
 	}
 
@@ -247,7 +248,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 			for _, svc := range services {
 				url, err := url.Parse(svc.URL)
 				if err != nil {
-					fmt.Printf("Error parsing URL: %v\n", err)
+					slog.Error("Error parsing URL", "error", err)
 					continue
 				}
 
@@ -269,7 +270,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 		for _, svc := range services {
 			url, err := url.Parse(svc.URL)
 			if err != nil {
-				fmt.Printf("Error parsing URL: %v\n", err)
+				slog.Error("Error parsing URL", "error", err)
 				continue
 			}
 			serviceAlreadyFound := false

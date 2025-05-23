@@ -2,6 +2,7 @@ package olsr
 
 import (
 	"fmt"
+	"log/slog"
 	"net/url"
 	"os"
 	"strings"
@@ -82,7 +83,7 @@ func parseServices() (ret []*AREDNService, err error) {
 
 		url, err := url.Parse(split[0])
 		if err != nil {
-			fmt.Printf("Invalid URL in services file: %s\n", split[0])
+			slog.Warn("Error parsing URL", "url", split[0], "error", err)
 			continue
 		}
 

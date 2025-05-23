@@ -1,7 +1,7 @@
 package v1
 
 import (
-	"fmt"
+	"log/slog"
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
@@ -11,13 +11,13 @@ import (
 func GETDNSRunning(c *gin.Context) {
 	registry, ok := c.MustGet("registry").(*services.Registry)
 	if !ok {
-		fmt.Println("Error getting registry")
+		slog.Error("Error getting registry")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 	dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
 	if !ok {
-		fmt.Println("Error getting DNSMasq service")
+		slog.Error("Error getting DNSMasq service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}

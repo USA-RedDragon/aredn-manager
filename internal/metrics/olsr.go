@@ -3,7 +3,7 @@ package metrics
 import (
 	"context"
 	"encoding/json"
-	"fmt"
+	"log/slog"
 	"net/http"
 	"strings"
 	"time"
@@ -95,20 +95,20 @@ func OLSRWatcher(db *gorm.DB) {
 	for {
 		req, err := http.NewRequestWithContext(context.TODO(), http.MethodGet, "http://localhost:9090/links", nil)
 		if err != nil {
-			fmt.Printf("OLSRWatcher: Unable to create request: %v\n", err)
+			slog.Error("OLSRWatcher: Unable to create request", "error", err)
 			time.Sleep(1 * time.Second)
 			continue
 		}
 		resp, err := client.Do(req)
 		if err != nil {
-			fmt.Printf("OLSRWatcher: Unable to get links: %v\n", err)
+			slog.Error("OLSRWatcher: Unable to get links", "error", err)
 			time.Sleep(1 * time.Second)
 			continue
 		}
 		var links apimodels.OlsrdLinks
 		err = json.NewDecoder(resp.Body).Decode(&links)
 		if err != nil {
-			fmt.Printf("OLSRWatcher: Unable to decode links: %v\n", err)
+			slog.Error("OLSRWatcher: Unable to decode links", "error", err)
 			time.Sleep(1 * time.Second)
 			resp.Body.Close()
 			continue
@@ -154,13 +154,13 @@ func OLSRWatcher(db *gorm.DB) {
 				if !strings.HasPrefix(iface, "br") {
 					tunnel, err := models.FindTunnelByInterface(db, iface)
 					if err != nil {
-						fmt.Printf("OLSRWatcher: Unable to find tunnel by interface: %v\n", err)
+						slog.Error("OLSRWatcher: Unable to find tunnel by interface", "iface", iface, "error", err)
 						continue
 					}
 					tunnel.Active = true
 					err = db.Save(&tunnel).Error
 					if err != nil {
-						fmt.Printf("OLSRWatcher: Unable to save tunnel: %v\n", err)
+						slog.Error("OLSRWatcher: Unable to save tunnel", "error", err)
 					}
 				}
 			}

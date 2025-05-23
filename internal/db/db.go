@@ -15,15 +15,14 @@ import (
 	"gorm.io/gorm"
 )
 
-func MakeDB(config *config.Config) *gorm.DB {
+func MakeDB(config *config.Config) (*gorm.DB, error) {
 	var db *gorm.DB
 	var err error
 	if os.Getenv("TEST") != "" {
-		fmt.Println("Using in-memory database for testing")
+		slog.Info("Using in-memory database for testing")
 		db, err = gorm.Open(sqlite.Open(""), &gorm.Config{})
 		if err != nil {
-			fmt.Printf("Could not open database: %v\n", err)
-			os.Exit(1)
+			return nil, fmt.Errorf("could not open in-memory database: %v", err)
 		}
 	} else {
 		dsn := fmt.Sprintf(
@@ -41,8 +40,7 @@ func MakeDB(config *config.Config) *gorm.DB {
 
 		db, err = gorm.Open(pg, &gorm.Config{})
 		if err != nil {
-			fmt.Printf("Could not open database: %v\n", err)
-			os.Exit(1)
+			return nil, fmt.Errorf("could not open database: %v", err)
 		}
 
 		slog.Info("Gorm database connection opened")
@@ -50,8 +48,7 @@ func MakeDB(config *config.Config) *gorm.DB {
 
 	err = db.AutoMigrate(&models.AppSettings{}, &models.User{}, &models.Tunnel{})
 	if err != nil {
-		fmt.Printf("Could not migrate database: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("could not migrate database: %v", err)
 	}
 
 	// Grab the first (and only) AppSettings record. If that record doesn't exist, create it.
@@ -65,8 +62,7 @@ func MakeDB(config *config.Config) *gorm.DB {
 		}
 		err := db.Create(&appSettings).Error
 		if err != nil {
-			fmt.Printf("Failed to create app settings: %v\n", err)
-			os.Exit(1)
+			return nil, fmt.Errorf("failed to create app settings: %v", err)
 		}
 		slog.Debug("App settings entry created")
 	}
@@ -80,21 +76,18 @@ func MakeDB(config *config.Config) *gorm.DB {
 		// Apply seed
 		err = seedersStack.Seed()
 		if err != nil {
-			fmt.Printf("Failed to seed database: %v\n", err)
-			os.Exit(1)
+			return nil, fmt.Errorf("failed to seed database: %v", err)
 		}
 		appSettings.HasSeeded = true
 		err := db.Save(&appSettings).Error
 		if err != nil {
-			fmt.Printf("Failed to save app settings: %v\n", err)
-			os.Exit(1)
+			return nil, fmt.Errorf("failed to save app settings: %v", err)
 		}
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		fmt.Printf("Failed to open database: %v\n", err)
-		os.Exit(1)
+		return nil, fmt.Errorf("failed to get sql.DB from gorm.DB: %v", err)
 	}
 	sqlDB.SetMaxIdleConns(runtime.GOMAXPROCS(0))
 	const connsPerCPU = 10
@@ -102,5 +95,5 @@ func MakeDB(config *config.Config) *gorm.DB {
 	const maxIdleTime = 10 * time.Minute
 	sqlDB.SetConnMaxIdleTime(maxIdleTime)
 
-	return db
+	return db, nil
 }

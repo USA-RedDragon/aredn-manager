@@ -60,7 +60,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	}
 
 	// Start the server
-	fmt.Println("starting server")
+	slog.Info("Starting server")
 
 	serviceRegistry := services.NewServiceRegistry()
 	serviceRegistry.Register(services.OLSRServiceName, olsr.NewService(config))
@@ -74,7 +74,10 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	go metrics.CreateMetricsServer(config, cmd.Root().Version)
 	log.Printf("Metrics server started")
 
-	db := db.MakeDB(config)
+	db, err := db.MakeDB(config)
+	if err != nil {
+		return fmt.Errorf("failed to open database: %w", err)
+	}
 	log.Printf("DB connection established")
 
 	// Clear active status from all tunnels in the db

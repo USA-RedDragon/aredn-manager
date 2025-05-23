@@ -129,8 +129,7 @@ func DeleteTunnel(db *gorm.DB, id uint) error {
 		return nil
 	})
 	if err != nil {
-		fmt.Printf("Error deleting tunnel: %v\n", err)
-		return err
+		return fmt.Errorf("error deleting tunnel: %w", err)
 	}
 	return nil
 }

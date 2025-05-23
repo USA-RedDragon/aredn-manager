@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"log/slog"
 	"math"
 	"net/http"
@@ -20,7 +19,7 @@ func RequireLogin() gin.HandlerFunc {
 
 		defer func() {
 			if recover() != nil {
-				fmt.Println("RequireLogin: Recovered from panic")
+				slog.Error("RequireLogin: Recovered from panic", "error", recover())
 				// Delete the session cookie
 				c.SetCookie("sessions", "", -1, "/", "", false, true)
 				c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
@@ -35,12 +34,12 @@ func RequireLogin() gin.HandlerFunc {
 		}
 		uid, ok := userID.(uint)
 		if !ok {
-			fmt.Println("RequireLogin: Unable to convert user_id to uint")
+			slog.Error("RequireLogin: Unable to convert user_id to uint", "user_id", userID)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 			return
 		}
 		if uid > math.MaxInt32 {
-			fmt.Println("RequireLogin: user_id is out of range")
+			slog.Error("RequireLogin: user_id is out of range", "user_id", uid)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 			return
 		}
@@ -57,7 +56,7 @@ func RequireLogin() gin.HandlerFunc {
 		// Open up the DB and check if the user exists
 		db, ok := c.MustGet("DB").(*gorm.DB)
 		if !ok {
-			fmt.Println("RequireLogin: Unable to get DB from context")
+			slog.Error("RequireLogin: Unable to get DB from context")
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
 			return
 		}
