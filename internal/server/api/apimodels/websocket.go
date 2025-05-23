@@ -11,9 +11,11 @@ type WebsocketTunnelStats struct {
 }
 
 type WebsocketTunnelConnect struct {
-	ID uint `json:"id"`
+	ID     uint `json:"id"`
+	Client bool `json:"client"`
 }
 
 type WebsocketTunnelDisconnect struct {
-	ID uint `json:"id"`
+	ID     uint `json:"id"`
+	Client bool `json:"client"`
 }

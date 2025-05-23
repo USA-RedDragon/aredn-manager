@@ -99,6 +99,30 @@ func CountWireguardActiveTunnels(db *gorm.DB) (int, error) {
 	return int(count), err
 }
 
+func CountWireguardClientTunnels(db *gorm.DB) (int, error) {
+	var count int64
+	err := db.Model(&Tunnel{}).Where("client = ?", true).Where("wireguard = ?", true).Count(&count).Error
+	return int(count), err
+}
+
+func CountWireguardServerTunnels(db *gorm.DB) (int, error) {
+	var count int64
+	err := db.Model(&Tunnel{}).Where("client = ?", false).Where("wireguard = ?", true).Count(&count).Error
+	return int(count), err
+}
+
+func CountWireguardActiveClientTunnels(db *gorm.DB) (int, error) {
+	var count int64
+	err := db.Model(&Tunnel{}).Where("client = ?", true).Where("active = ?", true).Where("wireguard = ?", true).Count(&count).Error
+	return int(count), err
+}
+
+func CountWireguardActiveServerTunnels(db *gorm.DB) (int, error) {
+	var count int64
+	err := db.Model(&Tunnel{}).Where("client = ?", false).Where("active = ?", true).Where("wireguard = ?", true).Count(&count).Error
+	return int(count), err
+}
+
 func DeleteTunnel(db *gorm.DB, id uint) error {
 	err := db.Transaction(func(tx *gorm.DB) error {
 		tx.Unscoped().Delete(&Tunnel{ID: id})

@@ -122,7 +122,8 @@ func (w *Watcher) watch() {
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelDisconnection,
 					Data: apimodels.WebsocketTunnelDisconnect{
-						ID: iface.AssociatedTunnel.ID,
+						ID:     iface.AssociatedTunnel.ID,
+						Client: iface.AssociatedTunnel.Client,
 					},
 				}
 				err = w.Stats.Remove(iface.Name)
@@ -136,7 +137,8 @@ func (w *Watcher) watch() {
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelDisconnection,
 					Data: apimodels.WebsocketTunnelDisconnect{
-						ID: iface.AssociatedTunnel.ID,
+						ID:     iface.AssociatedTunnel.ID,
+						Client: iface.AssociatedTunnel.Client,
 					},
 				}
 				err = w.Stats.Remove(iface.Name)
@@ -252,7 +254,8 @@ func (w *Watcher) reconcileDB() {
 			w.eventChannel <- events.Event{
 				Type: events.EventTypeTunnelDisconnection,
 				Data: apimodels.WebsocketTunnelDisconnect{
-					ID: iface.AssociatedTunnel.ID,
+					ID:     iface.AssociatedTunnel.ID,
+					Client: iface.AssociatedTunnel.Client,
 				},
 			}
 
@@ -284,7 +287,8 @@ func (w *Watcher) reconcileDB() {
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelConnection,
 					Data: apimodels.WebsocketTunnelConnect{
-						ID: iface.AssociatedTunnel.ID,
+						ID:     iface.AssociatedTunnel.ID,
+						Client: iface.AssociatedTunnel.Client,
 					},
 				}
 				w.db.Save(iface.AssociatedTunnel)

@@ -160,6 +160,78 @@ func GETWireguardTunnelsCountConnected(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"count": count})
 }
 
+func GETWireguardClientTunnelsCountConnected(c *gin.Context) {
+	db, ok := c.MustGet("DB").(*gorm.DB)
+	if !ok {
+		fmt.Printf("DB cast failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	count, err := models.CountWireguardActiveClientTunnels(db)
+	if err != nil {
+		fmt.Printf("GETWireguardClientTunnelsCountConnected: Error getting tunnel count: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
+func GETWireguardServerTunnelsCountConnected(c *gin.Context) {
+	db, ok := c.MustGet("DB").(*gorm.DB)
+	if !ok {
+		fmt.Printf("DB cast failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	count, err := models.CountWireguardActiveServerTunnels(db)
+	if err != nil {
+		fmt.Printf("GETWireguardServerTunnelsCountConnected: Error getting tunnel count: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
+func GETWireguardClientTunnelsCount(c *gin.Context) {
+	db, ok := c.MustGet("DB").(*gorm.DB)
+	if !ok {
+		fmt.Printf("DB cast failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	count, err := models.CountWireguardClientTunnels(db)
+	if err != nil {
+		fmt.Printf("GETWireguardClientTunnelsCount: Error getting tunnel count: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
+func GETWireguardServerTunnelsCount(c *gin.Context) {
+	db, ok := c.MustGet("DB").(*gorm.DB)
+	if !ok {
+		fmt.Printf("DB cast failed")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	count, err := models.CountWireguardServerTunnels(db)
+	if err != nil {
+		fmt.Printf("GETWireguardServerTunnelsCount: Error getting tunnel count: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting tunnel count"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"count": count})
+}
+
 //nolint:gocyclo
 func POSTTunnel(c *gin.Context) {
 	db, ok := c.MustGet("DB").(*gorm.DB)
