@@ -3,75 +3,76 @@
     <h1>
       <RouterLink to="/">AREDN Cloud Node Console</RouterLink>
     </h1>
-    <div class="wrapper">
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/nodes">Nodes</RouterLink>
-        <RouterLink to="/tunnels">Tunnels</RouterLink>
-        <RouterLink v-if="hasMeshmap" to="/meshmap">Mesh Map</RouterLink>
+    <nav>
+      <RouterLink to="/">Home</RouterLink>
+      <RouterLink to="/olsr">OLSR</RouterLink>
+      <RouterLink to="/babel">Babel</RouterLink>
+      <RouterLink to="/tunnels">Tunnels</RouterLink>
+      <RouterLink v-if="hasMeshmap" to="/meshmap">Mesh Map</RouterLink>
 
-        <router-link
-          v-if="this.userStore.loggedIn"
-          to="#"
-          custom
+      <router-link
+        v-if="this.userStore.loggedIn"
+        to="#"
+        custom
+      >
+        <a
+          href="#"
+          @click="toggleAdminMenu"
+          :class="{
+            adminNavLink: true,
+            'router-link-active': this.$route.path.startsWith('/admin'),
+          }"
+          >Admin</a
         >
-          <a
-            href="#"
-            @click="toggleAdminMenu"
-            :class="{
-              adminNavLink: true,
-              'router-link-active': this.$route.path.startsWith('/admin'),
-            }"
-            >Admin</a
+      </router-link>
+      <PVMenu
+        v-if="this.userStore.loggedIn"
+        ref="adminMenu"
+        :popup="true"
+        :model="[
+          {
+            label: '&nbsp;&nbsp;Tunnels',
+            to: '/admin/tunnels',
+          },
+          {
+            label: '&nbsp;&nbsp;Admin Users',
+            to: '/admin/users',
+          },
+        ]"
+      >
+        <template #item="{ item }">
+          <router-link
+            :to="item.to"
+            custom
+            v-slot="{ href, navigate, isActive, isExactActive }"
           >
-        </router-link>
-        <PVMenu
-          v-if="this.userStore.loggedIn"
-          ref="adminMenu"
-          :popup="true"
-          :model="[
-            {
-              label: '&nbsp;&nbsp;Tunnels',
-              to: '/admin/tunnels',
-            },
-            {
-              label: '&nbsp;&nbsp;Admin Users',
-              to: '/admin/users',
-            },
-          ]"
-        >
-          <template #item="{ item }">
-            <router-link
-              :to="item.to"
-              custom
-              v-slot="{ href, navigate, isActive, isExactActive }"
+            <a
+              :href="href"
+              @click="navigate"
+              :class="{
+                adminNavLink: true,
+                'router-link-active': isActive,
+                'router-link-active-exact': isExactActive,
+              }"
             >
-              <a
-                :href="href"
-                @click="navigate"
-                :class="{
-                  adminNavLink: true,
-                  'router-link-active': isActive,
-                  'router-link-active-exact': isExactActive,
-                }"
-              >
-                <div>{{ item.label }}</div>
-              </a>
-            </router-link>
-          </template>
-        </PVMenu>
-        <RouterLink v-if="!this.userStore.loggedIn" to="/login"
-          >Login</RouterLink
-        >
-        <a v-else href="#" @click="logout()">Logout</a>
-      </nav>
-    </div>
+              <div>{{ item.label }}</div>
+            </a>
+          </router-link>
+        </template>
+      </PVMenu>
+      <RouterLink v-if="!this.userStore.loggedIn" to="/login"
+        >Login</RouterLink
+      >
+      <a v-else href="#" @click="logout()">Logout</a>
+    </nav>
+    <ColorModeButton class="button" />
   </header>
 </template>
 
 <script>
 import Menu from 'primevue/menu';
 import API from '@/services/API';
+import ColorModeButton from '@/components/ColorModeButton.vue';
 
 import { mapStores } from 'pinia';
 import { useUserStore } from '@/store';
@@ -79,6 +80,7 @@ import { useUserStore } from '@/store';
 export default {
   components: {
     PVMenu: Menu,
+    ColorModeButton,
   },
   data: function() {
     return {
@@ -112,52 +114,46 @@ export default {
 
 <style scoped>
 header {
-  text-align: center;
-  max-height: 100vh;
+  height: 3em;
+  padding: 0.5em;
+  margin: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  background-color: var(--secondary);
+  margin-bottom: 2em;
 }
 
-header a,
-.adminNavLink {
-  text-decoration: none;
+header h1,
+header nav,
+.button {
+  font-size: 1rem;
+  width: 33%;
 }
 
-header a,
-header a:visited,
-header a:link,
-.adminNavLink:visited,
-.adminNavLink:link {
-  color: var(--primary-text-color);
+.button {
+  text-align: right;
+}
+
+header h1,
+header nav {
+  display: inline;
 }
 
 header nav .router-link-active,
 .adminNavLink.router-link-active {
-  color: var(--cyan-300) !important;
-}
-
-header nav a:active,
-.adminNavLink:active {
-  color: var(--cyan-500) !important;
-}
-
-header h1 a,
-header h1 a:hover,
-header h1 a:visited {
-  color: var(--primary-text-color);
-  background-color: inherit;
+  color: var(--secondary-foreground) !important;
+  font-weight: bolder;
 }
 
 nav {
-  width: 100%;
-  font-size: 1rem;
   text-align: center;
-  margin-top: 0.5rem;
-  margin-bottom: 1rem;
 }
 
 nav a {
-  display: inline-block;
   padding: 0 1rem;
-  border-left: 2px solid #444;
+  border-left: 1px solid #444;
 }
 
 nav a:first-of-type {

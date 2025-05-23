@@ -1,15 +1,13 @@
 <template>
   <AppHeader />
-  <RouterView />
+  <RouterView class="container mx-auto" />
   <AppFooter />
-  <ThemeConfig />
 </template>
 
 <script>
 import { RouterView } from 'vue-router';
 import AppFooter from './components/AppFooter.vue';
 import AppHeader from './components/AppHeader.vue';
-import ThemeConfig from './components/ThemeConfig.vue';
 import API from '@/services/API';
 
 import { mapStores } from 'pinia';
@@ -24,7 +22,6 @@ export default {
     RouterView,
     AppHeader,
     AppFooter,
-    ThemeConfig,
   },
   data() {
     return {
