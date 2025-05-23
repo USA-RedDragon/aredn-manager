@@ -24,7 +24,7 @@ func GETOLSRHosts(c *gin.Context) {
 	}
 	pageInt, err := strconv.ParseInt(pageStr, 10, 64)
 	if err != nil {
-		slog.Error("Error parsing page:", err)
+		slog.Error("error parsing page", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid page"})
 		return
 	}
@@ -36,7 +36,7 @@ func GETOLSRHosts(c *gin.Context) {
 	}
 	limitInt, err := strconv.ParseInt(limitStr, 10, 64)
 	if err != nil {
-		slog.Error("Error parsing limit:", err)
+		slog.Error("Error parsing limit:", "error", err)
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid limit"})
 		return
 	}
