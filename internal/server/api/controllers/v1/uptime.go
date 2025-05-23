@@ -1,19 +1,27 @@
-//go:build !arm.6
-
 package v1
 
 import (
 	"fmt"
-	"math"
+	"net/http"
+	"syscall"
+
+	"github.com/USA-RedDragon/aredn-manager/internal/utils"
+	"github.com/gin-gonic/gin"
 )
 
-func secondsToClock(seconds int64) string {
-	if seconds <= 0 {
-		return "00:00:00"
+func GETUptime(c *gin.Context) {
+	var info syscall.Sysinfo_t
+	err := syscall.Sysinfo(&info)
+	if err != nil {
+		fmt.Printf("GETUptime: Unable to get system info: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to get system info"})
+		return
 	}
-	days := fmt.Sprintf("%d", int(math.Floor(float64(seconds)/86400)))
-	hours := fmt.Sprintf("%d", int(math.Floor(math.Mod(float64(seconds), 86400)/3600)))
-	mins := fmt.Sprintf("%02d", int(math.Floor(math.Mod(float64(seconds), 3600)/60)))
-	secs := fmt.Sprintf("%02d", int(math.Floor(math.Mod(float64(seconds), 60))))
-	return days + " days, " + hours + ":" + mins + ":" + secs
+	uptime := utils.SecondsToClock(info.Uptime)
+	if uptime == "" {
+		fmt.Println("GETUptime: Unable to convert uptime to string")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to convert uptime to string"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"uptime": uptime})
 }

@@ -16,6 +16,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
+	"github.com/USA-RedDragon/aredn-manager/internal/utils"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -156,7 +157,7 @@ func GETSysinfo(c *gin.Context) {
 		Longitude: config.Longitude,
 		Latitude:  config.Latitude,
 		Sysinfo: apimodels.Sysinfo{
-			Uptime: secondsToClock(info.Uptime),
+			Uptime: utils.SecondsToClock(info.Uptime),
 			Loadavg: [3]float64{
 				float64(info.Loads[0]) / float64(1<<16),
 				float64(info.Loads[1]) / float64(1<<16),

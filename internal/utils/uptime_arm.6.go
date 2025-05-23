@@ -1,13 +1,13 @@
 //go:build arm.6
 
-package v1
+package utils
 
 import (
 	"fmt"
 	"math"
 )
 
-func secondsToClock(seconds int32) string {
+func SecondsToClock(seconds int32) string {
 	if seconds <= 0 {
 		return "00:00:00"
 	} else {

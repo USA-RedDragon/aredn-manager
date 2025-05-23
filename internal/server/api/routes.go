@@ -35,6 +35,11 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	group.POST("/notify", v1Controllers.POSTNotify)
 
 	group.GET("/stats", v1Controllers.GETStats)
+	group.GET("/loadavg", v1Controllers.GETLoadAvg)
+	group.GET("/uptime", v1Controllers.GETUptime)
+	group.GET("/node-ip", v1Controllers.GETNodeIP)
+	group.GET("/gridsquare", v1Controllers.GETGridsqure)
+	group.GET("/hostname", v1Controllers.GETHostname)
 
 	v1Auth := group.Group("/auth")
 	v1Auth.POST("/login", v1Controllers.POSTLogin)
