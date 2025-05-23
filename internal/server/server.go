@@ -28,8 +28,8 @@ import (
 
 const defTimeout = 10 * time.Second
 const debugWriteTimeout = 60 * time.Second
-const rateLimitRate = time.Second
-const rateLimitLimit = 10
+const rateLimitRate = time.Minute
+const rateLimitLimit = 100
 
 type Server struct {
 	config           *config.Config
