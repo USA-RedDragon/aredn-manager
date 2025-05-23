@@ -61,9 +61,9 @@ func GETOLSRHostsCount(c *gin.Context) {
 		return
 	}
 
-	servicesParser, ok := c.MustGet("OLSRDServiceParser").(*olsr.ServicesParser)
+	servicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsr.ServicesParser)
 	if !ok {
-		slog.Error("GETOLSRHostsCount: OLSRDServiceParser not found in context")
+		slog.Error("GETOLSRHostsCount: OLSRDServicesParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
