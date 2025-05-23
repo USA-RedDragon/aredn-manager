@@ -1,5 +1,3 @@
-//go:build !arm.6
-
 package utils
 
 import (
