@@ -22,7 +22,7 @@ func MakeDB(config *config.Config) (*gorm.DB, error) {
 		slog.Info("Using in-memory database for testing")
 		db, err = gorm.Open(sqlite.Open(""), &gorm.Config{})
 		if err != nil {
-			return nil, fmt.Errorf("could not open in-memory database: %v", err)
+			return nil, fmt.Errorf("could not open in-memory database: %w", err)
 		}
 	} else {
 		dsn := fmt.Sprintf(
@@ -40,7 +40,7 @@ func MakeDB(config *config.Config) (*gorm.DB, error) {
 
 		db, err = gorm.Open(pg, &gorm.Config{})
 		if err != nil {
-			return nil, fmt.Errorf("could not open database: %v", err)
+			return nil, fmt.Errorf("could not open database: %w", err)
 		}
 
 		slog.Info("Gorm database connection opened")
@@ -48,7 +48,7 @@ func MakeDB(config *config.Config) (*gorm.DB, error) {
 
 	err = db.AutoMigrate(&models.AppSettings{}, &models.User{}, &models.Tunnel{})
 	if err != nil {
-		return nil, fmt.Errorf("could not migrate database: %v", err)
+		return nil, fmt.Errorf("could not migrate database: %w", err)
 	}
 
 	// Grab the first (and only) AppSettings record. If that record doesn't exist, create it.
@@ -62,7 +62,7 @@ func MakeDB(config *config.Config) (*gorm.DB, error) {
 		}
 		err := db.Create(&appSettings).Error
 		if err != nil {
-			return nil, fmt.Errorf("failed to create app settings: %v", err)
+			return nil, fmt.Errorf("failed to create app settings: %w", err)
 		}
 		slog.Debug("App settings entry created")
 	}
@@ -76,18 +76,18 @@ func MakeDB(config *config.Config) (*gorm.DB, error) {
 		// Apply seed
 		err = seedersStack.Seed()
 		if err != nil {
-			return nil, fmt.Errorf("failed to seed database: %v", err)
+			return nil, fmt.Errorf("failed to seed database: %w", err)
 		}
 		appSettings.HasSeeded = true
 		err := db.Save(&appSettings).Error
 		if err != nil {
-			return nil, fmt.Errorf("failed to save app settings: %v", err)
+			return nil, fmt.Errorf("failed to save app settings: %w", err)
 		}
 	}
 
 	sqlDB, err := db.DB()
 	if err != nil {
-		return nil, fmt.Errorf("failed to get sql.DB from gorm.DB: %v", err)
+		return nil, fmt.Errorf("failed to get sql.DB from gorm.DB: %w", err)
 	}
 	sqlDB.SetMaxIdleConns(runtime.GOMAXPROCS(0))
 	const connsPerCPU = 10
