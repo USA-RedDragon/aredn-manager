@@ -1,0 +1,129 @@
+version: '3'
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=arednnode
+      - POSTGRES_PASSWORD=password
+    healthcheck:
+      test: ["CMD-SHELL", "cat /initialized.txt && pg_isready -U $${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    entrypoint: [ "/bin/bash", "-c","
+      docker-entrypoint.sh postgres &
+      rm -f /initialized.txt || true &&
+      until pg_isready -U $${POSTGRES_USER}; do sleep 3; done &&
+      psql -U $${POSTGRES_USER} -d postgres -c 'CREATE DATABASE arednnode_supernode;' || true &&
+      echo done > /initialized.txt &&
+      wait"
+    ]
+    volumes:
+      - ./.postgres:/var/lib/postgresql/data
+
+  node-exporter:
+    container_name: node-exporter-aredn
+    image: quay.io/prometheus/node-exporter:latest
+    restart: unless-stopped
+    privileged: true
+    volumes:
+      - /:/host/root
+      - /sys:/host/sys
+      - /proc:/host/proc
+    hostname: node-exporter
+    ports:
+      - 6962:9100
+    command:
+      - --path.procfs=/host/proc
+      - --path.sysfs=/host/sys
+      - --path.rootfs=/host/root
+      - --path.udev.data=/host/root/run/udev/data
+      - --web.listen-address=0.0.0.0:9100
+      - --collector.filesystem.mount-points-exclude='^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)'
+      - --collector.filesystem.fs-types-exclude='^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$'
+
+  aredn-cloud-tunnel:
+    container_name: oklahoma-tunnel
+    image: ghcr.io/usa-reddragon/aredn-manager:v0
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    privileged: true
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=arednnode
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DATABASE=arednnode
+      - SESSION_SECRET=session
+      - PASSWORD_SALT=saltysalt
+      - DISABLE_MAP=1
+      - METRICS_ENABLED=true
+      - TRUSTED_PROXIES=127.0.0.1
+      - SERVER_NAME=KI5VMF-TEST
+      - WIREGUARD_STARTING_ADDRESS=172.31.150.16
+      - NODE_IP=10.54.27.2
+      - BABEL_ENABLED=true
+      - BABEL_ROUTER_ID=01:42:c0:a8:fb:05
+    hostname: oklahoma
+    ports:
+      - 38379:80
+      - '5527-5626:5527-5626/udp'
+      - 27395:51820/udp
+    networks:
+      - default
+      - dtd
+
+  aredn-cloud-tunnel-supernode:
+    container_name: oklahoma-supernode
+    build: .
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - aredn-cloud-tunnel
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=0
+    privileged: true
+    environment:
+      - POSTGRES_HOST=postgres
+      - POSTGRES_USER=arednnode
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DATABASE=arednnode_supernode
+      - SESSION_SECRET=session
+      - PASSWORD_SALT=saltysalt
+      - SERVER_NAME=KI5VMF-TEST-SUPERNODE
+      - NODE_IP=10.54.27.3
+      - WIREGUARD_STARTING_ADDRESS=172.30.150.16
+      - DISABLE_MAP=1
+      - METRICS_ENABLED=true
+      - METRICS_PORT=9001
+      - TRUSTED_PROXIES=127.0.0.1
+      - SUPERNODE=true
+      - WIREGUARD_STARTING_PORT=6527
+      - BABEL_ENABLED=true
+      - BABEL_ROUTER_ID=58:a7:4d:b6:f9:75
+    hostname: KI5VMF-OKLAHOMA-SUPERNODE
+    ports:
+      - '6527-6626:6527-6626/udp'
+      - 17468:80
+      - 666:666
+    networks:
+      - default
+      - dtd
+
+networks:
+    default:
+      enable_ipv6: true
+      ipam:
+        config:
+          - subnet: 192.168.251.0/24
+    dtd:
+      enable_ipv6: true
+      ipam:
+        config:
+          - subnet: 10.54.27.224/29
