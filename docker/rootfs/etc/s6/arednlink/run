@@ -1,0 +1,16 @@
+#!/bin/sh
+
+isolation=""
+if [ "$SUPERNODE" = "1" ]; then
+  isolation="isolate br-dtdlink"
+fi
+
+arednlink -C "upload hosts /etc/arednlink/hosts" -C "upload services /etc/arednlink/services" -C "signal hosts aredn-manager notify-babel" -C "signal services aredn-manager notify-babel" -C "${isolation}" &
+pid=$!
+echo -n "$pid" > /var/run/arednlink.pid
+wait $pid
+ret=$?
+if [ $ret -ne 0 ]; then
+  echo "arednlink exited with code $ret"
+  exit $ret
+fi

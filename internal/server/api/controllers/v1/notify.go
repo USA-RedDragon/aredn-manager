@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/babel"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/gin-gonic/gin"
 )
@@ -39,7 +40,7 @@ func POSTNotify(c *gin.Context) {
 	go func() {
 		olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
 		if !ok {
-			slog.Error("POSTLogin: OLSRDHostParser not found in context")
+			slog.Error("POSTNotify: OLSRDHostParser not found in context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
@@ -52,7 +53,7 @@ func POSTNotify(c *gin.Context) {
 
 		olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsr.ServicesParser)
 		if !ok {
-			slog.Error("POSTLogin: OLSRDServicesParser not found in context")
+			slog.Error("POSTNotify: OLSRDServicesParser not found in context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
@@ -61,6 +62,31 @@ func POSTNotify(c *gin.Context) {
 		if err != nil {
 			slog.Error("POSTNotify: Error parsing services", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing services"})
+			return
+		}
+	}()
+
+	c.JSON(http.StatusOK, gin.H{"status": "OK"})
+}
+
+func POSTNotifyBabel(c *gin.Context) {
+	if (c.RemoteIP() != "127.0.0.1" && c.RemoteIP() != "::1") || c.GetHeader("X-Forwarded-For") != "" {
+		slog.Warn("POSTNotify: Forbidden notify", "ip", c.RemoteIP())
+		c.JSON(http.StatusForbidden, gin.H{"error": "Forbidden"})
+		return
+	}
+
+	go func() {
+		babelParser, ok := c.MustGet("BabelParser").(*babel.Parser)
+		if !ok {
+			slog.Error("POSTNotifyBabel: BabelParser not found in context")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+		err := babelParser.Parse()
+		if err != nil {
+			slog.Error("POSTNotifyBabel: Error parsing", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing"})
 			return
 		}
 	}()

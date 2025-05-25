@@ -33,6 +33,7 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	group.GET("/ping", v1Controllers.GETPing)
 
 	group.POST("/notify", v1Controllers.POSTNotify)
+	group.POST("/notify-babel", v1Controllers.POSTNotifyBabel)
 
 	group.GET("/stats", v1Controllers.GETStats)
 	group.GET("/loadavg", v1Controllers.GETLoadAvg)
