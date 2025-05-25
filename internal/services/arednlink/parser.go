@@ -1,4 +1,4 @@
-package babel
+package arednlink
 
 import (
 	"fmt"

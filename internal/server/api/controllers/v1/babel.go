@@ -6,14 +6,14 @@ import (
 	"strconv"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/babel"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/arednlink"
 	"github.com/gin-gonic/gin"
 )
 
 func GETBabelHosts(c *gin.Context) {
-	babelParser, ok := c.MustGet("BabelParser").(*babel.Parser)
+	arednlinkParser, ok := c.MustGet("AREDNLinkParser").(*arednlink.Parser)
 	if !ok {
-		slog.Error("GETBabelHosts: BabelParser not found in context")
+		slog.Error("GETBabelHosts: AREDNLinkParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -47,21 +47,21 @@ func GETBabelHosts(c *gin.Context) {
 		filter = ""
 	}
 
-	total := babelParser.GetHostsCount()
+	total := arednlinkParser.GetHostsCount()
 
-	nodes := babelParser.GetHostsPaginated(page, limit, filter)
+	nodes := arednlinkParser.GetHostsPaginated(page, limit, filter)
 	c.JSON(http.StatusOK, gin.H{"nodes": nodes, "total": total})
 }
 
 func GETBabelHostsCount(c *gin.Context) {
-	babelParser, ok := c.MustGet("BabelParser").(*babel.Parser)
+	arednlinkParser, ok := c.MustGet("AREDNLinkParser").(*arednlink.Parser)
 	if !ok {
-		slog.Error("GETBabelHostsCount: BabelHostParser not found in context")
+		slog.Error("GETBabelHostsCount: AREDNLinkParser not found in context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"nodes": babelParser.GetAREDNHostsCount(), "total": babelParser.GetTotalHostsCount(), "services": babelParser.GetServiceCount()})
+	c.JSON(http.StatusOK, gin.H{"nodes": arednlinkParser.GetAREDNHostsCount(), "total": arednlinkParser.GetTotalHostsCount(), "services": arednlinkParser.GetServiceCount()})
 }
 
 func GETBabelRunning(c *gin.Context) {

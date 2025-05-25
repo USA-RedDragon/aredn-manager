@@ -15,7 +15,7 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/babel"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/arednlink"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/gin-contrib/cors"
@@ -121,7 +121,7 @@ func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services
 	// DBs
 	r.Use(middleware.ConfigProvider(s.config))
 	r.Use(middleware.DatabaseProvider(s.db))
-	r.Use(middleware.BabelParserProvider(babel.NewParser()))
+	r.Use(middleware.AREDNLinkParserProvider(arednlink.NewParser()))
 	r.Use(middleware.OLSRDProvider(olsr.NewHostsParser()))
 	r.Use(middleware.OLSRDServicesProvider(olsr.NewServicesParser()))
 	r.Use(middleware.WireguardManagerProvider(s.wireguardManager))

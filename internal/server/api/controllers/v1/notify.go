@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/babel"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/arednlink"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/gin-gonic/gin"
 )
@@ -77,13 +77,13 @@ func POSTNotifyBabel(c *gin.Context) {
 	}
 
 	go func() {
-		babelParser, ok := c.MustGet("BabelParser").(*babel.Parser)
+		arednlinkParser, ok := c.MustGet("AREDNLinkParser").(*arednlink.Parser)
 		if !ok {
-			slog.Error("POSTNotifyBabel: BabelParser not found in context")
+			slog.Error("POSTNotifyBabel: AREDNLinkParser not found in context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
-		err := babelParser.Parse()
+		err := arednlinkParser.Parse()
 		if err != nil {
 			slog.Error("POSTNotifyBabel: Error parsing", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing"})
