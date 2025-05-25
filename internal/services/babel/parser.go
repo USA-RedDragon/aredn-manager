@@ -155,13 +155,15 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 				continue
 			}
 
+			fields := strings.Fields(line)
+			if len(fields) < 2 {
+				slog.Warn("Invalid AREDN host entry", "line", line)
+				continue
+			}
+
 			if regexAredn.Match([]byte(line)) {
 				arednCount++
-				fields := strings.Fields(line)
-				if len(fields) < 2 {
-					slog.Warn("Invalid AREDN host entry", "line", line)
-					continue
-				}
+
 				arednHost = &AREDNHost{
 					HostData: HostData{
 						Hostname: strings.TrimSpace(fields[1]),
@@ -219,8 +221,8 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 				}
 				// This is a child of the last AREDN host
 				child := HostData{
-					Hostname: strings.TrimSpace(strings.Fields(line)[0]),
-					IP:       net.ParseIP(strings.TrimSpace(strings.Fields(line)[1])),
+					Hostname: strings.TrimSpace(fields[1]),
+					IP:       net.ParseIP(strings.TrimSpace(fields[0])),
 				}
 				if child.IP == nil {
 					slog.Warn("Invalid IP in hosts file", "line", line)
