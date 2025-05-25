@@ -168,7 +168,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 					continue
 				}
 				// Check if the same base filename exists under the services directory
-				servicesFile := fmt.Sprintf("%s/%s", servicesDir, arednHost.IP.To4().String())
+				servicesFile := filepath.Join(servicesDir, arednHost.IP.To4().String())
 				if services, err := os.ReadFile(servicesFile); err == nil {
 					slog.Debug("Found services file for AREDN host", "file", servicesFile)
 					var servicesList []*AREDNService
