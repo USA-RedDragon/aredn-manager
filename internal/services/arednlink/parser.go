@@ -145,9 +145,11 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 
 		file := filepath.Join(hostsDir, path)
 
+		slog.Info("parseHosts: Processing hosts file", "file", file)
+
 		entries, err := os.ReadFile(file)
 		if err != nil {
-			slog.Error("Error reading hosts directory entry", "entry", file, "error", err)
+			slog.Error("parseHosts: Error reading hosts directory entry", "entry", file, "error", err)
 		}
 
 		totalCount++
@@ -160,15 +162,16 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 				continue
 			}
 
+			slog.Info("parseHosts: Processing hosts file line", "file", file, "line", line)
+
 			fields := strings.Fields(line)
 			if len(fields) < 2 {
-				slog.Warn("Invalid AREDN host entry", "line", line)
+				slog.Warn("parseHosts: Invalid AREDN host entry", "file", file, "line", line)
 				continue
 			}
 
 			if regexAredn.Match([]byte(line)) {
-				arednCount++
-
+				slog.Info("parseHosts: Found AREDN host entry", "file", file, "line", line)
 				arednHost = &AREDNHost{
 					HostData: HostData{
 						Hostname: strings.TrimSpace(fields[1]),
@@ -176,20 +179,20 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 					},
 				}
 				if arednHost.IP == nil {
-					slog.Warn("Invalid IP in hosts file", "line", line)
+					slog.Warn("parseHosts: Invalid IP in hosts file", "file", file, "line", line)
 					continue
 				}
 				// Check if the same base filename exists under the services directory
 				servicesFile := filepath.Join(servicesDir, arednHost.IP.To4().String())
 				if services, err := os.ReadFile(servicesFile); err == nil {
-					slog.Debug("Found services file for AREDN host", "file", servicesFile)
+					slog.Debug("parseHosts: Found services file for AREDN host", "file", servicesFile)
 					var servicesList []*AREDNService
 					for _, svcLine := range strings.Split(string(services), "\n") {
 						line := strings.TrimSpace(svcLine)
 
 						// Ignore empty lines
 						if len(line) == 0 {
-							slog.Debug("Skipping empty line in services file", "file", servicesFile)
+							slog.Debug("parseHosts: Skipping empty line in services file", "file", servicesFile)
 							continue
 						}
 
@@ -199,13 +202,13 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 						// Split the line by '|'
 						split := strings.Split(line, "|")
 						if len(split) != 3 {
-							slog.Warn("Invalid service line format", "line", line, "file", servicesFile)
+							slog.Warn("parseHosts: Invalid service line format", "line", line, "file", servicesFile)
 							continue
 						}
 
 						url, err := url.Parse(split[0])
 						if err != nil {
-							slog.Warn("Error parsing URL", "url", split[0], "error", err)
+							slog.Warn("parseHosts: Error parsing URL", "url", split[0], "error", err)
 							continue
 						}
 
@@ -232,8 +235,9 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 					arednHost.HostData.Services = append(arednHost.HostData.Services, servicesList...)
 				}
 			} else {
+				slog.Info("parseHosts: Found child host entry", "file", file, "line", line)
 				if arednHost == nil {
-					slog.Warn("Found a host entry without a parent AREDN host", "line", line)
+					slog.Warn("parseHosts: Found a host entry without a parent AREDN host", "line", line)
 					continue
 				}
 				// This is a child of the last AREDN host
@@ -242,7 +246,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 					IP:       net.ParseIP(strings.TrimSpace(fields[0])),
 				}
 				if child.IP == nil {
-					slog.Warn("Invalid IP in hosts file", "line", line)
+					slog.Warn("parseHosts: Invalid IP in hosts file", "line", line)
 					continue
 				}
 				if strings.HasPrefix(child.Hostname, "lan.") ||
@@ -257,6 +261,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 
 		if arednHost != nil {
 			ret = append(ret, arednHost)
+			arednCount++
 		}
 		return nil
 	})
