@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"time"
 
-	ratelimit "github.com/JGLTechnologies/gin-rate-limit"
 	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
@@ -30,8 +29,6 @@ import (
 
 const defTimeout = 10 * time.Second
 const debugWriteTimeout = 60 * time.Second
-const rateLimitRate = 5 * time.Second
-const rateLimitLimit = 100
 
 type Server struct {
 	config           *config.Config
@@ -143,21 +140,6 @@ func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services
 		corsConfig.AllowOrigins = s.config.CORSHosts
 	}
 	r.Use(cors.New(corsConfig))
-
-	ratelimitStore := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
-		Rate:  rateLimitRate,
-		Limit: rateLimitLimit,
-	})
-	ratelimitMW := ratelimit.RateLimiter(ratelimitStore, &ratelimit.Options{
-		ErrorHandler: func(c *gin.Context, info ratelimit.Info) {
-			c.String(http.StatusTooManyRequests, "Too many requests. Try again in "+time.Until(info.ResetTime).String())
-		},
-		KeyFunc: func(c *gin.Context) string {
-			return c.ClientIP()
-		},
-	})
-
-	r.Use(ratelimitMW)
 
 	// Sessions
 	const iterations = 4096

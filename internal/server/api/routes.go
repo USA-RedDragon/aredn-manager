@@ -1,6 +1,10 @@
 package api
 
 import (
+	"net/http"
+	"time"
+
+	ratelimit "github.com/JGLTechnologies/gin-rate-limit"
 	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/events"
 	v1Controllers "github.com/USA-RedDragon/aredn-manager/internal/server/api/controllers/v1"
@@ -10,30 +14,47 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+const rateLimitRate = 5 * time.Second
+const rateLimitLimit = 100
+
 // ApplyRoutes to the HTTP Mux.
 func ApplyRoutes(router *gin.Engine, eventsChannel chan events.Event, config *config.Config) {
+	ratelimitStore := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
+		Rate:  rateLimitRate,
+		Limit: rateLimitLimit,
+	})
+	ratelimitMW := ratelimit.RateLimiter(ratelimitStore, &ratelimit.Options{
+		ErrorHandler: func(c *gin.Context, info ratelimit.Info) {
+			c.String(http.StatusTooManyRequests, "Too many requests. Try again in "+time.Until(info.ResetTime).String())
+		},
+		KeyFunc: func(c *gin.Context) string {
+			return c.ClientIP()
+		},
+	})
+
+	router.POST("/notify", v1Controllers.POSTNotify)
+	router.POST("/notify-babel", v1Controllers.POSTNotifyBabel)
+
 	apiV1 := router.Group("/api/v1")
+	apiV1.Use(ratelimitMW)
 	v1(apiV1, config)
 
-	arednCompat(router)
+	arednCompat(router, ratelimitMW)
 
 	ws := router.Group("/ws")
 	ws.GET("/events", websocket.CreateHandler(websocketControllers.CreateEventsWebsocket(eventsChannel), config))
 }
 
-func arednCompat(router *gin.Engine) {
-	router.GET("/cgi-bin/sysinfo.json", v1Controllers.GETSysinfo)
-	router.GET("/cgi-bin/metrics", v1Controllers.GETMetrics)
-	router.GET("/cgi-bin/mesh", v1Controllers.GETMesh)
-	router.GET("/a/mesh", v1Controllers.GetAMesh)
+func arednCompat(router *gin.Engine, ratelimitMW gin.HandlerFunc) {
+	router.GET("/cgi-bin/sysinfo.json", ratelimitMW, v1Controllers.GETSysinfo)
+	router.GET("/cgi-bin/metrics", ratelimitMW, v1Controllers.GETMetrics)
+	router.GET("/cgi-bin/mesh", ratelimitMW, v1Controllers.GETMesh)
+	router.GET("/a/mesh", ratelimitMW, v1Controllers.GetAMesh)
 }
 
 func v1(group *gin.RouterGroup, config *config.Config) {
 	group.GET("/version", v1Controllers.GETVersion)
 	group.GET("/ping", v1Controllers.GETPing)
-
-	group.POST("/notify", v1Controllers.POSTNotify)
-	group.POST("/notify-babel", v1Controllers.POSTNotifyBabel)
 
 	group.GET("/stats", v1Controllers.GETStats)
 	group.GET("/loadavg", v1Controllers.GETLoadAvg)

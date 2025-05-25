@@ -44,7 +44,7 @@ func runNotifyBabel(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to load config: %w", err)
 	}
 
-	req, err := http.NewRequestWithContext(cmd.Context(), http.MethodPost, fmt.Sprintf("http://0.0.0.0:%d/api/v1/notify-babel", config.Port), nil)
+	req, err := http.NewRequestWithContext(cmd.Context(), http.MethodPost, fmt.Sprintf("http://0.0.0.0:%d/notify-babel", config.Port), nil)
 	if err != nil {
 		return err
 	}
