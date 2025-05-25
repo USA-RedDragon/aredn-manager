@@ -7,6 +7,7 @@ import (
 	"net"
 	"net/url"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"sync/atomic"
@@ -137,9 +138,11 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 			return nil // Skip directories
 		}
 
-		entries, err := os.ReadFile(path)
+		file := filepath.Join(hostsDir, path)
+
+		entries, err := os.ReadFile(file)
 		if err != nil {
-			slog.Error("Error reading hosts directory entry", "entry", path, "error", err)
+			slog.Error("Error reading hosts directory entry", "entry", file, "error", err)
 		}
 
 		totalCount++
