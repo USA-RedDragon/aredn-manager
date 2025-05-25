@@ -238,16 +238,17 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 				}
 				// This is a child of the last AREDN host
 				child := HostData{
-					Hostname: strings.TrimSpace(fields[1]),
+					Hostname: strings.TrimSuffix(strings.TrimSpace(fields[1]), ".local.mesh"),
 					IP:       net.ParseIP(strings.TrimSpace(fields[0])),
 				}
 				if child.IP == nil {
 					slog.Warn("Invalid IP in hosts file", "line", line)
 					continue
 				}
-				if strings.HasPrefix(child.Hostname, "lan.") || strings.HasPrefix(child.Hostname, "dtdlink.") || strings.HasPrefix(child.Hostname, "babel.") {
-					// Skip LAN and DTDLink hosts
-					slog.Debug("Skipping LAN or DTDLink host", "hostname", child.Hostname)
+				if strings.HasPrefix(child.Hostname, "lan.") ||
+					strings.HasPrefix(child.Hostname, "dtdlink.") ||
+					strings.HasPrefix(child.Hostname, "babel.") ||
+					strings.HasPrefix(child.Hostname, "supernode.") {
 					continue
 				}
 				arednHost.addChild(child)
