@@ -22,7 +22,8 @@ jobs:
         with:
           node-version-file: .node-version
 
-      - run: make build-frontend
+      - run: cd frontend && npm ci --ignore-scripts
+      - run: cd frontend && npm run build
 
       - uses: actions/upload-artifact@v4
         with:
@@ -56,9 +57,11 @@ jobs:
           name: frontend
           path: frontend/dist
 
+      - run: go generate ./...
+
       - uses: Wandalen/wretry.action@master
         with:
-          command: make build-ci && make test
+          command: CGO_ENABLED=0 go test -p 2 -v ./...
           attempt_limit: 3
         env:
           GOOS: ${{ matrix.goos }}

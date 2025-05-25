@@ -22,7 +22,8 @@ jobs:
         with:
           node-version-file: .node-version
 
-      - run: make build-frontend
+      - run: cd frontend && npm ci --ignore-scripts
+      - run: cd frontend && npm run build
 
       - uses: actions/upload-artifact@v4
         with:
@@ -91,9 +92,8 @@ jobs:
         with:
           node-version-file: .node-version
 
-      - run: cd frontend && npm ci
-
-      - run: make frontend-unit-test
+      - run: cd frontend && npm ci --ignore-scripts
+      - run: cd frontend && npm run test:unit
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -142,9 +142,9 @@ jobs:
         with:
           node-version-file: .node-version
 
-      - run: cd frontend && npm ci
-
-      - run: make frontend-e2e-test-${{ matrix.browser }}
+      - run: cd frontend && npm ci --ignore-scripts
+      - run: cd frontend && NODE_ENV=test npm run build
+      - run: cd frontend && BROWSER=${{ matrix.browser }} NODE_ENV=test npm run test:e2e:${{ matrix.browser }}
 
       - uses: actions/upload-artifact@v4
         if: always()
@@ -208,7 +208,7 @@ jobs:
 
       - run: go generate ./...
 
-      - run: make benchmark
+      - run: CGO_ENABLED=0 go test -run ^$ -benchmem -bench=. ./...
 
   backend-race-tests:
     runs-on: ubuntu-24.04
