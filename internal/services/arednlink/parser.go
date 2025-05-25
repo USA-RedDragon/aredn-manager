@@ -182,7 +182,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 				continue
 			}
 
-			if regexAredn.Match([]byte(line)) {
+			if regexAredn.Match([]byte(line)) && arednHost == nil {
 				slog.Info("parseHosts: Found AREDN host entry", "file", file, "line", line)
 				arednHost = &AREDNHost{
 					HostData: HostData{
