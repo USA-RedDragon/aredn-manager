@@ -184,6 +184,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 
 						// Ignore empty lines
 						if len(line) == 0 {
+							slog.Debug("Skipping empty line in services file", "file", servicesFile)
 							continue
 						}
 
@@ -193,6 +194,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 						// Split the line by '|'
 						split := strings.Split(line, "|")
 						if len(split) != 3 {
+							slog.Warn("Invalid service line format", "line", line, "file", servicesFile)
 							continue
 						}
 
@@ -213,6 +215,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 
 						servicesList = append(servicesList, service)
 					}
+					arednHost.HostData.Services = append(arednHost.HostData.Services, servicesList...)
 				}
 			} else {
 				if arednHost == nil {
@@ -228,7 +231,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 					slog.Warn("Invalid IP in hosts file", "line", line)
 					continue
 				}
-				if strings.HasPrefix(child.Hostname, "lan.") || strings.HasPrefix(child.Hostname, "dtdlink.") {
+				if strings.HasPrefix(child.Hostname, "lan.") || strings.HasPrefix(child.Hostname, "dtdlink.") || strings.HasPrefix(child.Hostname, "babel.") {
 					// Skip LAN and DTDLink hosts
 					slog.Debug("Skipping LAN or DTDLink host", "hostname", child.Hostname)
 					continue
