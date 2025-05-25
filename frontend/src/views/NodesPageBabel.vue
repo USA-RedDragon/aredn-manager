@@ -1,9 +1,9 @@
 <template>
   <div>
     <Card>
-      <template #title>OLSR Nodes</template>
+      <template #title>Babel Nodes</template>
       <template #content>
-        <NodesTable />
+        <NodesTable babel />
       </template>
     </Card>
   </div>

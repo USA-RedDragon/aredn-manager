@@ -25,6 +25,11 @@ export default [
     component: () => import('../views/NodesPage.vue'),
   },
   {
+    path: '/babel',
+    name: 'Babel',
+    component: () => import('../views/NodesPageBabel.vue'),
+  },
+  {
     path: '/admin/users',
     name: 'AdminUsers',
     component: () => import('../views/admin/UsersPage.vue'),

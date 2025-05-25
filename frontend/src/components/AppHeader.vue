@@ -6,7 +6,8 @@
     <div class="wrapper">
       <nav>
         <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/nodes">Nodes</RouterLink>
+        <RouterLink to="/nodes">OLSR</RouterLink>
+        <RouterLink to="/babel">Babel</RouterLink>
         <RouterLink to="/tunnels">Tunnels</RouterLink>
         <RouterLink v-if="hasMeshmap" to="/meshmap">Mesh Map</RouterLink>
 

@@ -75,7 +75,12 @@ import { useSettingsStore } from '@/store';
 import API from '@/services/API';
 
 export default {
-  props: {},
+  props: {
+    babel: {
+      type: Boolean,
+      default: false,
+    },
+  },
   components: {
     Column,
     DataTable,
@@ -122,7 +127,8 @@ export default {
     },
     fetchData(page = 1, limit = 50) {
       this.loading = true;
-      API.get(`/olsr/hosts/count`)
+      const api = this.babel ? '/babel' : '/olsr';
+      API.get(`${api}/hosts/count`)
         .then((res) => {
           this.arednNodesCount = res.data.nodes;
           this.devicesCount = res.data.total;
@@ -130,7 +136,7 @@ export default {
         .catch((err) => {
           console.error(err);
         });
-      API.get(`/olsr/hosts?page=${page}&limit=${limit}`)
+      API.get(`${api}/hosts?page=${page}&limit=${limit}`)
         .then((res) => {
           if (!res.data.nodes) {
             res.data.nodes = [];
@@ -175,7 +181,8 @@ export default {
     },
     fetchDataFiltered(filter, page = 1, limit = 50) {
       this.loading = true;
-      API.get(`/olsr/hosts?page=${page}&limit=${limit}&filter=${filter}`)
+      const api = this.babel ? '/babel' : '/olsr';
+      API.get(`${api}/hosts?page=${page}&limit=${limit}&filter=${filter}`)
         .then((res) => {
           if (!res.data.nodes) {
             res.data.nodes = [];
