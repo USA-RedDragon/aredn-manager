@@ -22,6 +22,7 @@ type Parser struct {
 	totalCount      int
 	serviceCount    int
 	isParsing       atomic.Bool
+	needParse       atomic.Bool // set if we get a call to Parse() while already parsing. We'll run Parse() again after the current parse is done to ensure we have the latest data
 }
 
 func NewParser() *Parser {
@@ -70,18 +71,29 @@ func (p *Parser) GetHostsPaginated(page int, limit int, filter string) []*AREDNH
 
 func (p *Parser) Parse() (err error) {
 	if p.isParsing.Load() {
+		p.needParse.Store(true)
 		return
 	}
 	p.isParsing.Store(true)
-	defer p.isParsing.Store(false)
 	hosts, arednCount, totalCount, serviceCount, err := parseHosts()
 	if err != nil {
 		return
 	}
+	p.isParsing.Store(false)
 	p.arednNodesCount = arednCount
 	p.totalCount = totalCount
 	p.currentHosts = hosts
 	p.serviceCount = serviceCount
+	if p.needParse.Load() {
+		go func() {
+			p.needParse.Store(false)
+			p.isParsing.Store(true)
+			defer p.isParsing.Store(false)
+			if err := p.Parse(); err != nil {
+				slog.Error("Error re-parsing hosts", "error", err)
+			}
+		}()
+	}
 	return
 }
 
