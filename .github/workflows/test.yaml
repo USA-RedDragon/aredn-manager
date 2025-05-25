@@ -52,7 +52,7 @@ jobs:
         with:
           node-version-file: .node-version
 
-      - run: cd frontend && npm ci
+      - run: cd frontend && npm ci --ignore-scripts
 
       - name: Save Code Linting Report JSON
         run: cd frontend && npm run lint:report
