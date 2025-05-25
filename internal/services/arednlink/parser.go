@@ -96,6 +96,7 @@ type AREDNService struct {
 	Protocol   string `json:"protocol"`
 	Name       string `json:"name"`
 	ShouldLink bool   `json:"should_link"`
+	Tag        string `json:"type"`
 }
 
 func (s *AREDNService) String() string {
@@ -127,8 +128,12 @@ func (h *AREDNHost) String() string {
 	return ret
 }
 
+var (
+	regexAredn  = regexp.MustCompile(`\s[^\.]+$`)
+	taggedRegex = regexp.MustCompile(`^(.*)\s+\[(.*)\]$`)
+)
+
 func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCount int, err error) {
-	regexAredn := regexp.MustCompile(`\s[^\.]+$`)
 	err = fs.WalkDir(os.DirFS(hostsDir), ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			slog.Error("Error reading hosts directory", "error", err)
@@ -204,11 +209,20 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 							continue
 						}
 
+						// Name can have an optional tag suffix like 'Meshchat [chat]'
+						name := split[2]
+						tag := ""
+						if matches := taggedRegex.FindStringSubmatch(name); len(matches) == 3 {
+							name = matches[1]
+							tag = matches[2]
+						}
+
 						service := &AREDNService{
 							URL:        url.String(),
 							Protocol:   split[1],
-							Name:       split[2],
+							Name:       name,
 							ShouldLink: url.Port() != "0",
+							Tag:        tag,
 						}
 
 						serviceCount++
