@@ -136,7 +136,12 @@ func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services
 	// CORS
 	corsConfig := cors.DefaultConfig()
 	corsConfig.AllowCredentials = true
-	corsConfig.AllowOrigins = s.config.CORSHosts
+	if len(s.config.CORSHosts) == 0 {
+		corsConfig.AllowAllOrigins = true
+	} else {
+		corsConfig.AllowAllOrigins = false
+		corsConfig.AllowOrigins = s.config.CORSHosts
+	}
 	r.Use(cors.New(corsConfig))
 
 	ratelimitStore := ratelimit.InMemoryStore(&ratelimit.InMemoryOptions{
