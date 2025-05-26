@@ -171,7 +171,7 @@ import Checkbox from 'primevue/checkbox';
 import DataTable from 'primevue/datatable';
 import InputText from 'primevue/inputtext';
 
-import moment from 'moment';
+import moment, { type Moment } from 'moment';
 import prettyBytes from 'pretty-bytes';
 
 import { mapStores } from 'pinia';
@@ -179,6 +179,29 @@ import { useSettingsStore } from '@/store';
 
 import ClickToCopy from './ClickToCopy.vue';
 import API from '@/services/API';
+import type { PageEvent } from '@/types/PageEvent';
+import type { TunnelConnectionEvent, TunnelDisconnectionEvent, TunnelStatsEvent } from '@/services/EventBus';
+
+interface Tunnel {
+  id: number;
+  rx_bytes_per_sec: number;
+  tx_bytes_per_sec: number;
+  rx_bytes: number;
+  tx_bytes: number;
+  total_rx_mb: number;
+  total_tx_mb: number;
+  active: boolean;
+  connection_time: string | moment.Moment;
+  editing: boolean;
+  enabled: boolean;
+  hostname: string;
+  ip: string;
+  wireguard: boolean;
+  wireguard_port?: number;
+  password?: string;
+  client?: boolean;
+  created_at: moment.Moment;
+}
 
 export default {
   props: {
@@ -198,11 +221,12 @@ export default {
   },
   data: function() {
     return {
-      tunnels: [],
+      tunnels: [] as Tunnel[],
       expandedRows: [],
       loading: false,
       totalRecords: 0,
-      filters: undefined,
+      page: 1,
+      filters: { global: { value: null, matchMode: FilterMatchMode.CONTAINS } },
     };
   },
   created() {
@@ -211,13 +235,13 @@ export default {
   mounted() {
     this.fetchData();
     this.$EventBus.on('tunnel_stats', this.updateTunnelStats);
-    this.$EventBus.on('tunnel_connected', this.updateTunnelConnected);
-    this.$EventBus.on('tunnel_disconnected', this.updateTunnelDisconnected);
+    this.$EventBus.on('tunnel_connection', this.updateTunnelConnected);
+    this.$EventBus.on('tunnel_disconnection', this.updateTunnelDisconnected);
   },
   unmounted() {
     this.$EventBus.off('tunnel_stats', this.updateTunnelStats);
-    this.$EventBus.off('tunnel_connected', this.updateTunnelConnected);
-    this.$EventBus.off('tunnel_disconnected', this.updateTunnelDisconnected);
+    this.$EventBus.off('tunnel_connection', this.updateTunnelConnected);
+    this.$EventBus.off('tunnel_disconnection', this.updateTunnelDisconnected);
   },
   methods: {
     initFilters() {
@@ -234,7 +258,7 @@ export default {
       this.loading = true;
       this.fetchData(this.page);
     },
-    updateTunnelStats(tunnel) {
+    updateTunnelStats(tunnel: TunnelStatsEvent) {
       for (let i = 0; i < this.tunnels.length; i++) {
         if (this.tunnels[i].id == tunnel.id) {
           this.tunnels[i].rx_bytes_per_sec = tunnel.rx_bytes_per_sec;
@@ -249,21 +273,22 @@ export default {
         }
       }
     },
-    updateTunnelConnected(tunnel) {
+    updateTunnelConnected(tunnel: TunnelConnectionEvent) {
       for (let i = 0; i < this.tunnels.length; i++) {
         if (this.tunnels[i].id == tunnel.id) {
           this.tunnels[i].active = true;
-          if (tunnel.connection_time == '0001-01-01T00:00:00Z' || !tunnel.connection_time) {
-            tunnel.connection_time = 'Never';
+          let connTime: string | Moment = tunnel.connection_time;
+          if (!connTime || connTime == '0001-01-01T00:00:00Z') {
+            connTime = 'Never';
           } else {
-            tunnel.connection_time = moment(tunnel.connection_time);
+            connTime = moment(tunnel.connection_time);
           }
-          this.tunnels[i].connection_time = tunnel.connection_time;
+          this.tunnels[i].connection_time = connTime;
           return;
         }
       }
     },
-    updateTunnelDisconnected(tunnel) {
+    updateTunnelDisconnected(tunnel: TunnelDisconnectionEvent) {
       for (let i = 0; i < this.tunnels.length; i++) {
         if (this.tunnels[i].id == tunnel.id) {
           this.tunnels[i].active = false;
@@ -277,7 +302,7 @@ export default {
       }
       return prettyBytes(bytes);
     },
-    onPage(event) {
+    onPage(event: PageEvent) {
       this.loading = true;
       this.fetchData(event.page + 1, this.filters.global.value, event.rows);
     },
@@ -334,7 +359,7 @@ export default {
         }
       }
     },
-    finishEditingTunnel(tunnel) {
+    finishEditingTunnel(tunnel: Tunnel) {
       for (let i = 0; i < this.tunnels.length; i++) {
         if (this.tunnels[i].id === tunnel.id) {
           this.tunnels[i].editing = false;
@@ -368,7 +393,7 @@ export default {
           });
         });
     },
-    deleteTunnel(tunnel) {
+    deleteTunnel(tunnel: Tunnel) {
       this.$confirm.require({
         message: 'Are you sure you want to delete this tunnel?',
         header: 'Delete Tunnel',

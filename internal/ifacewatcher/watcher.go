@@ -290,6 +290,7 @@ func (w *Watcher) reconcileDB() {
 					Data: apimodels.WebsocketTunnelConnect{
 						ID:     iface.AssociatedTunnel.ID,
 						Client: iface.AssociatedTunnel.Client,
+						ConnectionTime: iface.AssociatedTunnel.ConnectionTime,
 					},
 				}
 				w.db.Save(iface.AssociatedTunnel)

@@ -53,6 +53,11 @@ import { mapStores } from 'pinia';
 import { useUserStore, useSettingsStore } from '@/store';
 
 import API from '@/services/API';
+import type { PageEvent } from '@/types/PageEvent';
+
+interface User {
+  id: number;
+}
 
 export default {
   name: 'UserTable',
@@ -77,7 +82,7 @@ export default {
   unmounted() {
   },
   methods: {
-    onPage(event) {
+    onPage(event: PageEvent) {
       this.loading = true;
       this.fetchData(event.page + 1, event.rows);
     },
@@ -100,7 +105,7 @@ export default {
           console.error(err);
         });
     },
-    deleteUser(user) {
+    deleteUser(user: User) {
       if (user.id != 1) {
         this.$confirm.require({
           message: 'Are you sure you want to delete this user?',

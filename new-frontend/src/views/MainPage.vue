@@ -162,6 +162,12 @@ import {
 import prettyBytes from 'pretty-bytes';
 
 import API from '@/services/API';
+import type {
+  TotalBandwidthEvent,
+  TotalTrafficEvent,
+  TunnelConnectionEvent,
+  TunnelDisconnectionEvent,
+} from '@/services/EventBus';
 
 export default {
   components: {
@@ -214,11 +220,16 @@ export default {
       nodeIP: '',
       uptime: '',
       gridsquare: '',
-      stats: {},
+      stats: {
+        total_tx_bytes_per_sec: 0,
+        total_rx_bytes_per_sec: 0,
+        total_tx_mb: 0,
+        total_rx_mb: 0,
+      },
     };
   },
   methods: {
-    tunnelDisconnected(event) {
+    tunnelDisconnected(event: TunnelDisconnectionEvent) {
       this.wireguardTunnelsConnected--;
       if (event.client) {
         this.wireguardClientTunnelsConnected--;
@@ -229,7 +240,7 @@ export default {
         this.wireguardTunnelsConnected = 0;
       }
     },
-    tunnelConnected(event) {
+    tunnelConnected(event: TunnelConnectionEvent) {
       this.wireguardTunnelsConnected++;
       if (event.client) {
         this.wireguardClientTunnelsConnected++;
@@ -237,13 +248,13 @@ export default {
         this.wireguardServerTunnelsConnected++;
       }
     },
-    totalBandwidth(event) {
+    totalBandwidth(event: TotalBandwidthEvent) {
       if ('TX' in event) {
         this.stats.total_rx_bytes_per_sec = event.RX;
         this.stats.total_tx_bytes_per_sec = event.TX;
       }
     },
-    totalTraffic(event) {
+    totalTraffic(event: TotalTrafficEvent) {
       // Truncate to 2 decimal places
       let rx = Math.round(event.RX * 100) / 100;
       // Convert to bytes
