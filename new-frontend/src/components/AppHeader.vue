@@ -75,7 +75,10 @@ import API from '@/services/API';
 import ColorModeButton from '@/components/ColorModeButton.vue';
 
 import { mapStores } from 'pinia';
+import { ref } from 'vue';
 import { useUserStore } from '@/store';
+
+const adminMenu = ref<Menu>();
 
 export default {
   components: {
@@ -100,10 +103,7 @@ export default {
         });
     },
     toggleAdminMenu(event: Event) {
-      this.$refs.adminMenu.toggle(event);
-    },
-    toggleTalkgroupsMenu(event: Event) {
-      this.$refs.talkgroupsMenu.toggle(event);
+      adminMenu?.value?.toggle(event);
     },
   },
   computed: {

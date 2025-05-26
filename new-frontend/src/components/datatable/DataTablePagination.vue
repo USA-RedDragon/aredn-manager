@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="TData">
 import { type Table } from '@tanstack/vue-table'
 import {
   ChevronLeft,
@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select'
 
 interface DataTablePaginationProps {
-  table: Table<unknown>
+  table: Table<TData>
 }
 defineProps<DataTablePaginationProps>()
 </script>
@@ -35,7 +35,7 @@ defineProps<DataTablePaginationProps>()
         </p>
         <Select
           :model-value="`${table.getState().pagination.pageSize}`"
-          @update:model-value="table.setPageSize"
+          @update:model-value="table.setPageSize(Number($event))"
         >
           <SelectTrigger class="h-8 w-[70px]">
             <SelectValue :placeholder="`${table.getState().pagination.pageSize}`" />
