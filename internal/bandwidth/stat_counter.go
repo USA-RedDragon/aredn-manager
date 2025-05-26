@@ -178,9 +178,9 @@ func (s *StatCounterManager) totalStatsUpdate(rxMb float64, txMb float64) {
 
 	s.eventsChannel <- events.Event{
 		Type: events.EventTypeTotalTraffic,
-		Data: map[string]float64{
-			"RX": s.TotalRXMB,
-			"TX": s.TotalTXMB,
+		Data: apimodels.WebsocketTotalTraffic{
+			RX: s.TotalRXMB,
+			TX: s.TotalTXMB,
 		},
 	}
 }
@@ -194,9 +194,9 @@ func (s *StatCounterManager) updateTotalBandwidth() {
 	}
 	s.eventsChannel <- events.Event{
 		Type: events.EventTypeTotalBandwidth,
-		Data: map[string]uint64{
-			"RX": s.TotalRXBandwidth,
-			"TX": s.TotalTXBandwidth,
+		Data: apimodels.WebsocketTotalBandwidth{
+			RX: s.TotalRXBandwidth,
+			TX: s.TotalTXBandwidth,
 		},
 	}
 }

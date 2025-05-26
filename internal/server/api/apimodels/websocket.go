@@ -1,5 +1,7 @@
 package apimodels
 
+import "time"
+
 type WebsocketTunnelStats struct {
 	ID               uint    `json:"id"`
 	RXBytesPerSecond uint64  `json:"rx_bytes_per_sec"`
@@ -13,9 +15,20 @@ type WebsocketTunnelStats struct {
 type WebsocketTunnelConnect struct {
 	ID     uint `json:"id"`
 	Client bool `json:"client"`
+	ConnectionTime time.Time `json:"connection_time"`
 }
 
 type WebsocketTunnelDisconnect struct {
 	ID     uint `json:"id"`
 	Client bool `json:"client"`
+}
+
+type WebsocketTotalBandwidth struct {
+	RX uint64 `json:"RX"`
+	TX uint64 `json:"TX"`
+}
+
+type WebsocketTotalTraffic struct {
+	RX float64 `json:"RX"`
+	TX float64 `json:"TX"`
 }
