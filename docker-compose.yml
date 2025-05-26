@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   postgres:
@@ -9,18 +9,22 @@ services:
       - POSTGRES_USER=arednnode
       - POSTGRES_PASSWORD=password
     healthcheck:
-      test: ["CMD-SHELL", "cat /initialized.txt && pg_isready -U $${POSTGRES_USER}"]
+      test:
+        ["CMD-SHELL", "cat /initialized.txt && pg_isready -U $${POSTGRES_USER}"]
       interval: 10s
       timeout: 5s
       retries: 5
-    entrypoint: [ "/bin/bash", "-c","
-      docker-entrypoint.sh postgres &
-      rm -f /initialized.txt || true &&
-      until pg_isready -U $${POSTGRES_USER}; do sleep 3; done &&
-      psql -U $${POSTGRES_USER} -d postgres -c 'CREATE DATABASE arednnode_supernode;' || true &&
-      echo done > /initialized.txt &&
-      wait"
-    ]
+    entrypoint: [
+        "/bin/bash",
+        "-c",
+        "
+        docker-entrypoint.sh postgres &
+        rm -f /initialized.txt || true &&
+        until pg_isready -U $${POSTGRES_USER}; do sleep 3; done &&
+        psql -U $${POSTGRES_USER} -d postgres -c 'CREATE DATABASE arednnode_supernode;' || true &&
+        echo done > /initialized.txt &&
+        wait",
+      ]
     volumes:
       - ./.postgres:/var/lib/postgresql/data
 
@@ -46,8 +50,8 @@ services:
       - --collector.filesystem.fs-types-exclude='^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$'
 
   aredn-cloud-tunnel:
-    container_name: oklahoma-tunnel
-    image: ghcr.io/usa-reddragon/aredn-manager:v0
+    container_name: tunnel
+    build: .
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
@@ -69,17 +73,17 @@ services:
       - NODE_IP=10.54.27.2
       - BABEL_ENABLED=true
       - BABEL_ROUTER_ID=01:42:c0:a8:fb:05
-    hostname: oklahoma
+    hostname: KI5VMF-TEST
     ports:
       - 38379:80
-      - '5527-5626:5527-5626/udp'
+      - "5527-5626:5527-5626/udp"
       - 27395:51820/udp
     networks:
       - default
       - dtd
 
   aredn-cloud-tunnel-supernode:
-    container_name: oklahoma-supernode
+    container_name: supernode
     build: .
     restart: unless-stopped
     cap_add:
@@ -107,9 +111,9 @@ services:
       - WIREGUARD_STARTING_PORT=6527
       - BABEL_ENABLED=true
       - BABEL_ROUTER_ID=58:a7:4d:b6:f9:75
-    hostname: KI5VMF-OKLAHOMA-SUPERNODE
+    hostname: TEST-SUPERNODE
     ports:
-      - '6527-6626:6527-6626/udp'
+      - "6527-6626:6527-6626/udp"
       - 17468:80
       - 666:666
     networks:
@@ -117,13 +121,13 @@ services:
       - dtd
 
 networks:
-    default:
-      enable_ipv6: true
-      ipam:
-        config:
-          - subnet: 192.168.251.0/24
-    dtd:
-      enable_ipv6: true
-      ipam:
-        config:
-          - subnet: 10.54.27.224/29
+  default:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 192.168.251.0/24
+  dtd:
+    enable_ipv6: true
+    ipam:
+      config:
+        - subnet: 10.54.27.224/29
