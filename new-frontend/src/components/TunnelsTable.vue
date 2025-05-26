@@ -179,7 +179,6 @@ import { useSettingsStore } from '@/store';
 
 import ClickToCopy from './ClickToCopy.vue';
 import API from '@/services/API';
-import type { PageEvent } from '@/types/PageEvent';
 import type { TunnelConnectionEvent, TunnelDisconnectionEvent, TunnelStatsEvent } from '@/services/EventBus';
 
 interface Tunnel {
