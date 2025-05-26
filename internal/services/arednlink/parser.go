@@ -157,7 +157,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 
 		file := filepath.Join(hostsDir, path)
 
-		slog.Info("parseHosts: Processing hosts file", "file", file)
+		slog.Debug("parseHosts: Processing hosts file", "file", file)
 
 		entries, err := os.ReadFile(file)
 		if err != nil {
@@ -174,7 +174,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 				continue
 			}
 
-			slog.Info("parseHosts: Processing hosts file line", "file", file, "line", line)
+			slog.Debug("parseHosts: Processing hosts file line", "file", file, "line", line)
 
 			fields := strings.Fields(line)
 			if len(fields) < 2 {
@@ -183,7 +183,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 			}
 
 			if regexAredn.Match([]byte(line)) && arednHost == nil {
-				slog.Info("parseHosts: Found AREDN host entry", "file", file, "line", line)
+				slog.Debug("parseHosts: Found AREDN host entry", "file", file, "line", line)
 				arednHost = &AREDNHost{
 					HostData: HostData{
 						Hostname: strings.TrimSpace(fields[1]),
@@ -247,7 +247,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 					arednHost.HostData.Services = append(arednHost.HostData.Services, servicesList...)
 				}
 			} else {
-				slog.Info("parseHosts: Found child host entry", "file", file, "line", line)
+				slog.Debug("parseHosts: Found child host entry", "file", file, "line", line)
 				if arednHost == nil {
 					slog.Warn("parseHosts: Found a host entry without a parent AREDN host", "line", line)
 					continue
