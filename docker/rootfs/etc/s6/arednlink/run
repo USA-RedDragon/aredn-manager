@@ -1,5 +1,15 @@
 #!/bin/sh
 
+func cleanup() {
+  echo "Stopping arednlink..."
+  if [ -f /var/run/arednlink.pid ]; then
+    kill $(cat /var/run/arednlink.pid) || true
+    rm -f /var/run/arednlink.pid
+    exit 0
+  fi
+}
+trap cleanup EXIT INT TERM
+
 isolation=""
 if [ "$SUPERNODE" = "1" ]; then
   isolation="isolate br-dtdlink"
