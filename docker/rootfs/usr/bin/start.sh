@@ -63,7 +63,7 @@ mkdir -p /etc/arednlink
 echo "${NODE_IP} ${SERVER_NAME}" >> /etc/arednlink/hosts
 touch /etc/arednlink/services
 
-sleep 1
+sleep 3
 
 # Run the AREDN manager
 aredn-manager generate
