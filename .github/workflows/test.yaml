@@ -42,11 +42,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -81,11 +76,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -131,11 +121,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -218,11 +203,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
-
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
@@ -258,11 +238,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -308,11 +283,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Set up Go
-        uses: actions/setup-go@v5
-        with:
-          go-version-file: go.mod
 
       - name: Use Node.js
         uses: actions/setup-node@v4
@@ -376,8 +346,6 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - run: go generate ./...
-
       - run: CGO_ENABLED=0 go test -run ^$ -benchmem -bench=. ./...
 
   backend-race-tests:
@@ -394,8 +362,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
-      - run: go generate ./...
 
       - name: Race tests
         run: |
@@ -415,8 +381,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
-      - run: go generate ./...
 
       - name: Unit tests
         run: |
@@ -469,8 +433,6 @@ jobs:
         uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-
-      - run: go generate ./...
 
       - name: Unit tests
         run: |
