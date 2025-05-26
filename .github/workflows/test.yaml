@@ -239,6 +239,7 @@ jobs:
         with:
           repo-token: "${{ secrets.GITHUB_TOKEN }}"
           report-json: "new-frontend/eslint_report.json"
+          check-name: New Frontend ESLint Report Analysis
 
       - uses: actions/upload-artifact@v4
         if: always()
