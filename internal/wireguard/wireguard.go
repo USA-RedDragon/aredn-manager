@@ -3,7 +3,6 @@ package wireguard
 import (
 	"context"
 	"fmt"
-	"log"
 	"log/slog"
 	"net"
 	"strconv"
@@ -149,7 +148,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	// Check if device exists
 	wgdev, err := netlink.LinkByName(iface)
 	if err == nil {
-		log.Println("wireguard interface already exists", iface)
+		slog.Warn("wireguard interface already exists", "iface", iface, "peer", peer.Hostname)
 	} else {
 		la := netlink.NewLinkAttrs()
 		la.Name = iface
@@ -157,7 +156,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		wgdev = &WG{LinkAttrs: la}
 		err := netlink.LinkAdd(wgdev)
 		if err != nil {
-			log.Println("failed to add wireguard device", err)
+			slog.Error("failed to add wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 			return
 		}
 	}
@@ -166,7 +165,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	if wgdev.Attrs().Flags&net.FlagUp == 0 {
 		err = netlink.LinkSetUp(wgdev)
 		if err != nil {
-			log.Println("failed to bring up wireguard device", err)
+			slog.Error("failed to bring up wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 			return
 		}
 	}
@@ -191,21 +190,21 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 
 	err = netlink.AddrReplace(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: peerIP, Mask: net.CIDRMask(32, 32)}})
 	if err != nil {
-		log.Println("failed to add address to wireguard device", err)
+		slog.Error("failed to add address to wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
 	// Add an IPv6 link-local address to the interface
 	peerIP6, err := utils.GenerateIPv6LinkLocalAddress(peerIP)
 	if err != nil {
-		log.Println("failed to generate IPv6 link-local address", err)
+		slog.Error("failed to generate IPv6 link-local address", "peer", peer.Hostname, "error", err)
 		return
 	}
 	slog.Debug("Generated IPv6 link-local address", "address", peerIP6)
 
 	err = netlink.AddrAdd(wgdev, &netlink.Addr{IPNet: &net.IPNet{IP: net.ParseIP(peerIP6), Mask: net.CIDRMask(64, 128)}})
 	if err != nil {
-		log.Println("failed to add IPv6 link-local address to wireguard device", err)
+		slog.Error("failed to add IPv6 link-local address to wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -215,13 +214,13 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 
 	_, netip, err := net.ParseCIDR("0.0.0.0/0")
 	if err != nil {
-		log.Println("failed to parse 0.0.0.0/0", err)
+		slog.Error("failed to parse 0.0.0.0/0", "error", err)
 		return
 	}
 
 	_, ipv6netip, err := net.ParseCIDR("::/0")
 	if err != nil {
-		log.Println("failed to parse ::/0", err)
+		slog.Error("failed to parse ::/0", "error", err)
 		return
 	}
 
@@ -231,7 +230,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		var err error
 		privkey, err = wgtypes.ParseKey(peer.WireguardServerKey)
 		if err != nil {
-			log.Println("failed to parse server key", err)
+			slog.Error("failed to parse server private key", "error", err)
 			return
 		}
 
@@ -239,7 +238,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		pubkeyPart := peer.Password[88:]
 		clientPubkey, err := wgtypes.ParseKey(pubkeyPart)
 		if err != nil {
-			log.Println("failed to parse client pubkey", err)
+			slog.Error("failed to parse client pubkey", "error", err)
 			return
 		}
 
@@ -258,26 +257,26 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		serverPubkeyStr := peer.Password[:44]
 		serverPubkey, err := wgtypes.ParseKey(serverPubkeyStr)
 		if err != nil {
-			log.Println("failed to parse server pubkey", err)
+			slog.Error("failed to parse server pubkey", "error", err)
 			return
 		}
 		clientPrivkeyStr := peer.Password[44:88]
 		privkey, err = wgtypes.ParseKey(clientPrivkeyStr)
 		if err != nil {
-			log.Println("failed to parse client privkey", err)
+			slog.Error("failed to parse client privkey", "error", err)
 			return
 		}
 
 		// Parse tunnel.Hostname as an address and port
 		hostnameParts := strings.Split(peer.Hostname, ":")
 		if len(hostnameParts) != 2 {
-			log.Println("invalid hostname", peer.Hostname)
+			slog.Error("invalid hostname format", "hostname", peer.Hostname)
 			return
 		}
 
 		port64, err := strconv.ParseInt(hostnameParts[1], 10, 32)
 		if err != nil {
-			log.Println("failed to parse port", err)
+			slog.Error("failed to parse port from hostname", "hostname", peer.Hostname, "error", err)
 			return
 		}
 		port := int(port64)
@@ -287,11 +286,11 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 			// It's a domain name
 			ips, err := net.LookupIP(hostnameParts[0])
 			if err != nil {
-				log.Println("failed to lookup hostname", hostnameParts[0], ":", err)
+				slog.Error("failed to lookup IPs for hostname", "hostname", hostnameParts[0], "error", err)
 				return
 			}
 			if len(ips) == 0 {
-				log.Println("no IPs found for hostname", hostnameParts[0])
+				slog.Error("no IPs found for hostname", "hostname", hostnameParts[0])
 				return
 			}
 			hostnameParts[0] = ips[0].String()
@@ -315,7 +314,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 	})
 
 	if err != nil {
-		log.Println("failed to configure wireguard device", iface, ":", err)
+		slog.Error("failed to configure wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -330,7 +329,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		Flow:              -1,
 	})
 	if err != nil {
-		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		slog.Error("failed to add rule for wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 	err = netlink.RuleAdd(&netlink.Rule{
@@ -344,7 +343,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		Flow:              -1,
 	})
 	if err != nil {
-		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		slog.Error("failed to add rule for wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -359,7 +358,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		Flow:              -1,
 	})
 	if err != nil {
-		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		slog.Error("failed to add rule for wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -374,7 +373,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		Flow:              -1,
 	})
 	if err != nil {
-		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		slog.Error("failed to add rule for wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -389,7 +388,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		Flow:              -1,
 	})
 	if err != nil {
-		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		slog.Error("failed to add rule for wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -404,7 +403,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		Flow:              -1,
 	})
 	if err != nil {
-		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		slog.Error("failed to add rule for wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -419,7 +418,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		Flow:              -1,
 	})
 	if err != nil {
-		log.Println("failed to add rule for wireguard device", iface, ":", err)
+		slog.Error("failed to add rule for wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -435,7 +434,7 @@ func (m *Manager) addPeer(peer models.Tunnel) {
 		Flow:              -1,
 	})
 	if err != nil {
-		log.Println("failed to add unreachable rule for wireguard device", iface, ":", err)
+		slog.Error("failed to add unreachable rule for wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -455,20 +454,20 @@ func (m *Manager) removePeer(peer models.Tunnel) {
 	// Check if device exists
 	wgdev, err := netlink.LinkByName(iface)
 	if err != nil {
-		log.Println("wireguard interface does not exist", iface)
+		slog.Warn("wireguard interface does not exist", "iface", iface, "peer", peer.Hostname)
 		m.peerRemoveConfirmChan <- peer
 		return
 	}
 
 	err = netlink.LinkSetDown(wgdev)
 	if err != nil {
-		log.Println("failed to bring down wireguard device", err)
+		slog.Error("failed to bring down wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
 	err = netlink.LinkDel(wgdev)
 	if err != nil {
-		log.Println("failed to delete wireguard device", err)
+		slog.Error("failed to delete wireguard device", "iface", iface, "peer", peer.Hostname, "error", err)
 		return
 	}
 
@@ -492,7 +491,7 @@ func (m *Manager) waitForPeerAddition(ctx context.Context, peer models.Tunnel) e
 	case <-m.shutdownChan:
 		return fmt.Errorf("wireguard manager is shutting down")
 	case <-ctx.Done():
-		log.Printf("peerAddConfirm timed out: %v\n", peer.Hostname)
+		slog.Warn("peerAddConfirm timed out", "peer", peer.Hostname)
 		return ctx.Err()
 	case addedPeer := <-m.peerAddConfirmChan:
 		if addedPeer.ID != peer.ID {
@@ -518,7 +517,7 @@ func (m *Manager) waitForPeerRemoval(ctx context.Context, peer models.Tunnel) er
 	case <-m.shutdownChan:
 		return fmt.Errorf("wireguard manager is shutting down")
 	case <-ctx.Done():
-		log.Printf("peerRemoveConfirm timed out: %v\n", peer.Hostname)
+		slog.Warn("peerRemoveConfirm timed out", "peer", peer.Hostname)
 		return ctx.Err()
 	case addedPeer := <-m.peerRemoveConfirmChan:
 		if addedPeer.ID != peer.ID {

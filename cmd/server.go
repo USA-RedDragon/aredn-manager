@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"log"
 	"log/slog"
 	"os"
 	"syscall"
@@ -76,42 +75,43 @@ func runServer(cmd *cobra.Command, _ []string) error {
 
 	// Start the metrics server
 	go metrics.CreateMetricsServer(config, cmd.Root().Version)
-	log.Printf("Metrics server started")
+	slog.Info("Metrics server started")
 
 	db, err := db.MakeDB(config)
 	if err != nil {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
-	log.Printf("DB connection established")
+	slog.Info("Database connection established")
 
 	// Clear active status from all tunnels in the db
 	err = models.ClearActiveFromAllTunnels(db)
 	if err != nil {
 		return err
 	}
-	log.Printf("Cleared active status from all tunnels")
+	slog.Info("Cleared active status from all tunnels in the database")
 
 	// Start the wireguard manager
 	wireguardManager, err := wireguard.NewManager(db)
 	if err != nil {
 		return err
 	}
-	log.Printf("Wireguard manager started")
+	slog.Info("Wireguard manager initialized")
 
 	err = wireguardManager.Run()
 	if err != nil {
 		return err
 	}
-	log.Printf("Wireguard manager running")
+	slog.Info("Wireguard manager started")
 
-	// Run the OLSR metrics watcher
-	go metrics.OLSRWatcher(db)
-	log.Printf("OLSR watcher started")
+	if config.OLSR {
+		// Run the OLSR metrics watcher
+		go metrics.OLSRWatcher(db)
+		slog.Info("OLSR metrics watcher started")
+	}
 
 	// Initialize the websocket event bus
 	eventBus := events.NewEventBus()
-	defer eventBus.Close()
-	log.Printf("Event bus started")
+	slog.Info("Event bus initialized")
 
 	// Start the interface watcher
 	ifWatcher, err := ifacewatcher.NewWatcher(db, eventBus.GetChannel())
@@ -122,7 +122,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Interface watcher started")
+	slog.Info("Interface watcher started")
 
 	// Start the server
 	srv := server.NewServer(config, db, ifWatcher.Stats, eventBus.GetChannel(), wireguardManager)
@@ -130,57 +130,71 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return err
 	}
-	log.Printf("Server started")
+	slog.Info("Server is running")
 
-	stopChan := make(chan error)
+	stopChan := make(chan error, 1)
 	defer close(stopChan)
 	stop := func(sig os.Signal) {
 		// Extra newline to clear potential terminal control character
 		fmt.Println()
 		switch sig {
 		case syscall.SIGINT:
-			log.Println("Received SIGINT, shutting down")
+			slog.Info("Received SIGINT, shutting down")
 		case syscall.SIGKILL:
-			log.Println("Received SIGKILL, shutting down")
+			slog.Info("Received SIGKILL, shutting down")
 		case syscall.SIGTERM:
-			log.Println("Received SIGTERM, shutting down")
+			slog.Info("Received SIGTERM, shutting down")
 		case syscall.SIGQUIT:
-			log.Println("Received SIGQUIT, shutting down")
+			slog.Info("Received SIGQUIT, shutting down")
 		}
 		errGrp := errgroup.Group{}
 		errGrp.SetLimit(1)
 
 		errGrp.Go(func() error {
+			slog.Debug("Stopping wireguard manager")
+			defer slog.Debug("Wireguard manager stopped")
 			return wireguardManager.Stop()
 		})
 
 		errGrp.Go(func() error {
+			slog.Debug("Stopping server")
+			defer slog.Debug("Server stopped")
 			return srv.Stop()
 		})
 
 		errGrp.Go(func() error {
+			slog.Debug("Stopping interface watcher")
+			defer slog.Debug("Interface watcher stopped")
 			return ifWatcher.Stop()
 		})
 
 		errGrp.Go(func() error {
+			slog.Debug("Clearing active status from all tunnels")
+			defer slog.Debug("Cleared active status from all tunnels")
 			return models.ClearActiveFromAllTunnels(db)
 		})
 
 		errGrp.Go(func() error {
+			slog.Debug("Stopping event bus")
+			defer slog.Debug("Event bus stopped")
 			eventBus.Close()
 			return nil
 		})
 
 		errGrp.Go(func() error {
+			slog.Debug("Stopping service registry")
+			defer slog.Debug("Service registry stopped")
 			return serviceRegistry.StopAll()
 		})
 
+		slog.Debug("Waiting for all errgroups to stop")
 		stopChan <- errGrp.Wait()
+		slog.Debug("All errgroups stopped")
 	}
 	shutdown.AddWithParam(stop)
-	log.Println("Signal hooks added")
+	slog.Info("Signal hooks added")
 	shutdown.Listen(syscall.SIGINT, syscall.SIGKILL, syscall.SIGTERM, syscall.SIGQUIT)
-	log.Println("Signal listener returned")
+	slog.Info("Signal listener returned")
 
 	return <-stopChan
 }

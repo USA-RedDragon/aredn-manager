@@ -3,7 +3,7 @@ package runner
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os/exec"
 	"syscall"
 	"time"
@@ -28,7 +28,7 @@ func Run(cmd *exec.Cmd) (chan error, error) {
 		err := cancelAndWaitForExit(syscall.SIGTERM, processResults)
 		if err != nil {
 			// SIGTERM didn't work, log it and try SIGKILL
-			log.Printf("failed to send SIGTERM to process: %v\n", err)
+			slog.Error("Failed to send SIGTERM to process, trying SIGKILL", "error", err)
 			err = cancelAndWaitForExit(syscall.SIGKILL, processResults)
 			if err != nil {
 				return fmt.Errorf("failed to kill process: %w", err)

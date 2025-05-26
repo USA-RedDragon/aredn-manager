@@ -2,7 +2,6 @@ package bandwidth
 
 import (
 	"fmt"
-	"log"
 	"log/slog"
 	"sync"
 	"time"
@@ -67,7 +66,7 @@ func (s *StatCounter) Start() error {
 			}
 			dev, err = netlink.LinkByName(s.iface)
 			if err != nil {
-				log.Printf("Error getting link %s by name: %v\n", s.iface, err)
+				slog.Error("Error getting link by name", "iface", s.iface, "error", err)
 				return
 			}
 			rxBytes := dev.Attrs().Statistics.RxBytes
