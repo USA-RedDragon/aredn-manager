@@ -4,7 +4,7 @@ on:
   pull_request:
 
 concurrency:
-  group: '${{ github.workflow }} @ ${{ github.ref }}'
+  group: "${{ github.workflow }} @ ${{ github.ref }}"
   cancel-in-progress: true
 
 jobs:
@@ -73,8 +73,6 @@ jobs:
           go-version-file: go.mod
 
       - run: docker run --privileged --rm tonistiigi/binfmt --install all
-
-      - run: go generate ./...
 
       - uses: Wandalen/wretry.action@master
         with:
