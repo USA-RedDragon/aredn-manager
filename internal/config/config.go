@@ -50,6 +50,7 @@ type Config struct {
 	Postgres                 Postgres  `name:"postgres" description:"PostgreSQL settings"`
 	InitialAdminUserPassword string    `name:"initial-admin-user-password" description:"Initial password for the admin user"`
 	Babel                    Babel     `name:"babel" description:"Babel routing settings"`
+	OLSR                     bool      `name:"olsr" description:"Enable OLSR routing" default:"true"`
 	CORSHosts                []string  `name:"cors-hosts" description:"CORS hosts for the API"`
 	TrustedProxies           []string  `name:"trusted-proxies" description:"Trusted proxies for the API"`
 	HIBPAPIKey               string    `name:"hibp-api-key" description:"Have I Been Pwned API key"`

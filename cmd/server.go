@@ -63,10 +63,14 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	slog.Info("Starting server")
 
 	serviceRegistry := services.NewServiceRegistry()
-	serviceRegistry.Register(services.OLSRServiceName, olsr.NewService(config))
-	serviceRegistry.Register(services.BabelServiceName, babel.NewService(config))
+	if config.OLSR {
+		serviceRegistry.Register(services.OLSRServiceName, olsr.NewService(config))
+	}
+	if config.Babel.Enabled {
+		serviceRegistry.Register(services.BabelServiceName, babel.NewService(config))
+		serviceRegistry.Register(services.AREDNLinkServiceName, arednlink.NewService(config))
+	}
 	serviceRegistry.Register(services.DNSMasqServiceName, dnsmasq.NewService(config))
-	serviceRegistry.Register(services.AREDNLinkServiceName, arednlink.NewService(config))
 
 	go serviceRegistry.StartAll()
 

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/arednlink"
 	"github.com/gin-gonic/gin"
@@ -71,6 +72,19 @@ func GETBabelRunning(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
+	config, ok := c.MustGet("Config").(*config.Config)
+	if !ok {
+		slog.Error("Error getting config")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	if !config.Babel.Enabled {
+		slog.Info("Babel service is not enabled in the configuration")
+		c.JSON(http.StatusOK, gin.H{"running": false})
+		return
+	}
+
 	babelService, ok := registry.Get(services.BabelServiceName)
 	if !ok {
 		slog.Error("Error getting Babel service")

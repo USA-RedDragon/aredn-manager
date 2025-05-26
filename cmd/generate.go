@@ -50,10 +50,12 @@ func runGenerate(cmd *cobra.Command, _ []string) error {
 		return fmt.Errorf("failed to open database: %w", err)
 	}
 
-	slog.Info("Generating olsrd config")
-	err = olsr.GenerateAndSave(config, db)
-	if err != nil {
-		return err
+	if config.OLSR {
+		slog.Info("Generating olsrd config")
+		err = olsr.GenerateAndSave(config, db)
+		if err != nil {
+			return err
+		}
 	}
 
 	if config.Babel.Enabled {

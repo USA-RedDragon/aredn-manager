@@ -488,31 +488,34 @@ func POSTTunnel(c *gin.Context) {
 			}
 		}
 
-		err = olsr.GenerateAndSave(config, db)
-		if err != nil {
-			slog.Error("POSTTunnel: Error generating olsrd config", "error", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
-			return
-		}
-
 		registry, ok := c.MustGet("registry").(*services.Registry)
 		if !ok {
 			slog.Error("POSTTunnel: Error getting registry")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
-		olsrService, ok := registry.Get(services.OLSRServiceName)
-		if !ok {
-			slog.Error("POSTTunnel: Error getting olsrd service")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-			return
-		}
 
-		err = olsrService.Reload()
-		if err != nil {
-			slog.Error("POSTTunnel: Error reloading olsrd", "error", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
-			return
+		if config.OLSR {
+			err = olsr.GenerateAndSave(config, db)
+			if err != nil {
+				slog.Error("POSTTunnel: Error generating olsrd config", "error", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
+				return
+			}
+
+			olsrService, ok := registry.Get(services.OLSRServiceName)
+			if !ok {
+				slog.Error("POSTTunnel: Error getting olsrd service")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+				return
+			}
+
+			err = olsrService.Reload()
+			if err != nil {
+				slog.Error("POSTTunnel: Error reloading olsrd", "error", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
+				return
+			}
 		}
 
 		dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
@@ -695,31 +698,34 @@ func PATCHTunnel(c *gin.Context) {
 			return
 		}
 
-		err = olsr.GenerateAndSave(config, db)
-		if err != nil {
-			slog.Error("Error generating olsrd config", "error", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
-			return
-		}
-
 		registry, ok := c.MustGet("registry").(*services.Registry)
 		if !ok {
 			slog.Error("Error getting registry")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
-		olsrService, ok := registry.Get(services.OLSRServiceName)
-		if !ok {
-			slog.Error("Error getting OLSR service")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-			return
-		}
 
-		err = olsrService.Reload()
-		if err != nil {
-			slog.Error("Error reloading olsrd", "error", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
-			return
+		if config.OLSR {
+			err = olsr.GenerateAndSave(config, db)
+			if err != nil {
+				slog.Error("Error generating olsrd config", "error", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
+				return
+			}
+
+			olsrService, ok := registry.Get(services.OLSRServiceName)
+			if !ok {
+				slog.Error("Error getting OLSR service")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+				return
+			}
+
+			err = olsrService.Reload()
+			if err != nil {
+				slog.Error("Error reloading olsrd", "error", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
+				return
+			}
 		}
 
 		dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
@@ -799,31 +805,34 @@ func DELETETunnel(c *gin.Context) {
 		return
 	}
 
-	err = olsr.GenerateAndSave(config, db)
-	if err != nil {
-		slog.Error("Error generating olsrd config", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
-		return
-	}
-
 	registry, ok := c.MustGet("registry").(*services.Registry)
 	if !ok {
 		slog.Error("Error getting registry")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
-	olsrService, ok := registry.Get(services.OLSRServiceName)
-	if !ok {
-		slog.Error("Error getting OLSR service")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
-	}
 
-	err = olsrService.Reload()
-	if err != nil {
-		slog.Error("Error reloading olsrd", "error", err)
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
-		return
+	if config.OLSR {
+		err = olsr.GenerateAndSave(config, db)
+		if err != nil {
+			slog.Error("Error generating olsrd config", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error generating olsrd config"})
+			return
+		}
+
+		olsrService, ok := registry.Get(services.OLSRServiceName)
+		if !ok {
+			slog.Error("Error getting OLSR service")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+
+		err = olsrService.Reload()
+		if err != nil {
+			slog.Error("Error reloading olsrd", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
+			return
+		}
 	}
 
 	dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)

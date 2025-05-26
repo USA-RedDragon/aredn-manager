@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/gin-gonic/gin"
@@ -78,6 +79,18 @@ func GETOLSRRunning(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
+	config, ok := c.MustGet("Config").(*config.Config)
+	if !ok {
+		slog.Error("Error getting config")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+		return
+	}
+
+	if !config.OLSR {
+		c.JSON(http.StatusOK, gin.H{"running": false})
+		return
+	}
+
 	olsrService, ok := registry.Get(services.OLSRServiceName)
 	if !ok {
 		slog.Error("Error getting OLSR service")
