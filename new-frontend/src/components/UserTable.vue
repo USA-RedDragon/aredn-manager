@@ -53,7 +53,6 @@ import { mapStores } from 'pinia';
 import { useUserStore, useSettingsStore } from '@/store';
 
 import API from '@/services/API';
-import type { PageEvent } from '@/types/PageEvent';
 
 interface User {
   id: number;
