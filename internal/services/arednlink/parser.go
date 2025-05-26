@@ -122,11 +122,6 @@ type AREDNHost struct {
 	Children []HostData `json:"children"`
 }
 
-type orphans struct {
-	ip     net.IP
-	parent net.IP
-}
-
 func (h *AREDNHost) addChild(child HostData) {
 	h.Children = append(h.Children, child)
 }
