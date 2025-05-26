@@ -69,7 +69,6 @@ func (s *Server) Run(version string, registry *services.Registry) error {
 	if err != nil {
 		slog.Error("Failed to set trusted proxies", "error", err)
 	}
-	r.TrustedPlatform = "X-Real-IP"
 
 	server := &http.Server{
 		Addr:         fmt.Sprintf("%s:%d", "127.0.0.1", s.config.Port),
