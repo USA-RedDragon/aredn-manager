@@ -4,7 +4,7 @@ on:
   pull_request:
 
 concurrency:
-  group: '${{ github.workflow }} @ ${{ github.ref }}'
+  group: "${{ github.workflow }} @ ${{ github.ref }}"
   cancel-in-progress: true
 
 jobs:
@@ -142,7 +142,7 @@ jobs:
         with:
           node-version-file: .node-version
 
-      - run: cd frontend && npm ci --ignore-scripts
+      - run: cd frontend && npm ci
       - run: cd frontend && NODE_ENV=test npm run build
       - run: cd frontend && BROWSER=${{ matrix.browser }} NODE_ENV=test npm run test:e2e:${{ matrix.browser }}
 
@@ -318,7 +318,7 @@ jobs:
         with:
           node-version-file: .node-version
 
-      - run: cd new-frontend && npm ci --ignore-scripts
+      - run: cd new-frontend && npm ci
       - run: cd new-frontend && NODE_ENV=test npm run build
       - run: cd new-frontend && BROWSER=${{ matrix.browser }} NODE_ENV=test npm run test:e2e:${{ matrix.browser }}
 
