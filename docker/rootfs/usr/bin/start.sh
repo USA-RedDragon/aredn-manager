@@ -61,7 +61,11 @@ ip rule add pref 30290 lookup 31
 
 mkdir -p /etc/arednlink
 echo "${NODE_IP} ${SERVER_NAME}" >> /etc/arednlink/hosts
-touch /etc/arednlink/services
+if [ -n "$SUPERNODE" ]; then
+    echo "${NODE_IP} supernode.${SERVER_NAME}.local.mesh" >> /etc/arednlink/hosts
+fi
+echo "${NODE_IP} dtdlink.${SERVER_NAME}.local.mesh" >> /etc/arednlink/hosts
+echo "http://${SERVER_NAME}/|tcp|${SERVER_NAME}-console" >> /etc/arednlink/services
 
 sleep 3
 
