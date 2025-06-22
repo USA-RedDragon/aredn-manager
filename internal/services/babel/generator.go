@@ -48,8 +48,10 @@ func Generate(config *config.Config, db *gorm.DB) string {
 	for _, iface := range tunnelInterfaces {
 		ret += fmt.Sprintf("interface %s type tunnel\n", iface)
 		ret += fmt.Sprintf("interface %s rxcost 206\n", iface)
-		ret += fmt.Sprintf("interface %s enable-timestamps true\n", iface)
-		ret += fmt.Sprintf("interface %s max-rtt-penalty 150\n", iface)
+		ret += fmt.Sprintf("interface %s hello-interval 10\n", iface)
+		ret += fmt.Sprintf("interface %s rtt-min 10\n", iface)
+		ret += fmt.Sprintf("interface %s rtt-max 400\n", iface)
+		ret += fmt.Sprintf("interface %s max-rtt-penalty 400\n", iface)
 		ret += fmt.Sprintf("redistribute anyproto if %s deny\n", iface)
 	}
 
