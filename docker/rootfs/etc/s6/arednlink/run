@@ -11,7 +11,7 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 isolation=""
-if [ "$SUPERNODE" = "1" ]; then
+if [ "$SUPERNODE" = "true" ]; then
   isolation="isolate br-dtdlink"
 fi
 
