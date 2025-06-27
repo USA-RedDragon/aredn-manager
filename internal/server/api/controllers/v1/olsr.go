@@ -5,16 +5,15 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/gin-gonic/gin"
 )
 
 func GETOLSRHosts(c *gin.Context) {
-	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("GETOLSRHosts: OLSRDHostParser not found in context")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -48,50 +47,41 @@ func GETOLSRHosts(c *gin.Context) {
 		filter = ""
 	}
 
-	total := olsrdParser.GetHostsCount()
+	total := di.OLSRHostsParser.GetHostsCount()
 
-	nodes := olsrdParser.GetHostsPaginated(page, limit, filter)
+	nodes := di.OLSRHostsParser.GetHostsPaginated(page, limit, filter)
 	c.JSON(http.StatusOK, gin.H{"nodes": nodes, "total": total})
 }
 
 func GETOLSRHostsCount(c *gin.Context) {
-	olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("GETOLSRHostsCount: OLSRDHostParser not found in context")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	servicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsr.ServicesParser)
-	if !ok {
-		slog.Error("GETOLSRHostsCount: OLSRDServicesParser not found in context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
-	}
-
-	c.JSON(http.StatusOK, gin.H{"nodes": olsrdParser.GetAREDNHostsCount(), "total": olsrdParser.GetTotalHostsCount(), "services": servicesParser.GetServicesCount()})
+	c.JSON(http.StatusOK, gin.H{
+		"nodes":    di.OLSRHostsParser.GetAREDNHostsCount(),
+		"total":    di.OLSRHostsParser.GetTotalHostsCount(),
+		"services": di.OLSRServicesParser.GetServicesCount(),
+	})
 }
 
 func GETOLSRRunning(c *gin.Context) {
-	registry, ok := c.MustGet("registry").(*services.Registry)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("Error getting registry")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
-	}
-	config, ok := c.MustGet("Config").(*config.Config)
-	if !ok {
-		slog.Error("Error getting config")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	if !config.OLSR {
+	if !di.Config.OLSR {
 		c.JSON(http.StatusOK, gin.H{"running": false})
 		return
 	}
 
-	olsrService, ok := registry.Get(services.OLSRServiceName)
+	olsrService, ok := di.ServiceRegistry.Get(services.OLSRServiceName)
 	if !ok {
 		slog.Error("Error getting OLSR service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})

@@ -5,16 +5,15 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/arednlink"
 	"github.com/gin-gonic/gin"
 )
 
 func GETBabelHosts(c *gin.Context) {
-	arednlinkParser, ok := c.MustGet("AREDNLinkParser").(*arednlink.Parser)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("GETBabelHosts: AREDNLinkParser not found in context")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
@@ -48,44 +47,42 @@ func GETBabelHosts(c *gin.Context) {
 		filter = ""
 	}
 
-	total := arednlinkParser.GetHostsCount()
+	total := di.AREDNLinkParser.GetHostsCount()
 
-	nodes := arednlinkParser.GetHostsPaginated(page, limit, filter)
+	nodes := di.AREDNLinkParser.GetHostsPaginated(page, limit, filter)
 	c.JSON(http.StatusOK, gin.H{"nodes": nodes, "total": total})
 }
 
 func GETBabelHostsCount(c *gin.Context) {
-	arednlinkParser, ok := c.MustGet("AREDNLinkParser").(*arednlink.Parser)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("GETBabelHostsCount: AREDNLinkParser not found in context")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"nodes": arednlinkParser.GetAREDNHostsCount(), "total": arednlinkParser.GetTotalHostsCount(), "services": arednlinkParser.GetServiceCount()})
+	c.JSON(http.StatusOK, gin.H{
+		"nodes":    di.AREDNLinkParser.GetAREDNHostsCount(),
+		"total":    di.AREDNLinkParser.GetTotalHostsCount(),
+		"services": di.AREDNLinkParser.GetServiceCount(),
+	})
 }
 
 func GETBabelRunning(c *gin.Context) {
-	registry, ok := c.MustGet("registry").(*services.Registry)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("Error getting registry")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
-	}
-	config, ok := c.MustGet("Config").(*config.Config)
-	if !ok {
-		slog.Error("Error getting config")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	if !config.Babel.Enabled {
+	if !di.Config.Babel.Enabled {
 		slog.Info("Babel service is not enabled in the configuration")
 		c.JSON(http.StatusOK, gin.H{"running": false})
 		return
 	}
 
-	babelService, ok := registry.Get(services.BabelServiceName)
+	babelService, ok := di.ServiceRegistry.Get(services.BabelServiceName)
 	if !ok {
 		slog.Error("Error getting Babel service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})

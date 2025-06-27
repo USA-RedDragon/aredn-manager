@@ -117,21 +117,25 @@ func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services
 		pprof.Register(r)
 	}
 
-	// DBs
-	r.Use(middleware.ConfigProvider(s.config))
-	r.Use(middleware.DatabaseProvider(s.db))
+	var di = &middleware.DepInjection{
+		Config:           s.config,
+		DB:               s.db,
+		NetworkStats:     s.stats,
+		ServiceRegistry:  registry,
+		Version:          version,
+		WireguardManager: s.wireguardManager,
+	}
+
 	if s.config.Babel.Enabled {
-		r.Use(middleware.AREDNLinkParserProvider(arednlink.NewParser()))
+		di.AREDNLinkParser = arednlink.NewParser()
 	}
 	if s.config.OLSR {
-		r.Use(middleware.OLSRDProvider(olsr.NewHostsParser()))
-		r.Use(middleware.OLSRDServicesProvider(olsr.NewServicesParser()))
+		di.OLSRHostsParser = olsr.NewHostsParser()
+		di.OLSRServicesParser = olsr.NewServicesParser()
 	}
-	r.Use(middleware.WireguardManagerProvider(s.wireguardManager))
-	r.Use(middleware.NetworkStats(s.stats))
-	r.Use(middleware.PaginatedDatabaseProvider(s.db, middleware.PaginationConfig{}))
-	r.Use(middleware.VersionProvider(version))
-	r.Use(middleware.ServiceRegistryProvider(registry))
+
+	r.Use(middleware.Inject(di))
+
 
 	// CORS
 	corsConfig := cors.DefaultConfig()

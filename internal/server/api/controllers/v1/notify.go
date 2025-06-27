@@ -4,9 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/arednlink"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/gin-gonic/gin"
 )
 
@@ -17,13 +16,14 @@ func POSTNotify(c *gin.Context) {
 		return
 	}
 
-	registry, ok := c.MustGet("registry").(*services.Registry)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("POSTNotify: Error getting registry")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
-	dnsmasqService, ok := registry.Get(services.DNSMasqServiceName)
+
+	dnsmasqService, ok := di.ServiceRegistry.Get(services.DNSMasqServiceName)
 	if !ok {
 		slog.Error("POSTNotify: Error getting DNSMasq service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -38,27 +38,14 @@ func POSTNotify(c *gin.Context) {
 	}
 
 	go func() {
-		olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
-		if !ok {
-			slog.Error("POSTNotify: OLSRDHostParser not found in context")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-			return
-		}
-		err := olsrdParser.Parse()
+		err := di.OLSRHostsParser.Parse()
 		if err != nil {
 			slog.Error("POSTNotify: Error parsing hosts", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing hosts"})
 			return
 		}
 
-		olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsr.ServicesParser)
-		if !ok {
-			slog.Error("POSTNotify: OLSRDServicesParser not found in context")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-			return
-		}
-
-		err = olsrdServicesParser.Parse()
+		err = di.OLSRServicesParser.Parse()
 		if err != nil {
 			slog.Error("POSTNotify: Error parsing services", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing services"})
@@ -77,13 +64,13 @@ func POSTNotifyBabel(c *gin.Context) {
 	}
 
 	go func() {
-		arednlinkParser, ok := c.MustGet("AREDNLinkParser").(*arednlink.Parser)
+		di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 		if !ok {
-			slog.Error("POSTNotifyBabel: AREDNLinkParser not found in context")
+			slog.Error("Unable to get dependencies from context")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
-		err := arednlinkParser.Parse()
+		err := di.AREDNLinkParser.Parse()
 		if err != nil {
 			slog.Error("POSTNotifyBabel: Error parsing", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing"})
