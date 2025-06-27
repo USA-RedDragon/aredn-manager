@@ -4,22 +4,22 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
+	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 func GETStats(c *gin.Context) {
-	stats, ok := c.MustGet("NetworkStats").(*bandwidth.StatCounterManager)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("GETStats: Unable to get stats manager from context")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 	statsJSON := gin.H{
-		"total_rx_mb":            stats.TotalRXMB,
-		"total_tx_mb":            stats.TotalTXMB,
-		"total_rx_bytes_per_sec": stats.TotalRXBandwidth,
-		"total_tx_bytes_per_sec": stats.TotalTXBandwidth,
+		"total_rx_mb":            di.NetworkStats.TotalRXMB,
+		"total_tx_mb":            di.NetworkStats.TotalTXMB,
+		"total_rx_bytes_per_sec": di.NetworkStats.TotalRXBandwidth,
+		"total_tx_bytes_per_sec": di.NetworkStats.TotalTXBandwidth,
 	}
 	c.JSON(http.StatusOK, gin.H{"stats": statsJSON})
 }

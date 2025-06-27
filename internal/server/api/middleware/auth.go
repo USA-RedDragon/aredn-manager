@@ -10,7 +10,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"gorm.io/gorm"
 )
 
 func RequireLogin() gin.HandlerFunc {
@@ -54,15 +53,14 @@ func RequireLogin() gin.HandlerFunc {
 
 		valid := true
 		// Open up the DB and check if the user exists
-		db, ok := c.MustGet("DB").(*gorm.DB)
+		di, ok := c.MustGet(DepInjectionKey).(*DepInjection)
 		if !ok {
-			slog.Error("RequireLogin: Unable to get DB from context")
-			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Authentication failed"})
+			slog.Error("Unable to get dependencies from context")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
-		db = db.WithContext(ctx)
 		var user models.User
-		db.Find(&user, "id = ?", uid)
+		di.DB.Find(&user, "id = ?", uid)
 		if user.CreatedAt.IsZero() {
 			valid = false
 		}

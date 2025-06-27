@@ -1,18 +1,20 @@
 package v1
 
 import (
+	"log/slog"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 func GETGridsqure(c *gin.Context) {
-	config, ok := c.MustGet("Config").(*config.Config)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Unable to get config"})
+		slog.Error("Unable to get dependencies from context")
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"gridsquare": config.Gridsquare})
+	c.JSON(http.StatusOK, gin.H{"gridsquare": di.Config.Gridsquare})
 }

@@ -7,18 +7,19 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/gin-gonic/gin"
 )
 
 func GETVersion(c *gin.Context) {
-	version, ok := c.MustGet("Version").(string)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("GETVersion: Unable to get version from context")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	_, err := io.WriteString(c.Writer, version)
+	_, err := io.WriteString(c.Writer, di.Version)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Error getting version"})
 	}

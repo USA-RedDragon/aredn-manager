@@ -13,13 +13,12 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
+	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
 	"github.com/USA-RedDragon/aredn-manager/internal/utils"
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
 func GETMesh(c *gin.Context) {
@@ -31,14 +30,14 @@ func GetAMesh(c *gin.Context) {
 }
 
 func GETMetrics(c *gin.Context) {
-	config, ok := c.MustGet("Config").(*config.Config)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("GETMetrics: Unable to get Config from context")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	if !config.Metrics.Enabled {
+	if !di.Config.Metrics.Enabled {
 		c.JSON(http.StatusGone, gin.H{"error": "Metrics are not enabled"})
 		return
 	}
@@ -47,7 +46,7 @@ func GETMetrics(c *gin.Context) {
 		Timeout: 5 * time.Second,
 	}
 
-	hostPort := net.JoinHostPort(config.Metrics.NodeExporterHost, "9100")
+	hostPort := net.JoinHostPort(di.Config.Metrics.NodeExporterHost, "9100")
 
 	req, err := http.NewRequestWithContext(c.Request.Context(), http.MethodGet, fmt.Sprintf("http://%s/metrics", hostPort), nil)
 	if err != nil {
@@ -71,7 +70,7 @@ func GETMetrics(c *gin.Context) {
 		n, err = nodeResp.Body.Read(buf)
 	}
 
-	hostPort = net.JoinHostPort("localhost", fmt.Sprintf("%d", config.Metrics.Port))
+	hostPort = net.JoinHostPort("localhost", fmt.Sprintf("%d", di.Config.Metrics.Port))
 
 	req, err = http.NewRequestWithContext(c.Request.Context(), http.MethodGet, fmt.Sprintf("http://%s/metrics", hostPort), nil)
 	if err != nil {
@@ -100,28 +99,14 @@ func GETMetrics(c *gin.Context) {
 }
 
 func GETSysinfo(c *gin.Context) {
-	db, ok := c.MustGet("DB").(*gorm.DB)
+	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
-		slog.Error("GETSysinfo: Unable to get DB from context")
+		slog.Error("Unable to get dependencies from context")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
 
-	version, ok := c.MustGet("Version").(string)
-	if !ok {
-		slog.Error("GETSysinfo: Unable to get version from context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
-	}
-
-	config, ok := c.MustGet("Config").(*config.Config)
-	if !ok {
-		slog.Error("GETSysinfo: Unable to get Config from context")
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-		return
-	}
-
-	activeTunnels, err := models.CountAllActiveTunnels(db)
+	activeTunnels, err := models.CountAllActiveTunnels(di.DB)
 	if err != nil {
 		slog.Error("GETSysinfo: Unable to get active tunnels", "error", err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
@@ -155,8 +140,8 @@ func GETSysinfo(c *gin.Context) {
 	doLinkInfo := linkInfoStr == "1"
 
 	sysinfo := apimodels.SysinfoResponse{
-		Longitude: config.Longitude,
-		Latitude:  config.Latitude,
+		Longitude: di.Config.Longitude,
+		Latitude:  di.Config.Latitude,
 		Sysinfo: apimodels.Sysinfo{
 			Uptime: utils.SecondsToClock(info.Uptime),
 			Loadavg: [3]float64{
@@ -169,16 +154,16 @@ func GETSysinfo(c *gin.Context) {
 		MeshRF: apimodels.MeshRF{
 			Status: "off",
 		},
-		Gridsquare: config.Gridsquare,
-		Node:       config.ServerName,
+		Gridsquare: di.Config.Gridsquare,
+		Node:       di.Config.ServerName,
 		NodeDetails: apimodels.NodeDetails{
-			MeshSupernode:        config.Supernode,
+			MeshSupernode:        di.Config.Supernode,
 			Description:          "AREDN Cloud Tunnel",
 			Model:                "Virtual",
 			MeshGateway:          "1",
 			BoardID:              "0x0000",
 			FirmwareManufacturer: "github.com/USA-RedDragon/aredn-manager",
-			FirmwareVersion:      version,
+			FirmwareVersion:      di.Version,
 		},
 		Tunnels: apimodels.Tunnels{
 			ActiveTunnelCount: activeTunnels,
@@ -190,23 +175,11 @@ func GETSysinfo(c *gin.Context) {
 	}
 
 	if doHosts {
-		olsrdParser, ok := c.MustGet("OLSRDHostParser").(*olsr.HostsParser)
-		if !ok {
-			slog.Error("GETSysinfo: OLSRDHostParser not found in context")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-			return
-		}
-		sysinfo.Hosts = getHosts(olsrdParser)
+		sysinfo.Hosts = getHosts(di.OLSRHostsParser)
 	}
 
 	if doServices {
-		olsrdServicesParser, ok := c.MustGet("OLSRDServicesParser").(*olsr.ServicesParser)
-		if !ok {
-			slog.Error("GETSysinfo: OLSRDServicesParser not found in context")
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
-			return
-		}
-		sysinfo.Services = getServices(olsrdServicesParser)
+		sysinfo.Services = getServices(di.OLSRServicesParser)
 	}
 
 	if doLinkInfo {
