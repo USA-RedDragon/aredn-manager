@@ -12,7 +12,9 @@ import (
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
 	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
 	"github.com/USA-RedDragon/aredn-manager/internal/services"
+	"github.com/USA-RedDragon/aredn-manager/internal/services/babel"
 	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
+	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
@@ -233,6 +235,7 @@ func POSTTunnel(c *gin.Context) {
 		return
 	}
 
+	var tunnel models.Tunnel
 	var json apimodels.CreateTunnel
 	err := c.ShouldBindJSON(&json)
 	if err != nil {
@@ -258,7 +261,6 @@ func POSTTunnel(c *gin.Context) {
 			}
 
 			// Check if the hostname is already taken
-			var tunnel models.Tunnel
 			err := di.DB.Find(&tunnel, "hostname = ? AND wireguard = ?", json.Hostname, json.Wireguard).Error
 			if err != nil {
 				slog.Error("POSTTunnel: Error getting tunnel", "error", err)
@@ -405,7 +407,6 @@ func POSTTunnel(c *gin.Context) {
 			}
 
 			// Check if the IP is already taken
-			var tunnel models.Tunnel
 			err = di.DB.Find(&tunnel, "ip = ?", json.IP).Error
 			if err != nil {
 				slog.Error("POSTTunnel: Error getting tunnel", "error", err)
@@ -485,6 +486,29 @@ func POSTTunnel(c *gin.Context) {
 			if err != nil {
 				slog.Error("POSTTunnel: Error reloading olsrd", "error", err)
 				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
+				return
+			}
+		}
+
+		if di.Config.Babel.Enabled {
+			babelServiceIface, ok := di.ServiceRegistry.Get(services.BabelServiceName)
+			if !ok {
+				slog.Error("POSTTunnel: Error getting Babel service")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+				return
+			}
+
+			babelService, ok := babelServiceIface.(*babel.Service)
+			if !ok {
+				slog.Error("POSTTunnel: Error asserting Babel service")
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+				return
+			}
+
+			err = babelService.AddTunnel(wireguard.GenerateWireguardInterfaceName(tunnel))
+			if err != nil {
+				slog.Error("POSTTunnel: Error adding Babel tunnel", "error", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "Error adding Babel tunnel"})
 				return
 			}
 		}
@@ -761,6 +785,29 @@ func DELETETunnel(c *gin.Context) {
 		if err != nil {
 			slog.Error("Error reloading olsrd", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error reloading olsrd"})
+			return
+		}
+	}
+
+	if di.Config.Babel.Enabled {
+		babelServiceIface, ok := di.ServiceRegistry.Get(services.BabelServiceName)
+		if !ok {
+			slog.Error("DELETETunnel: Error getting Babel service")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+
+		babelService, ok := babelServiceIface.(*babel.Service)
+		if !ok {
+			slog.Error("DELETETunnel: Error asserting Babel service")
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
+			return
+		}
+
+		err = babelService.RemoveTunnel(wireguard.GenerateWireguardInterfaceName(tunnel))
+		if err != nil {
+			slog.Error("DELETETunnel: Error removing Babel tunnel", "error", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error removing Babel tunnel"})
 			return
 		}
 	}
