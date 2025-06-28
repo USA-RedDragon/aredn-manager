@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"syscall"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/utils"
+	"github.com/USA-RedDragon/mesh-manager/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 

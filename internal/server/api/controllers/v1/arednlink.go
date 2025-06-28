@@ -4,8 +4,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
-	"github.com/USA-RedDragon/aredn-manager/internal/services"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/middleware"
+	"github.com/USA-RedDragon/mesh-manager/internal/services"
 	"github.com/gin-gonic/gin"
 )
 

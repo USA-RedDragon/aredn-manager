@@ -35,8 +35,7 @@ RUN apk add --no-cache \
 
 COPY --chown=root:root docker/rootfs/. /
 
-# AREDN Manager runs OLSRD on its own
 RUN rm -rf /etc/s6/olsrd
 
-COPY aredn-manager /usr/bin/aredn-manager
+COPY mesh-manager /usr/bin/mesh-manager
 CMD ["bash", "/usr/bin/start.sh"]

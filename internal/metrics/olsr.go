@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
+	"github.com/USA-RedDragon/mesh-manager/internal/db/models"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/apimodels"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"gorm.io/gorm"

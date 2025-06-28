@@ -5,7 +5,7 @@ import (
 	"net"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
 	"gorm.io/gorm"
 )
 
@@ -184,7 +184,7 @@ func GetNextWireguardPort(db *gorm.DB, config *config.Config) (uint16, error) {
 	}
 	// We need to find the next available port.
 	// We can do this by finding the highest port, and adding 1 to it.
-	var highestPort uint16 = config.Wireguard.StartingPort - 1
+	highestPort := config.Wireguard.StartingPort - 1
 	for _, tunnel := range tunnels {
 		if tunnel.WireguardPort > highestPort {
 			highestPort = tunnel.WireguardPort

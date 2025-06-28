@@ -7,10 +7,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
-	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
-	"github.com/USA-RedDragon/aredn-manager/internal/events"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
+	"github.com/USA-RedDragon/mesh-manager/internal/bandwidth"
+	"github.com/USA-RedDragon/mesh-manager/internal/db/models"
+	"github.com/USA-RedDragon/mesh-manager/internal/events"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/apimodels"
 	"golang.zx2c4.com/wireguard/wgctrl"
 	"gorm.io/gorm"
 )
@@ -223,10 +223,10 @@ func (w *Watcher) findTunnel(iface net.Interface) *models.Tunnel {
 			}
 		} else if strings.HasPrefix(iface.Name, "tun") {
 			var err error
-			ip[3] -= 2 // AREDN tunnel IPs are always the interface IP - 2 if a client
+			ip[3] -= 2 // tunnel IPs are always the interface IP - 2 if a client
 			tun, err = models.FindTunnelByIP(w.db, ip)
 			if err != nil {
-				ip[3]++ // AREDN tunnel IPs are always the interface IP - 1 if a server
+				ip[3]++ // tunnel IPs are always the interface IP - 1 if a server
 				tun, err = models.FindTunnelByIP(w.db, ip)
 				if err != nil {
 					slog.Error("Error finding tunnel by IP", "ip", ip.String(), "error", err)
@@ -288,8 +288,8 @@ func (w *Watcher) reconcileDB() {
 				w.eventChannel <- events.Event{
 					Type: events.EventTypeTunnelConnection,
 					Data: apimodels.WebsocketTunnelConnect{
-						ID:     iface.AssociatedTunnel.ID,
-						Client: iface.AssociatedTunnel.Client,
+						ID:             iface.AssociatedTunnel.ID,
+						Client:         iface.AssociatedTunnel.Client,
 						ConnectionTime: iface.AssociatedTunnel.ConnectionTime,
 					},
 				}

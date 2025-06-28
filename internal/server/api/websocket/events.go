@@ -6,8 +6,8 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/events"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/websocket"
+	"github.com/USA-RedDragon/mesh-manager/internal/events"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/websocket"
 	"github.com/gin-contrib/sessions"
 	gorillaWebsocket "github.com/gorilla/websocket"
 )

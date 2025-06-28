@@ -5,12 +5,12 @@ import (
 	"time"
 
 	ratelimit "github.com/JGLTechnologies/gin-rate-limit"
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
-	"github.com/USA-RedDragon/aredn-manager/internal/events"
-	v1Controllers "github.com/USA-RedDragon/aredn-manager/internal/server/api/controllers/v1"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
-	websocketControllers "github.com/USA-RedDragon/aredn-manager/internal/server/api/websocket"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/websocket"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
+	"github.com/USA-RedDragon/mesh-manager/internal/events"
+	v1Controllers "github.com/USA-RedDragon/mesh-manager/internal/server/api/controllers/v1"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/middleware"
+	websocketControllers "github.com/USA-RedDragon/mesh-manager/internal/server/api/websocket"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/websocket"
 	"github.com/gin-gonic/gin"
 )
 

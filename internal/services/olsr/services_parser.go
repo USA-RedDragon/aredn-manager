@@ -10,14 +10,14 @@ import (
 
 const servicesFile = "/var/run/services_olsr"
 
-type AREDNService struct {
+type MeshService struct {
 	URL        string `json:"url"`
 	Protocol   string `json:"protocol"`
 	Name       string `json:"name"`
 	ShouldLink bool   `json:"should_link"`
 }
 
-func (s *AREDNService) String() string {
+func (s *MeshService) String() string {
 	ret := ""
 	ret += fmt.Sprintf("%s:\n\t", s.Name)
 	ret += fmt.Sprintf("%s\t%s", s.Protocol, s.URL)
@@ -25,7 +25,7 @@ func (s *AREDNService) String() string {
 }
 
 type ServicesParser struct {
-	currentServices []*AREDNService
+	currentServices []*MeshService
 }
 
 func NewServicesParser() *ServicesParser {
@@ -45,11 +45,11 @@ func (p *ServicesParser) Parse() (err error) {
 	return
 }
 
-func (p *ServicesParser) GetServices() []*AREDNService {
+func (p *ServicesParser) GetServices() []*MeshService {
 	return p.currentServices
 }
 
-func parseServices() (ret []*AREDNService, err error) {
+func parseServices() (ret []*MeshService, err error) {
 	servicesFile, err := os.ReadFile(servicesFile)
 	if err != nil {
 		return
@@ -87,7 +87,7 @@ func parseServices() (ret []*AREDNService, err error) {
 			continue
 		}
 
-		service := &AREDNService{
+		service := &MeshService{
 			URL:        url.String(),
 			Protocol:   split[1],
 			Name:       split[2],

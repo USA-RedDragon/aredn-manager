@@ -5,7 +5,7 @@ import (
 	"math"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/mesh-manager/internal/db/models"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel/attribute"

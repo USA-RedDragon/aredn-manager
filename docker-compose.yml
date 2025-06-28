@@ -6,7 +6,7 @@ services:
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
-      - POSTGRES_USER=arednnode
+      - POSTGRES_USER=mesh_manager
       - POSTGRES_PASSWORD=password
     healthcheck:
       test:
@@ -21,7 +21,7 @@ services:
         docker-entrypoint.sh postgres &
         rm -f /initialized.txt || true &&
         until pg_isready -U $${POSTGRES_USER}; do sleep 3; done &&
-        psql -U $${POSTGRES_USER} -d postgres -c 'CREATE DATABASE arednnode_supernode;' || true &&
+        psql -U $${POSTGRES_USER} -d postgres -c 'CREATE DATABASE mesh_manager_supernode;' || true &&
         echo done > /initialized.txt &&
         wait",
       ]
@@ -31,7 +31,7 @@ services:
       - 5432:5432
 
   node-exporter:
-    container_name: node-exporter-aredn
+    container_name: node-exporter
     image: quay.io/prometheus/node-exporter:latest
     restart: unless-stopped
     privileged: true
@@ -51,7 +51,7 @@ services:
       - --collector.filesystem.mount-points-exclude='^/(dev|proc|sys|var/lib/docker/.+|var/lib/kubelet/.+)($|/)'
       - --collector.filesystem.fs-types-exclude='^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|iso9660|mqueue|nsfs|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|selinuxfs|squashfs|sysfs|tracefs)$'
 
-  aredn-cloud-tunnel:
+  cloud-tunnel:
     container_name: tunnel
     build: .
     restart: unless-stopped
@@ -62,9 +62,9 @@ services:
       - net.ipv6.conf.all.disable_ipv6=0
     environment:
       - POSTGRES_HOST=postgres
-      - POSTGRES_USER=arednnode
+      - POSTGRES_USER=mesh_manager
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DATABASE=arednnode
+      - POSTGRES_DATABASE=mesh_manager
       - SESSION_SECRET=session
       - PASSWORD_SALT=saltysalt
       - DISABLE_MAP=1
@@ -84,22 +84,22 @@ services:
       - default
       - dtd
 
-  aredn-cloud-tunnel-supernode:
+  cloud-tunnel-supernode:
     container_name: supernode
     build: .
     restart: unless-stopped
     cap_add:
       - NET_ADMIN
     depends_on:
-      - aredn-cloud-tunnel
+      - cloud-tunnel
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=0
     privileged: true
     environment:
       - POSTGRES_HOST=postgres
-      - POSTGRES_USER=arednnode
+      - POSTGRES_USER=mesh_manager
       - POSTGRES_PASSWORD=password
-      - POSTGRES_DATABASE=arednnode_supernode
+      - POSTGRES_DATABASE=mesh_manager_supernode
       - SESSION_SECRET=session
       - PASSWORD_SALT=saltysalt
       - SERVER_NAME=KI5VMF-TEST-SUPERNODE

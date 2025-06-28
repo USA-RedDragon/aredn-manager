@@ -82,7 +82,7 @@ const columns: ColumnDef<Node>[] = [
 const data = ref<Node[]>([])
 const loading = ref(false)
 const devicesCount = ref(0)
-const arednNodesCount = ref(0)
+const nodesCount = ref(0)
 const totalRecords = ref(0)
 const limit = ref(10)
 
@@ -95,7 +95,7 @@ async function fetchData(page=0, limit=10) {
   const api = props.babel ? '/babel' : '/olsr';
   API.get(`${api}/hosts/count`)
     .then((res) => {
-      arednNodesCount.value = res.data.nodes;
+      nodesCount.value = res.data.nodes;
       devicesCount.value = res.data.total;
     })
     .catch((err) => {
@@ -152,7 +152,7 @@ onMounted(() => {
 
 <template>
   <div class="mx-auto">
-    <DataTable 
+    <DataTable
       :columns="columns"
       :data="data"
       pagination

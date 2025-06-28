@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
-	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
-	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
+	"github.com/USA-RedDragon/mesh-manager/internal/db/models"
+	"github.com/USA-RedDragon/mesh-manager/internal/wireguard"
 	"gorm.io/gorm"
 )
 

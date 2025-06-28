@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -14,13 +14,13 @@ import (
 
 //nolint:gochecknoglobals
 var (
-	AREDNMeshRF = promauto.NewGauge(prometheus.GaugeOpts{
+	MeshRF = promauto.NewGauge(prometheus.GaugeOpts{
 		Name: "node_details_meshrf",
-		Help: "AREDN Mesh RF Enabled",
+		Help: "Mesh RF Enabled",
 	})
-	AREDNInfo = promauto.NewGaugeVec(prometheus.GaugeOpts{
+	Info = promauto.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "node_aredn_info",
-		Help: "AREDN Node Info",
+		Help: "Node Info",
 	}, []string{
 		"board_id",
 		"description",
@@ -37,10 +37,10 @@ var (
 func CreateMetricsServer(config *config.Config, version string) {
 	if config.Metrics.Enabled {
 		// We don't use RF, so we set it to 0
-		AREDNMeshRF.Set(0)
-		AREDNInfo.WithLabelValues(
+		MeshRF.Set(0)
+		Info.WithLabelValues(
 			"0x0000",
-			"AREDN Cloud Tunnel",
+			"Cloud Tunnel",
 			version,
 			config.Gridsquare,
 			config.Latitude,

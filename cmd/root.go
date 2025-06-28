@@ -5,15 +5,15 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/configulator"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
 	"github.com/lmittmann/tint"
 	"github.com/spf13/cobra"
 )
 
 func NewCommand(version, commit string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:     "aredn-manager",
+		Use:     "mesh-manager",
 		Version: fmt.Sprintf("%s - %s", version, commit),
 		Annotations: map[string]string{
 			"version": version,
@@ -32,7 +32,7 @@ func NewCommand(version, commit string) *cobra.Command {
 
 func runRoot(cmd *cobra.Command, _ []string) error {
 	ctx := cmd.Context()
-	fmt.Printf("aredn-manager - %s (%s)\n", cmd.Annotations["version"], cmd.Annotations["commit"])
+	fmt.Printf("mesh-manager - %s (%s)\n", cmd.Annotations["version"], cmd.Annotations["commit"])
 
 	c, err := configulator.FromContext[config.Config](ctx)
 	if err != nil {

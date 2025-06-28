@@ -13,8 +13,8 @@ type WebsocketTunnelStats struct {
 }
 
 type WebsocketTunnelConnect struct {
-	ID     uint `json:"id"`
-	Client bool `json:"client"`
+	ID             uint      `json:"id"`
+	Client         bool      `json:"client"`
 	ConnectionTime time.Time `json:"connection_time"`
 }
 
