@@ -1,81 +1,48 @@
 package babel
 
 import (
-	"bufio"
 	"fmt"
 	"net"
-	"regexp"
-	"strings"
-
-	"golang.org/x/exp/slog"
 )
 
 const (
 	socketPath = "/var/run/babel.sock"
 )
 
-type Client struct {
-}
-
-// NewSocketClient creates a new SocketClient
-func NewClient() (*Client, error) {
-	return &Client{}, nil
-}
-
-// Close closes the connection to the UNIX socket
-func (c *Client) Close() error {
-	return nil
-}
-
-type Interface struct {
-	Name string
-	IPv4 net.IP
-	IPv6 net.IP
-}
-
-func (c *Client) GetInterfaces() ([]Interface, error) {
-	dumpInterfaces := []byte("dump-interfaces\nquit\n")
-	var ifaces []Interface
-
+func (s *Service) AddTunnel(iface string) error {
 	conn, err := net.Dial("unix", socketPath)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to connect to socket: %w", err)
 	}
 	defer conn.Close()
 
-	scanner := bufio.NewScanner(conn)
-
-	n, err := conn.Write(dumpInterfaces)
+	tun := []byte(GenerateTunnelLine(iface))
+	n, err := conn.Write(tun)
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("failed to write to socket: %w", err)
 	}
-	if n != len(dumpInterfaces) {
-		return nil, fmt.Errorf("failed to write all bytes to socket")
-	}
-
-	for scanner.Scan() {
-		line := scanner.Text()
-		// Process the line
-		if !strings.HasPrefix(line, "add interface") {
-			continue
-		}
-		ifacePuller := regexp.MustCompile(`interface\s([a-zA-Z0-9-]*)\s.*ipv6\s(.*)\sipv4\s(.*)`)
-		matches := ifacePuller.FindStringSubmatch(line)
-		if len(matches) != 4 {
-			slog.Warn("failed to parse interface line", "line", line)
-			continue
-		}
-
-		ifaces = append(ifaces, Interface{
-			Name: matches[1],
-			IPv6: net.ParseIP(matches[2]),
-			IPv4: net.ParseIP(matches[3]),
-		})
+	if n != len(tun) {
+		return fmt.Errorf("failed to write all bytes to socket")
 	}
 
-	if err := scanner.Err(); err != nil {
-		return nil, err
+	return nil
+}
+
+func (s *Service) RemoveTunnel(iface string) error {
+	conn, err := net.Dial("unix", socketPath)
+	if err != nil {
+		return fmt.Errorf("failed to connect to socket: %w", err)
+	}
+	defer conn.Close()
+
+	tun := []byte("flush interface " + iface + "\n")
+	n, err := conn.Write(tun)
+	if err != nil {
+		return fmt.Errorf("failed to write to socket: %w", err)
+	}
+	if n != len(tun) {
+		return fmt.Errorf("failed to write all bytes to socket")
 	}
 
-	return ifaces, nil
+	return nil
 }
