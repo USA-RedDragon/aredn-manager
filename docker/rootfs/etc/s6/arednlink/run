@@ -1,10 +1,10 @@
 #!/bin/sh
 
 cleanup() {
-  echo "Stopping arednlink..."
-  if [ -f /var/run/arednlink.pid ]; then
-    kill $(cat /var/run/arednlink.pid) || true
-    rm -f /var/run/arednlink.pid
+  echo "Stopping meshlink..."
+  if [ -f /var/run/meshlink.pid ]; then
+    kill $(cat /var/run/meshlink.pid) || true
+    rm -f /var/run/meshlink.pid
     exit 0
   fi
 }
@@ -15,19 +15,19 @@ if [ "$SUPERNODE" = "true" ]; then
   isolation="isolate br-dtdlink"
 fi
 
-arednlink \
-  -C "upload hosts /etc/arednlink/hosts" \
-  -C "upload services /etc/arednlink/services" \
-  -C "upload publish /etc/arednlink/publish" \
-  -C "upload subscribe /etc/arednlink/subscribe" \
+meshlink \
+  -C "upload hosts /etc/meshlink/hosts" \
+  -C "upload services /etc/meshlink/services" \
+  -C "upload publish /etc/meshlink/publish" \
+  -C "upload subscribe /etc/meshlink/subscribe" \
   -C "signal hosts mesh-manager notify-babel" \
   -C "signal services mesh-manager notify-babel" \
   -C "${isolation}" &
 pid=$!
-echo -n "$pid" > /var/run/arednlink.pid
+echo -n "$pid" > /var/run/meshlink.pid
 wait $pid
 ret=$?
 if [ $ret -ne 0 ]; then
-  echo "arednlink exited with code $ret"
+  echo "meshlink exited with code $ret"
   exit $ret
 fi

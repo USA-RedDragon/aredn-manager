@@ -14,7 +14,7 @@
     @page="onPage($event)"
   >
     <template #header>
-        <p>Found {{ this.arednNodesCount }} nodes and {{ this.devicesCount }} total devices.</p>
+        <p>Found {{ this.nodesCount }} nodes and {{ this.devicesCount }} total devices.</p>
         <br />
         <div class="flex justify-content-between">
             <PVButton type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />
@@ -94,7 +94,7 @@ export default {
       totalRecords: 0,
       filters: null,
       page: 1,
-      arednNodesCount: 0,
+      nodesCount: 0,
       devicesCount: 0,
     };
   },
@@ -130,7 +130,7 @@ export default {
       const api = this.babel ? '/babel' : '/olsr';
       API.get(`${api}/hosts/count`)
         .then((res) => {
-          this.arednNodesCount = res.data.nodes;
+          this.nodesCount = res.data.nodes;
           this.devicesCount = res.data.total;
         })
         .catch((err) => {

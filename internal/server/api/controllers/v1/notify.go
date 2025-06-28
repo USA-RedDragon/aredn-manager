@@ -70,7 +70,7 @@ func POSTNotifyBabel(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 			return
 		}
-		err := di.AREDNLinkParser.Parse()
+		err := di.MeshLinkParser.Parse()
 		if err != nil {
 			slog.Error("POSTNotifyBabel: Error parsing", "error", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Error parsing"})

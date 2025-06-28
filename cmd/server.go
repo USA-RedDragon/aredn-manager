@@ -15,9 +15,9 @@ import (
 	"github.com/USA-RedDragon/mesh-manager/internal/metrics"
 	"github.com/USA-RedDragon/mesh-manager/internal/server"
 	"github.com/USA-RedDragon/mesh-manager/internal/services"
-	"github.com/USA-RedDragon/mesh-manager/internal/services/arednlink"
 	"github.com/USA-RedDragon/mesh-manager/internal/services/babel"
 	"github.com/USA-RedDragon/mesh-manager/internal/services/dnsmasq"
+	"github.com/USA-RedDragon/mesh-manager/internal/services/meshlink"
 	"github.com/USA-RedDragon/mesh-manager/internal/services/olsr"
 	"github.com/USA-RedDragon/mesh-manager/internal/wireguard"
 	"github.com/spf13/cobra"
@@ -67,7 +67,7 @@ func runServer(cmd *cobra.Command, _ []string) error {
 	}
 	if config.Babel.Enabled {
 		serviceRegistry.Register(services.BabelServiceName, babel.NewService(config))
-		serviceRegistry.Register(services.AREDNLinkServiceName, arednlink.NewService(config))
+		serviceRegistry.Register(services.MeshLinkServiceName, meshlink.NewService(config))
 	}
 	serviceRegistry.Register(services.DNSMasqServiceName, dnsmasq.NewService(config))
 

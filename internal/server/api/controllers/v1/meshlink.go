@@ -9,7 +9,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GETAREDNLinkRunning(c *gin.Context) {
+func GETMeshLinkRunning(c *gin.Context) {
 	di, ok := c.MustGet(middleware.DepInjectionKey).(*middleware.DepInjection)
 	if !ok {
 		slog.Error("Unable to get dependencies from context")
@@ -22,11 +22,11 @@ func GETAREDNLinkRunning(c *gin.Context) {
 		return
 	}
 
-	arednLinkService, ok := di.ServiceRegistry.Get(services.AREDNLinkServiceName)
+	meshLinkService, ok := di.ServiceRegistry.Get(services.MeshLinkServiceName)
 	if !ok {
-		slog.Error("Error getting AREDNLink service")
+		slog.Error("Error getting MeshLink service")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Try again later"})
 		return
 	}
-	c.JSON(http.StatusOK, gin.H{"running": arednLinkService.IsRunning()})
+	c.JSON(http.StatusOK, gin.H{"running": meshLinkService.IsRunning()})
 }

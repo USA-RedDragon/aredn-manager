@@ -1,4 +1,4 @@
-package arednlink
+package meshlink
 
 import (
 	"syscall"
@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	pidFile = "/var/run/arednlink.pid"
+	pidFile = "/var/run/meshlink.pid"
 )
 
 type Service struct {

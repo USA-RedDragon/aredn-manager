@@ -4,7 +4,7 @@ import (
 	"github.com/USA-RedDragon/mesh-manager/internal/bandwidth"
 	"github.com/USA-RedDragon/mesh-manager/internal/config"
 	"github.com/USA-RedDragon/mesh-manager/internal/services"
-	"github.com/USA-RedDragon/mesh-manager/internal/services/arednlink"
+	"github.com/USA-RedDragon/mesh-manager/internal/services/meshlink"
 	"github.com/USA-RedDragon/mesh-manager/internal/services/olsr"
 	"github.com/USA-RedDragon/mesh-manager/internal/wireguard"
 	"github.com/gin-gonic/gin"
@@ -12,7 +12,7 @@ import (
 )
 
 type DepInjection struct {
-	AREDNLinkParser    *arednlink.Parser
+	MeshLinkParser     *meshlink.Parser
 	Config             *config.Config
 	DB                 *gorm.DB
 	PaginatedDB        *gorm.DB

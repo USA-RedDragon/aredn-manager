@@ -1,4 +1,4 @@
-package arednlink
+package meshlink
 
 import (
 	"fmt"
@@ -13,8 +13,8 @@ import (
 	"sync/atomic"
 )
 
-const hostsDir = "/var/run/arednlink/hosts"
-const servicesDir = "/var/run/arednlink/services"
+const hostsDir = "/var/run/meshlink/hosts"
+const servicesDir = "/var/run/meshlink/services"
 
 type Parser struct {
 	currentHosts []*Host
