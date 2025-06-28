@@ -47,9 +47,9 @@ func GETBabelHosts(c *gin.Context) {
 		filter = ""
 	}
 
-	total := di.AREDNLinkParser.GetHostsCount()
+	total := di.MeshLinkParser.GetHostsCount()
 
-	nodes := di.AREDNLinkParser.GetHostsPaginated(page, limit, filter)
+	nodes := di.MeshLinkParser.GetHostsPaginated(page, limit, filter)
 	c.JSON(http.StatusOK, gin.H{"nodes": nodes, "total": total})
 }
 
@@ -62,9 +62,9 @@ func GETBabelHostsCount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"nodes":    di.AREDNLinkParser.GetNodeHostsCount(),
-		"total":    di.AREDNLinkParser.GetTotalHostsCount(),
-		"services": di.AREDNLinkParser.GetServiceCount(),
+		"nodes":    di.MeshLinkParser.GetNodeHostsCount(),
+		"total":    di.MeshLinkParser.GetTotalHostsCount(),
+		"services": di.MeshLinkParser.GetServiceCount(),
 	})
 }
 

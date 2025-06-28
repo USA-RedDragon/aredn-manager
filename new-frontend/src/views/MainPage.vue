@@ -38,10 +38,10 @@
               </tr>
               <tr>
                 <td>
-                  <p style="font-weight: bold;">arednlink</p>
+                  <p style="font-weight: bold;">meshlink</p>
                 </td>
                 <td>
-                  <StatusBadge :status="arednLinkRunning" />
+                  <StatusBadge :status="meshLinkRunning" />
                 </td>
               </tr>
               <tr>
@@ -197,7 +197,7 @@ export default {
       babelRunning: true,
       olsrdRunning: true,
       dnsRunning: true,
-      arednLinkRunning: true,
+      meshLinkRunning: true,
       wireguardTunnelsConnected: 0,
       totalWireguardTunnels: 0,
       wireguardClientTunnelsConnected: 0,
@@ -314,8 +314,8 @@ export default {
       API.get('/dns/running').then((res) => {
         this.dnsRunning = res.data.running;
       });
-      API.get('/arednlink/running').then((res) => {
-        this.arednLinkRunning = res.data.running;
+      API.get('/meshlink/running').then((res) => {
+        this.meshLinkRunning = res.data.running;
       });
       API.get('/tunnels/wireguard/count/connected').then((res) => {
         this.wireguardTunnelsConnected = res.data.count;

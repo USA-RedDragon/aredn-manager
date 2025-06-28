@@ -59,13 +59,13 @@ ip rule add pref 30260 lookup main
 ip rule add pref 30280 lookup 28
 ip rule add pref 30290 lookup 31
 
-mkdir -p /etc/arednlink
-echo "${NODE_IP} ${SERVER_NAME}" >> /etc/arednlink/hosts
+mkdir -p /etc/meshlink
+echo "${NODE_IP} ${SERVER_NAME}" >> /etc/meshlink/hosts
 if [ -n "$SUPERNODE" ]; then
-    echo "${NODE_IP} supernode.${SERVER_NAME}.local.mesh" >> /etc/arednlink/hosts
+    echo "${NODE_IP} supernode.${SERVER_NAME}.local.mesh" >> /etc/meshlink/hosts
 fi
-echo "${NODE_IP} dtdlink.${SERVER_NAME}.local.mesh" >> /etc/arednlink/hosts
-echo "http://${SERVER_NAME}/|tcp|${SERVER_NAME}-console" >> /etc/arednlink/services
+echo "${NODE_IP} dtdlink.${SERVER_NAME}.local.mesh" >> /etc/meshlink/hosts
+echo "http://${SERVER_NAME}/|tcp|${SERVER_NAME}-console" >> /etc/meshlink/services
 
 sleep 3
 

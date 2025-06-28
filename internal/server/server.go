@@ -15,7 +15,7 @@ import (
 	"github.com/USA-RedDragon/mesh-manager/internal/server/api"
 	"github.com/USA-RedDragon/mesh-manager/internal/server/api/middleware"
 	"github.com/USA-RedDragon/mesh-manager/internal/services"
-	"github.com/USA-RedDragon/mesh-manager/internal/services/arednlink"
+	"github.com/USA-RedDragon/mesh-manager/internal/services/meshlink"
 	"github.com/USA-RedDragon/mesh-manager/internal/services/olsr"
 	"github.com/USA-RedDragon/mesh-manager/internal/wireguard"
 	"github.com/gin-contrib/cors"
@@ -127,7 +127,7 @@ func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services
 	}
 
 	if s.config.Babel.Enabled {
-		di.AREDNLinkParser = arednlink.NewParser()
+		di.MeshLinkParser = meshlink.NewParser()
 	}
 	if s.config.OLSR {
 		di.OLSRHostsParser = olsr.NewHostsParser()

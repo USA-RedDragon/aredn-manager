@@ -39,13 +39,13 @@ func ApplyRoutes(router *gin.Engine, eventsChannel chan events.Event, config *co
 	apiV1.Use(ratelimitMW)
 	v1(apiV1, config)
 
-	arednCompat(router, ratelimitMW)
+	meshCompat(router, ratelimitMW)
 
 	ws := router.Group("/ws")
 	ws.GET("/events", websocket.CreateHandler(websocketControllers.CreateEventsWebsocket(eventsChannel), config))
 }
 
-func arednCompat(router *gin.Engine, ratelimitMW gin.HandlerFunc) {
+func meshCompat(router *gin.Engine, ratelimitMW gin.HandlerFunc) {
 	router.GET("/cgi-bin/sysinfo.json", ratelimitMW, v1Controllers.GETSysinfo)
 	router.GET("/cgi-bin/metrics", ratelimitMW, v1Controllers.GETMetrics)
 	router.GET("/cgi-bin/mesh", ratelimitMW, v1Controllers.GETMesh)
@@ -95,8 +95,8 @@ func v1(group *gin.RouterGroup, config *config.Config) {
 	v1DNS := group.Group("/dns")
 	v1DNS.GET("/running", v1Controllers.GETDNSRunning)
 
-	v1AREDNLink := group.Group("/arednlink")
-	v1AREDNLink.GET("/running", v1Controllers.GETAREDNLinkRunning)
+	v1MeshLink := group.Group("/meshlink")
+	v1MeshLink.GET("/running", v1Controllers.GETMeshLinkRunning)
 
 	v1Tunnels := group.Group("/tunnels")
 	// Paginated
