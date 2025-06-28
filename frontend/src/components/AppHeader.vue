@@ -1,7 +1,7 @@
 <template>
   <header>
     <h1>
-      <RouterLink to="/">AREDN Cloud Node Console</RouterLink>
+      <RouterLink to="/">Cloud Node Console</RouterLink>
     </h1>
     <div class="wrapper">
       <nav>

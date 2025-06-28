@@ -9,15 +9,15 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/bandwidth"
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
-	"github.com/USA-RedDragon/aredn-manager/internal/events"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
-	"github.com/USA-RedDragon/aredn-manager/internal/services"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/arednlink"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
-	"github.com/USA-RedDragon/aredn-manager/internal/wireguard"
+	"github.com/USA-RedDragon/mesh-manager/internal/bandwidth"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
+	"github.com/USA-RedDragon/mesh-manager/internal/events"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/middleware"
+	"github.com/USA-RedDragon/mesh-manager/internal/services"
+	"github.com/USA-RedDragon/mesh-manager/internal/services/arednlink"
+	"github.com/USA-RedDragon/mesh-manager/internal/services/olsr"
+	"github.com/USA-RedDragon/mesh-manager/internal/wireguard"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/pprof"
 	"github.com/gin-contrib/sessions"
@@ -135,7 +135,6 @@ func (s *Server) addMiddleware(r *gin.Engine, version string, registry *services
 	}
 
 	r.Use(middleware.Inject(di))
-
 
 	// CORS
 	corsConfig := cors.DefaultConfig()

@@ -1,4 +1,4 @@
-module github.com/USA-RedDragon/aredn-manager
+module github.com/USA-RedDragon/mesh-manager
 
 go 1.24.4
 

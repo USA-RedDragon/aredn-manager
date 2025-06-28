@@ -4,7 +4,7 @@ import (
 	"math"
 	"strconv"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/pagination"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/pagination"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )

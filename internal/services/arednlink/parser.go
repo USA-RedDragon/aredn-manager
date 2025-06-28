@@ -17,19 +17,19 @@ const hostsDir = "/var/run/arednlink/hosts"
 const servicesDir = "/var/run/arednlink/services"
 
 type Parser struct {
-	currentHosts    []*AREDNHost
-	arednNodesCount int
-	totalCount      int
-	serviceCount    int
-	isParsing       atomic.Bool
-	needParse       atomic.Bool // set if we get a call to Parse() while already parsing. We'll run Parse() again after the current parse is done to ensure we have the latest data
+	currentHosts []*Host
+	nodesCount   int
+	totalCount   int
+	serviceCount int
+	isParsing    atomic.Bool
+	needParse    atomic.Bool // set if we get a call to Parse() while already parsing. We'll run Parse() again after the current parse is done to ensure we have the latest data
 }
 
 func NewParser() *Parser {
 	return &Parser{}
 }
 
-func (p *Parser) GetHosts() []*AREDNHost {
+func (p *Parser) GetHosts() []*Host {
 	return p.currentHosts
 }
 
@@ -41,16 +41,16 @@ func (p *Parser) GetServiceCount() int {
 	return p.serviceCount
 }
 
-func (p *Parser) GetAREDNHostsCount() int {
-	return p.arednNodesCount
+func (p *Parser) GetNodeHostsCount() int {
+	return p.nodesCount
 }
 
 func (p *Parser) GetTotalHostsCount() int {
-	return p.totalCount + p.arednNodesCount
+	return p.totalCount + p.nodesCount
 }
 
-func (p *Parser) GetHostsPaginated(page int, limit int, filter string) []*AREDNHost {
-	ret := []*AREDNHost{}
+func (p *Parser) GetHostsPaginated(page int, limit int, filter string) []*Host {
+	ret := []*Host{}
 	for _, host := range p.currentHosts {
 		filter = strings.ToLower(filter)
 		hostNameLower := strings.ToLower(host.Hostname)
@@ -61,7 +61,7 @@ func (p *Parser) GetHostsPaginated(page int, limit int, filter string) []*AREDNH
 	start := (page - 1) * limit
 	end := start + limit
 	if start > len(ret) {
-		return []*AREDNHost{}
+		return []*Host{}
 	}
 	if end > len(ret) {
 		end = len(ret)
@@ -75,12 +75,12 @@ func (p *Parser) Parse() (err error) {
 		return
 	}
 	p.isParsing.Store(true)
-	hosts, arednCount, totalCount, serviceCount, err := parseHosts()
+	hosts, nodeCount, totalCount, serviceCount, err := parseHosts()
 	if err != nil {
 		return
 	}
 	p.isParsing.Store(false)
-	p.arednNodesCount = arednCount
+	p.nodesCount = nodeCount
 	p.totalCount = totalCount
 	p.currentHosts = hosts
 	p.serviceCount = serviceCount
@@ -98,12 +98,12 @@ func (p *Parser) Parse() (err error) {
 }
 
 type HostData struct {
-	Hostname string          `json:"hostname"`
-	IP       net.IP          `json:"ip"`
-	Services []*AREDNService `json:"services"`
+	Hostname string         `json:"hostname"`
+	IP       net.IP         `json:"ip"`
+	Services []*MeshService `json:"services"`
 }
 
-type AREDNService struct {
+type MeshService struct {
 	URL        string `json:"url"`
 	Protocol   string `json:"protocol"`
 	Name       string `json:"name"`
@@ -111,22 +111,22 @@ type AREDNService struct {
 	Tag        string `json:"type"`
 }
 
-func (s *AREDNService) String() string {
+func (s *MeshService) String() string {
 	ret := fmt.Sprintf("%s:\n\t", s.Name)
 	ret += fmt.Sprintf("%s\t%s", s.Protocol, s.URL)
 	return ret
 }
 
-type AREDNHost struct {
+type Host struct {
 	HostData
 	Children []HostData `json:"children"`
 }
 
-func (h *AREDNHost) addChild(child HostData) {
+func (h *Host) addChild(child HostData) {
 	h.Children = append(h.Children, child)
 }
 
-func (h *AREDNHost) String() string {
+func (h *Host) String() string {
 	ret := fmt.Sprintf("%s: %s\n", h.Hostname, h.IP)
 	for _, child := range h.Children {
 		ret += fmt.Sprintf("\t%s: %s\n", child.Hostname, child.IP)
@@ -135,11 +135,11 @@ func (h *AREDNHost) String() string {
 }
 
 var (
-	regexAredn  = regexp.MustCompile(`\s[^\.]+$`)
+	regexMesh   = regexp.MustCompile(`\s[^\.]+$`)
 	taggedRegex = regexp.MustCompile(`^(.*)\s+\[(.*)\]$`)
 )
 
-func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCount int, err error) {
+func parseHosts() (ret []*Host, count int, totalCount int, serviceCount int, err error) {
 	err = fs.WalkDir(os.DirFS(hostsDir), ".", func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			slog.Error("Error reading hosts directory", "error", err)
@@ -160,7 +160,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 
 		totalCount++
 
-		var arednHost *AREDNHost
+		var host *Host
 
 		for _, line := range strings.Split(string(entries), "\n") {
 			// Ignore empty lines
@@ -172,27 +172,27 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 
 			fields := strings.Fields(line)
 			if len(fields) < 2 {
-				slog.Warn("parseHosts: Invalid AREDN host entry", "file", file, "line", line)
+				slog.Warn("parseHosts: Invalid host entry", "file", file, "line", line)
 				continue
 			}
 
-			if regexAredn.Match([]byte(line)) && arednHost == nil {
-				slog.Debug("parseHosts: Found AREDN host entry", "file", file, "line", line)
-				arednHost = &AREDNHost{
+			if regexMesh.Match([]byte(line)) && host == nil {
+				slog.Debug("parseHosts: Found host entry", "file", file, "line", line)
+				host = &Host{
 					HostData: HostData{
 						Hostname: strings.TrimSpace(fields[1]),
 						IP:       net.ParseIP(strings.TrimSpace(fields[0])),
 					},
 				}
-				if arednHost.IP == nil {
+				if host.IP == nil {
 					slog.Warn("parseHosts: Invalid IP in hosts file", "file", file, "line", line)
 					continue
 				}
 				// Check if the same base filename exists under the services directory
-				servicesFile := filepath.Join(servicesDir, arednHost.IP.To4().String())
+				servicesFile := filepath.Join(servicesDir, host.IP.To4().String())
 				if services, err := os.ReadFile(servicesFile); err == nil {
-					slog.Debug("parseHosts: Found services file for AREDN host", "file", servicesFile)
-					var servicesList []*AREDNService
+					slog.Debug("parseHosts: Found services file for host", "file", servicesFile)
+					var servicesList []*MeshService
 					for _, svcLine := range strings.Split(string(services), "\n") {
 						line := strings.TrimSpace(svcLine)
 
@@ -226,7 +226,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 							tag = matches[2]
 						}
 
-						service := &AREDNService{
+						service := &MeshService{
 							URL:        url.String(),
 							Protocol:   split[1],
 							Name:       name,
@@ -238,15 +238,15 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 
 						servicesList = append(servicesList, service)
 					}
-					arednHost.HostData.Services = append(arednHost.HostData.Services, servicesList...)
+					host.Services = append(host.Services, servicesList...)
 				}
 			} else {
 				slog.Debug("parseHosts: Found child host entry", "file", file, "line", line)
-				if arednHost == nil {
-					slog.Warn("parseHosts: Found a host entry without a parent AREDN host", "line", line)
+				if host == nil {
+					slog.Warn("parseHosts: Found a host entry without a parent host", "line", line)
 					continue
 				}
-				// This is a child of the last AREDN host
+				// This is a child of the last host
 				child := HostData{
 					Hostname: strings.TrimSuffix(strings.TrimSpace(fields[1]), ".local.mesh"),
 					IP:       net.ParseIP(strings.TrimSpace(fields[0])),
@@ -261,13 +261,13 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, serviceCoun
 					strings.HasPrefix(child.Hostname, "supernode.") {
 					continue
 				}
-				arednHost.addChild(child)
+				host.addChild(child)
 			}
 		}
 
-		if arednHost != nil {
-			ret = append(ret, arednHost)
-			arednCount++
+		if host != nil {
+			ret = append(ret, host)
+			count++
 		}
 		return nil
 	})

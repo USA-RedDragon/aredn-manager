@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/configulator"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
 	"github.com/spf13/cobra"
 )
 

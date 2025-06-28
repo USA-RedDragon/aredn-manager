@@ -1,24 +1,24 @@
 ---
-project_name: aredn-manager
+project_name: mesh-manager
 
 release:
   github:
     owner: USA-RedDragon
-    name: aredn-manager
+    name: mesh-manager
   skip_upload: true
 
 dockers:
   - image_templates:
-      - "ghcr.io/usa-reddragon/aredn-manager:{{ .Tag }}-amd64"
-      - "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}-amd64"
-      - "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}.{{ .Minor }}-amd64"
-      - "ghcr.io/usa-reddragon/aredn-manager:latest-amd64"
+      - "ghcr.io/usa-reddragon/mesh-manager:{{ .Tag }}-amd64"
+      - "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}-amd64"
+      - "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}.{{ .Minor }}-amd64"
+      - "ghcr.io/usa-reddragon/mesh-manager:latest-amd64"
     use: buildx
     goarch: amd64
     extra_files:
-    - docker/rootfs
-    - frontend
-    - new-frontend
+      - docker/rootfs
+      - frontend
+      - new-frontend
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -30,16 +30,16 @@ dockers:
       - --label=org.opencontainers.image.source=https://github.com/USA-RedDragon/{{ .ProjectName }}
       - "--platform=linux/amd64"
   - image_templates:
-      - "ghcr.io/usa-reddragon/aredn-manager:{{ .Tag }}-arm64"
-      - "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}-arm64"
-      - "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}.{{ .Minor }}-arm64"
-      - "ghcr.io/usa-reddragon/aredn-manager:latest-arm64"
+      - "ghcr.io/usa-reddragon/mesh-manager:{{ .Tag }}-arm64"
+      - "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}-arm64"
+      - "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}.{{ .Minor }}-arm64"
+      - "ghcr.io/usa-reddragon/mesh-manager:latest-arm64"
     use: buildx
     goarch: arm64
     extra_files:
-    - docker/rootfs
-    - frontend
-    - new-frontend
+      - docker/rootfs
+      - frontend
+      - new-frontend
     build_flag_templates:
       - "--pull"
       - "--label=org.opencontainers.image.created={{.Date}}"
@@ -52,26 +52,26 @@ dockers:
       - "--platform=linux/arm64"
 
 docker_manifests:
-  - name_template: "ghcr.io/usa-reddragon/aredn-manager:{{ .Tag }}"
+  - name_template: "ghcr.io/usa-reddragon/mesh-manager:{{ .Tag }}"
     image_templates:
-      - "ghcr.io/usa-reddragon/aredn-manager:{{ .Tag }}-amd64"
-      - "ghcr.io/usa-reddragon/aredn-manager:{{ .Tag }}-arm64"
-  - name_template: "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}"
+      - "ghcr.io/usa-reddragon/mesh-manager:{{ .Tag }}-amd64"
+      - "ghcr.io/usa-reddragon/mesh-manager:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}"
     image_templates:
-      - "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}-amd64"
-      - "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}-arm64"
-  - name_template: "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}.{{ .Minor }}"
+      - "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}-amd64"
+      - "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}-arm64"
+  - name_template: "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}.{{ .Minor }}"
     image_templates:
-      - "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}.{{ .Minor }}-amd64"
-      - "ghcr.io/usa-reddragon/aredn-manager:v{{ .Major }}.{{ .Minor }}-arm64"
-  - name_template: "ghcr.io/usa-reddragon/aredn-manager:latest"
+      - "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}.{{ .Minor }}-amd64"
+      - "ghcr.io/usa-reddragon/mesh-manager:v{{ .Major }}.{{ .Minor }}-arm64"
+  - name_template: "ghcr.io/usa-reddragon/mesh-manager:latest"
     image_templates:
-      - "ghcr.io/usa-reddragon/aredn-manager:latest-amd64"
-      - "ghcr.io/usa-reddragon/aredn-manager:latest-arm64"
+      - "ghcr.io/usa-reddragon/mesh-manager:latest-amd64"
+      - "ghcr.io/usa-reddragon/mesh-manager:latest-arm64"
 
 builds:
   - main: .
-    binary: aredn-manager
+    binary: mesh-manager
     goos:
       - linux
     goarch:

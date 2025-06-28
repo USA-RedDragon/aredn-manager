@@ -69,8 +69,7 @@ echo "http://${SERVER_NAME}/|tcp|${SERVER_NAME}-console" >> /etc/arednlink/servi
 
 sleep 3
 
-# Run the AREDN manager
-aredn-manager generate
+mesh-manager generate
 
 # We need the syslog started early
 rsyslogd -n &

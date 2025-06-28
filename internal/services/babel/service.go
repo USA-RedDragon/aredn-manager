@@ -4,8 +4,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
-	"github.com/USA-RedDragon/aredn-manager/internal/utils"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
+	"github.com/USA-RedDragon/mesh-manager/internal/utils"
 )
 
 const (

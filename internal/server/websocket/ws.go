@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"

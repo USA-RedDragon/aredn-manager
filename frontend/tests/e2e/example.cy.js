@@ -3,6 +3,6 @@
 describe('My First Test', () => {
   it('visits the app root url', () => {
     cy.visit('/');
-    cy.contains('h1 a', 'AREDN Cloud Node Console');
+    cy.contains('h1 a', 'Cloud Node Console');
   });
 });

@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
-	"github.com/USA-RedDragon/aredn-manager/internal/events"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
+	"github.com/USA-RedDragon/mesh-manager/internal/db/models"
+	"github.com/USA-RedDragon/mesh-manager/internal/events"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/apimodels"
 	"github.com/vishvananda/netlink"
 	"golang.org/x/sync/errgroup"
 	"gorm.io/gorm"

@@ -20,8 +20,8 @@ arednlink \
   -C "upload services /etc/arednlink/services" \
   -C "upload publish /etc/arednlink/publish" \
   -C "upload subscribe /etc/arednlink/subscribe" \
-  -C "signal hosts aredn-manager notify-babel" \
-  -C "signal services aredn-manager notify-babel" \
+  -C "signal hosts mesh-manager notify-babel" \
+  -C "signal services mesh-manager notify-babel" \
   -C "${isolation}" &
 pid=$!
 echo -n "$pid" > /var/run/arednlink.pid

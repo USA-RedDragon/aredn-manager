@@ -13,11 +13,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
-	"github.com/USA-RedDragon/aredn-manager/internal/services/olsr"
-	"github.com/USA-RedDragon/aredn-manager/internal/utils"
+	"github.com/USA-RedDragon/mesh-manager/internal/db/models"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/apimodels"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/middleware"
+	"github.com/USA-RedDragon/mesh-manager/internal/services/olsr"
+	"github.com/USA-RedDragon/mesh-manager/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 
@@ -158,11 +158,11 @@ func GETSysinfo(c *gin.Context) {
 		Node:       di.Config.ServerName,
 		NodeDetails: apimodels.NodeDetails{
 			MeshSupernode:        di.Config.Supernode,
-			Description:          "AREDN Cloud Tunnel",
+			Description:          "Cloud Tunnel",
 			Model:                "Virtual",
 			MeshGateway:          "1",
 			BoardID:              "0x0000",
-			FirmwareManufacturer: "github.com/USA-RedDragon/aredn-manager",
+			FirmwareManufacturer: "github.com/USA-RedDragon/mesh-manager",
 			FirmwareVersion:      di.Version,
 		},
 		Tunnels: apimodels.Tunnels{

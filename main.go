@@ -5,9 +5,9 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/USA-RedDragon/aredn-manager/cmd"
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
 	"github.com/USA-RedDragon/configulator"
+	"github.com/USA-RedDragon/mesh-manager/cmd"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
 )
 
 // https://goreleaser.com/cookbooks/using-main.version/

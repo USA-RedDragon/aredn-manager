@@ -10,8 +10,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
-	"github.com/USA-RedDragon/aredn-manager/internal/utils"
+	"github.com/USA-RedDragon/mesh-manager/internal/db/models"
+	"github.com/USA-RedDragon/mesh-manager/internal/utils"
 	"github.com/phayes/freeport"
 	"github.com/vishvananda/netlink"
 	"golang.org/x/sync/errgroup"

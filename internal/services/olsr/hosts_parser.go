@@ -14,17 +14,17 @@ import (
 const hostsFile = "/var/run/hosts_olsr"
 
 type HostsParser struct {
-	currentHosts    []*AREDNHost
-	arednNodesCount int
-	totalCount      int
-	isParsing       atomic.Bool
+	currentHosts []*Host
+	nodesCount   int
+	totalCount   int
+	isParsing    atomic.Bool
 }
 
 func NewHostsParser() *HostsParser {
 	return &HostsParser{}
 }
 
-func (p *HostsParser) GetHosts() []*AREDNHost {
+func (p *HostsParser) GetHosts() []*Host {
 	return p.currentHosts
 }
 
@@ -32,16 +32,16 @@ func (p *HostsParser) GetHostsCount() int {
 	return len(p.currentHosts)
 }
 
-func (p *HostsParser) GetAREDNHostsCount() int {
-	return p.arednNodesCount
+func (p *HostsParser) GetMeshHostsCount() int {
+	return p.nodesCount
 }
 
 func (p *HostsParser) GetTotalHostsCount() int {
-	return p.totalCount + p.arednNodesCount
+	return p.totalCount + p.nodesCount
 }
 
-func (p *HostsParser) GetHostsPaginated(page int, limit int, filter string) []*AREDNHost {
-	ret := []*AREDNHost{}
+func (p *HostsParser) GetHostsPaginated(page int, limit int, filter string) []*Host {
+	ret := []*Host{}
 	for _, host := range p.currentHosts {
 		filter = strings.ToLower(filter)
 		hostNameLower := strings.ToLower(host.Hostname)
@@ -52,7 +52,7 @@ func (p *HostsParser) GetHostsPaginated(page int, limit int, filter string) []*A
 	start := (page - 1) * limit
 	end := start + limit
 	if start > len(ret) {
-		return []*AREDNHost{}
+		return []*Host{}
 	}
 	if end > len(ret) {
 		end = len(ret)
@@ -66,23 +66,23 @@ func (p *HostsParser) Parse() (err error) {
 	}
 	p.isParsing.Store(true)
 	defer p.isParsing.Store(false)
-	hosts, arednCount, totalCount, err := parseHosts()
+	hosts, hostsCount, totalCount, err := parseHosts()
 	if err != nil {
 		return
 	}
-	p.arednNodesCount = arednCount
+	p.nodesCount = hostsCount
 	p.totalCount = totalCount
 	p.currentHosts = hosts
 	return
 }
 
 type HostData struct {
-	Hostname string          `json:"hostname"`
-	IP       net.IP          `json:"ip"`
-	Services []*AREDNService `json:"services"`
+	Hostname string         `json:"hostname"`
+	IP       net.IP         `json:"ip"`
+	Services []*MeshService `json:"services"`
 }
 
-type AREDNHost struct {
+type Host struct {
 	HostData
 	Children []HostData `json:"children"`
 }
@@ -92,11 +92,11 @@ type orphans struct {
 	parent net.IP
 }
 
-func (h *AREDNHost) addChild(child HostData) {
+func (h *Host) addChild(child HostData) {
 	h.Children = append(h.Children, child)
 }
 
-func (h *AREDNHost) String() string {
+func (h *Host) String() string {
 	ret := fmt.Sprintf("%s: %s\n", h.Hostname, h.IP)
 	for _, child := range h.Children {
 		ret += fmt.Sprintf("\t%s: %s\n", child.Hostname, child.IP)
@@ -110,7 +110,7 @@ func (h *AREDNHost) String() string {
 // Lines with only whitespace or that are empty are ignored
 //
 //nolint:golint,gocyclo
-func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) {
+func parseHosts() (ret []*Host, count int, totalCount int, err error) {
 	hostsFile, err := os.ReadFile(hostsFile)
 	if err != nil {
 		return
@@ -162,7 +162,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 
 		if strings.Contains(split[1], ".") {
 			if regexp.MustCompile(`^dtdlink\.`).MatchString(split[1]) {
-				arednCount++
+				count++
 			}
 			continue
 		}
@@ -183,7 +183,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 		// If the parentIP is not the same as the IP, then we need to treat this as a child
 		if parentIP.String() != ip.String() {
 			// Find the parent
-			var parent *AREDNHost
+			var parent *Host
 			for _, host := range ret {
 				if host.IP.Equal(parentIP) {
 					parent = host
@@ -204,7 +204,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 			continue
 		}
 
-		host := &AREDNHost{
+		host := &Host{
 			HostData: HostData{
 				Hostname: split[1],
 				IP:       ip,
@@ -239,7 +239,7 @@ func parseHosts() (ret []*AREDNHost, arednCount int, totalCount int, err error) 
 	}
 
 	services := svcs.GetServices()
-	foundServices := []*AREDNService{}
+	foundServices := []*MeshService{}
 
 	// We need to go through the hosts and each of their children and add the services
 	// Remove the services from the servicesCopy list as we find them

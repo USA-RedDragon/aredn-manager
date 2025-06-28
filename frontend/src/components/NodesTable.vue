@@ -14,7 +14,7 @@
     @page="onPage($event)"
   >
     <template #header>
-        <p>Found {{ this.arednNodesCount }} AREDN nodes and {{ this.devicesCount }} total devices.</p>
+        <p>Found {{ this.arednNodesCount }} nodes and {{ this.devicesCount }} total devices.</p>
         <br />
         <div class="flex justify-content-between">
             <PVButton type="button" icon="pi pi-filter-slash" label="Clear" outlined @click="clearFilter()" />

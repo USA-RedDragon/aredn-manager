@@ -3,7 +3,7 @@ package v1
 import (
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/utils"
+	"github.com/USA-RedDragon/mesh-manager/internal/utils"
 	"github.com/gin-gonic/gin"
 )
 

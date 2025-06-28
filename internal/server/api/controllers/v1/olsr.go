@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/middleware"
-	"github.com/USA-RedDragon/aredn-manager/internal/services"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/middleware"
+	"github.com/USA-RedDragon/mesh-manager/internal/services"
 	"github.com/gin-gonic/gin"
 )
 
@@ -62,7 +62,7 @@ func GETOLSRHostsCount(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"nodes":    di.OLSRHostsParser.GetAREDNHostsCount(),
+		"nodes":    di.OLSRHostsParser.GetMeshHostsCount(),
 		"total":    di.OLSRHostsParser.GetTotalHostsCount(),
 		"services": di.OLSRServicesParser.GetServicesCount(),
 	})

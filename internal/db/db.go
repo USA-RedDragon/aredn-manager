@@ -7,8 +7,8 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/config"
-	"github.com/USA-RedDragon/aredn-manager/internal/db/models"
+	"github.com/USA-RedDragon/mesh-manager/internal/config"
+	"github.com/USA-RedDragon/mesh-manager/internal/db/models"
 	"github.com/glebarez/sqlite"
 	gorm_seeder "github.com/kachit/gorm-seeder"
 	"gorm.io/driver/postgres"

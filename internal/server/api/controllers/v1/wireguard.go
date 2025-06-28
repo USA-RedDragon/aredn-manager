@@ -4,7 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/USA-RedDragon/aredn-manager/internal/server/api/apimodels"
+	"github.com/USA-RedDragon/mesh-manager/internal/server/api/apimodels"
 	"github.com/gin-gonic/gin"
 	"golang.zx2c4.com/wireguard/wgctrl/wgtypes"
 )
