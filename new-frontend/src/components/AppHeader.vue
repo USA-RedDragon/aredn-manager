@@ -1,7 +1,7 @@
 <template>
   <header>
     <h1>
-      <RouterLink to="/">Cloud Node Console</RouterLink>
+      <RouterLink to="/">Node Console</RouterLink>
     </h1>
     <nav>
       <RouterLink to="/">Home</RouterLink>
